@@ -1,0 +1,23 @@
+# =============================================================================
+#  CRAZYSIM environment  (Python 3.11) — ISOLATED
+#
+#  CrazySim's Python clients — crazyflie-lib-python (cflib) and
+#  crazyflie-clients-python (cfclient) — pin `numpy>=1.20,<1.25`. That conflicts
+#  with the main env (crazyflow/jax/gym-pybullet-drones need numpy>=2), so the
+#  CrazySim Python tooling gets its own environment. The CrazySim *firmware* is
+#  C and builds separately (scripts/build_cpp.sh) — it does not use this venv.
+#
+#  The repos themselves are editable-installed later by setup_python_envs.sh;
+#  here we just pre-cache the heavy wheels (PyQt6 etc.).
+# =============================================================================
+numpy>=1.20,<1.25
+scipy
+pyusb
+libusb-package
+Jinja2
+
+# cfclient GUI stack (heavy — pre-cache so the editable install is fast)
+pyqt6
+pyqt6-sip
+pyqtgraph
+vispy

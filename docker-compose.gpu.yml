@@ -1,0 +1,17 @@
+# =============================================================================
+#  GPU override — add this ON TOP of docker-compose.yml on machines with an
+#  NVIDIA GPU (Windows + NVIDIA via WSL2, or a Linux GPU box):
+#
+#      docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+#  Requires the NVIDIA Container Toolkit on the host. Does NOT work on macOS.
+# =============================================================================
+services:
+  dev:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

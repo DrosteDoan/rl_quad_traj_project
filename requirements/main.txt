@@ -1,0 +1,55 @@
+# =============================================================================
+#  MAIN environment  (Python 3.11)
+#  Shared by: crazyflow, gym-pybullet-drones, RAPTOR_in_RotorPy, CrazySim tools.
+#  These all use the modern stack: NumPy 2, JAX/MuJoCo, gymnasium 1.2, PyTorch.
+#
+#  This file pre-installs the heavy wheels into the image. The repositories are
+#  editable-installed later (scripts/setup_python_envs.sh) and will pull in any
+#  remaining small deps. Keep version floors loose to let `pip install -e` win.
+# =============================================================================
+# PyTorch must match the host CUDA driver. The default PyPI torch now ships a
+# CUDA-13 build, which is too new for the RTX 2080 host (driver 12.6) and falls
+# back to CPU. Pin the cu126 build (also satisfies lsy_drone_racing's torch==2.8.0).
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+# --- crazyflow (simulator, JAX + MuJoCo MJX) ---
+numpy>=2.0.0
+scipy>=1.15
+jax[cuda12]>=0.7.0          # GPU build; on CPU-only machines pip still works, just slower
+mujoco>=3.3.0
+mujoco-mjx>=3.3.0
+gymnasium[mujoco]>=1.2.0
+imageio
+einops
+flax
+ml_collections
+casadi
+drone-models==0.1.0
+# crazyflow pins drone-controllers==0.2.0, but PyPI only has 0.1.0 — that version
+# lives only in git (crazyflow vendors it as a pixi submodule). Install from git.
+drone-controllers @ git+https://github.com/learnsyslab/drone-controllers.git
+
+# --- lsy_drone_racing (drone-racing task on top of crazyflow) ---
+warp-lang
+toml
+
+# --- gym-pybullet-drones (RL example) ---
+pybullet>=3.2.7
+stable-baselines3>=2.8
+transforms3d>=0.4
+control>=0.10.2
+
+# --- RAPTOR_in_RotorPy (example) ---
+rotorpy
+torch==2.8.0+cu126          # cu126 build — matches the RTX 2080 host driver (12.6)
+tensorboard
+
+# --- CrazySim python tooling ---
+Jinja2
+
+# --- shared utilities ---
+matplotlib>=3.10
+pandas
+fire
+tqdm
+rich

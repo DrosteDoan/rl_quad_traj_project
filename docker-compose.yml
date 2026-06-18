@@ -1,0 +1,43 @@
+# =============================================================================
+#  Base compose file — works on EVERY machine (Windows, Mac, Linux), CPU-only.
+#
+#  To enable the GPU (Windows with NVIDIA, or a Linux GPU box) ALSO pass the
+#  override file:
+#
+#      docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+#  macOS cannot use an NVIDIA GPU through Docker — always use THIS file alone.
+#  See docs/build-and-run.md.
+# =============================================================================
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Match the container user to you so edited files stay owned by you.
+        # (HOST_UID/HOST_GID — note: plain UID is read-only in bash.)
+        UID: "${HOST_UID:-1000}"
+        GID: "${HOST_GID:-1000}"
+        INSTALL_GAZEBO: "${INSTALL_GAZEBO:-false}"
+    image: rl-quad-traj:latest
+    container_name: rl_quad_traj
+    # Keep the container alive so you can `docker compose exec dev bash` into it.
+    command: sleep infinity
+    working_dir: /workspace
+    volumes:
+      # Mount THIS project folder (incl. ./repos) so edits on the host are live.
+      - ./:/workspace
+      # X11 socket for GUI viewers (Linux host; ignored elsewhere).
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=${DISPLAY:-host.docker.internal:0}
+      - QT_X11_NO_MITSHM=1
+      - PYTHONUNBUFFERED=1
+    # host networking simplifies SITL / ROS / tensorboard ports on Linux.
+    network_mode: "host"
+    # Needed by some viewers / GDB inside the container.
+    security_opt:
+      - seccomp:unconfined
+    stdin_open: true
+    tty: true
