@@ -20,7 +20,7 @@ it normally and rebuild from source.
 
 | Repository | Role | Built in |
 |---|---|---|
-| [crazyflow](https://github.com/learnsyslab/crazyflow) | **Main simulator** (MuJoCo / JAX) | main env (Py 3.11) |
+| [crazyflow](https://github.com/learnsyslab/crazyflow) | **Main simulator** (MuJoCo / JAX) | main env (Py 3.12) |
 | [CrazySim](https://github.com/gtfactslab/CrazySim) | SITL simulator (MuJoCo, firmware-in-the-loop) | C++ firmware + **crazysim** env |
 | [gym-pybullet-drones](https://github.com/learnsyslab/gym-pybullet-drones) | RL-with-quadrotor study example | main env |
 | [lsy_drone_racing](https://github.com/learnsyslab/lsy_drone_racing) | Drone-racing task built on crazyflow | main env |
@@ -36,12 +36,50 @@ so they can't share one environment. Inside the container, switch with
 
 | Env | Python | Holds | Stack |
 |---|---|---|---|
-| **`main`** | 3.11 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.2 |
+| **`main`** | 3.12 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.2 |
 | **`crazysim`** | 3.11 | CrazySim `cflib` + `cfclient` (talk to the SITL) | NumPy <1.25 (cflib's pin) |
 | **`datt`** | 3.10 | DATT | NumPy 1.23, old `gym` 0.21, PyTorch 1.13 |
 
 DATT isn't a pip package — it's used via `PYTHONPATH` (the setup script wires this
 up so `import DATT.*` just works in the `datt` env).
+
+---
+
+## Tasks
+
+Learning tasks live in **`tasks/`** as *content* (code + lessons + a README) that
+runs inside this one shared container — you don't build a new image per task.
+
+| Task | What it is |
+|---|---|
+| [`tasks/hovering`](tasks/hovering/README.md) | Learn RL by training a Crazyflie to hover (Stable-Baselines3 + crazyflow). Start here. |
+
+Each task's `README.md` tells you the one-time setup (e.g.
+`bash tasks/hovering/setup.sh` to install crazyflow into the `main` env) and how
+to run it.
+
+## CPU-only image
+
+The default image is GPU (CUDA). For a smaller image with no CUDA (any machine):
+
+```bash
+bash scripts/build_cpu.sh        # builds rl-quad-traj:cpu
+# or, with compose:
+docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --build
+```
+
+## GUI windows (3-D viewers, Linux)
+
+To see MuJoCo viewer windows from inside the container (e.g. `--render`), add the
+GUI override and allow X11 access first:
+
+```bash
+bash scripts/allow_gui.sh        # once per login (runs `xhost +local:`)
+docker compose -f docker-compose.yml -f docker-compose.gui.yml up -d   # add gpu file if GPU
+```
+
+It passes your `DISPLAY` through and switches MuJoCo to a windowed GL backend.
+The number-only output (no windows) works everywhere without this.
 
 ---
 

@@ -1,0 +1,9 @@
+# Pin the JAX stack to one consistent version across ALL installs (build-time
+# wheels here AND the editable repo installs in setup_python_envs.sh). Without
+# this, installing crazyflow/flax later can upgrade jax/jaxlib past the CUDA
+# plugin version, which breaks GPU linear algebra at runtime with:
+#   "No FFI handler registered for cusolver_getrf_ffi on a platform CUDA".
+jax==0.9.2
+jaxlib==0.9.2
+jax-cuda12-plugin==0.9.2
+jax-cuda12-pjrt==0.9.2

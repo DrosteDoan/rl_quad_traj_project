@@ -1,0 +1,24 @@
+# =============================================================================
+#  GUI override — show real 3-D viewer windows (MuJoCo) from inside the container.
+#
+#  Linux only. Combine it with the base file (and the gpu file if you have a GPU):
+#      xhost +local:                      # once per login: let the container reach X
+#      docker compose -f docker-compose.yml -f docker-compose.gpu.yml \
+#                     -f docker-compose.gui.yml up -d
+#      docker compose ... exec dev bash
+#      # inside: python -m k12_hover.eval_sb3 --model models/hover_PPO.zip --render
+#
+#  How it works: the base file already mounts the X11 socket (/tmp/.X11-unix) and
+#  uses host networking. This override passes your host DISPLAY through and tells
+#  MuJoCo to use a windowed GL backend (glfw) instead of the headless default (egl).
+#
+#  macOS/Windows: GUI passthrough differs (XQuartz / VcXsrv); the headless number
+#  output works everywhere without this file.
+# =============================================================================
+services:
+  dev:
+    environment:
+      - DISPLAY=${DISPLAY}
+      - MUJOCO_GL=glfw
+      - PYOPENGL_PLATFORM=glx
+      - QT_X11_NO_MITSHM=1

@@ -31,11 +31,15 @@ einstall() { # einstall <pip> <path[extra]>
   fi
 }
 
-echo "############ MAIN env (Python 3.11, numpy>=2) ############"
-einstall "$MAIN" "$REPOS/crazyflow"
-einstall "$MAIN" "$REPOS/gym-pybullet-drones"
-einstall "$MAIN" "$REPOS/lsy_drone_racing[sim]"   # [sim] pulls crazyflow, jax, warp-lang
-einstall "$MAIN" "$REPOS/RAPTOR_in_RotorPy"
+echo "############ MAIN env (Python 3.12, numpy>=2) ############"
+# Keep the JAX stack pinned so editable installs don't upgrade jaxlib past the
+# CUDA plugin (see requirements/constraints.txt).
+CONSTRAINTS="-c /tmp/requirements/constraints.txt"
+[ -f /tmp/requirements/constraints.txt ] || CONSTRAINTS=""
+einstall "$MAIN" "$REPOS/crazyflow" $CONSTRAINTS
+einstall "$MAIN" "$REPOS/gym-pybullet-drones" $CONSTRAINTS
+einstall "$MAIN" "$REPOS/lsy_drone_racing[sim]" $CONSTRAINTS   # [sim] pulls crazyflow, jax, warp-lang
+einstall "$MAIN" "$REPOS/RAPTOR_in_RotorPy" $CONSTRAINTS
 
 echo "############ CRAZYSIM env (Python 3.11, numpy<1.25) ############"
 # CrazySim sub-libraries have no .git in the submodule, so setuptools-scm needs

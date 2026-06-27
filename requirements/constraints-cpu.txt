@@ -1,0 +1,5 @@
+# Pin the (CPU) JAX stack consistently across all installs. No CUDA plugins here
+# (this is the CPU-only image), but still pin jax/jaxlib so editable repo installs
+# can't silently upgrade them.
+jax==0.9.2
+jaxlib==0.9.2

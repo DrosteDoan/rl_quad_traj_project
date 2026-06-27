@@ -1,0 +1,18 @@
+# =============================================================================
+#  CPU-only image override — builds/runs the smaller, no-CUDA image. Use it
+#  INSTEAD of docker-compose.gpu.yml, together with the base file:
+#
+#      docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --build
+#      docker compose -f docker-compose.yml -f docker-compose.cpu.yml exec dev bash
+#
+#  (Or just `bash scripts/build_cpu.sh` and `docker run ... rl-quad-traj:cpu`.)
+# =============================================================================
+services:
+  dev:
+    build:
+      args:
+        BASE_IMAGE: "ubuntu:22.04"
+        MAIN_REQS: "main-cpu.txt"
+        DATT_REQS: "datt-cpu.txt"
+        MAIN_CONSTRAINTS: "constraints-cpu.txt"
+    image: rl-quad-traj:cpu

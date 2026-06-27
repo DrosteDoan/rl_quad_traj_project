@@ -1,0 +1,47 @@
+# =============================================================================
+#  MAIN environment — CPU-ONLY variant (Python 3.12)
+#  Same as main.txt but with CPU builds of JAX and PyTorch (no CUDA), for a
+#  smaller image that runs on any machine. Selected via:
+#      --build-arg MAIN_REQS=main-cpu.txt --build-arg MAIN_CONSTRAINTS=constraints-cpu.txt
+# =============================================================================
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# --- crazyflow (simulator, JAX + MuJoCo MJX) ---
+numpy>=2.0.0
+scipy>=1.17.0
+jax==0.9.2                  # CPU build (pinned; see constraints-cpu.txt)
+mujoco>=3.3.0
+mujoco-mjx>=3.3.0
+gymnasium[mujoco]>=1.2.0
+imageio
+einops
+flax
+ml_collections
+casadi
+array-api-compat           # required by learnsyslab/crazyflow
+array-api-extra            # required by learnsyslab/crazyflow
+
+# --- lsy_drone_racing ---
+warp-lang
+toml
+
+# --- gym-pybullet-drones (RL example) ---
+pybullet>=3.2.7
+stable-baselines3>=2.8
+transforms3d>=0.4
+control>=0.10.2
+
+# --- RAPTOR_in_RotorPy (example) ---
+rotorpy
+torch==2.8.0+cpu           # CPU build
+tensorboard
+
+# --- CrazySim python tooling ---
+Jinja2
+
+# --- shared utilities ---
+matplotlib>=3.10
+pandas
+fire
+tqdm
+rich

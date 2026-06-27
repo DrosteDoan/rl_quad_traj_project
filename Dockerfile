@@ -8,7 +8,7 @@
 #  edit them in your normal editor and rebuild from source. See README.md.
 #
 #  Three isolated Python environments are created (their deps conflict on numpy):
-#    /opt/venvs/main      (Python 3.11) -> crazyflow, gym-pybullet-drones,
+#    /opt/venvs/main      (Python 3.12) -> crazyflow, gym-pybullet-drones,
 #                                          lsy_drone_racing, RAPTOR_in_RotorPy
 #    /opt/venvs/crazysim  (Python 3.11) -> CrazySim cflib/cfclient (numpy<1.25)
 #    /opt/venvs/datt      (Python 3.10) -> DATT (legacy 2022 stack)
@@ -16,10 +16,25 @@
 #  C++ repos (learning-to-fly, raptor) use no Python env — they build with CMake.
 # =============================================================================
 
-FROM nvidia/cuda:12.6.3-devel-ubuntu22.04
+# ---- GPU (default) vs CPU-only image ----------------------------------------
+#  GPU (default): the NVIDIA CUDA base + jax[cuda12] + CUDA PyTorch.
+#  CPU-only: build a smaller image with no CUDA. From the build_cpu.sh helper, or:
+#      docker build \
+#        --build-arg BASE_IMAGE=ubuntu:22.04 \
+#        --build-arg MAIN_REQS=main-cpu.txt \
+#        --build-arg DATT_REQS=datt-cpu.txt \
+#        --build-arg MAIN_CONSTRAINTS=constraints-cpu.txt \
+#        -t rl-quad-traj:cpu .
+ARG BASE_IMAGE=nvidia/cuda:12.6.3-devel-ubuntu22.04
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-lc"]
+
+# Which requirements/constraints files to use (overridden for the CPU image).
+ARG MAIN_REQS=main.txt
+ARG DATT_REQS=datt.txt
+ARG MAIN_CONSTRAINTS=constraints.txt
 
 # ---- Optional heavy components (toggle at build time) -----------------------
 #   --build-arg INSTALL_GAZEBO=true  to add Gazebo Garden for CrazySim
@@ -42,12 +57,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         x11-apps libqt5gui5 \
         # `python` shim — the CrazySim firmware's version.c generator calls `python`
         python-is-python3 \
-        # python (system 3.10) + 3.11 from deadsnakes for the main env
+        # python (system 3.10) + 3.11/3.12 from deadsnakes.
+        #   main env -> 3.12 (learnsyslab/crazyflow uses `value in EnumClass`, which
+        #               only works on Python >= 3.12)
+        #   crazysim -> 3.11 ; datt -> 3.10
         software-properties-common && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && apt-get install -y --no-install-recommends \
         python3.10 python3.10-venv python3.10-dev \
-        python3.11 python3.11-venv python3.11-dev && \
+        python3.11 python3.11-venv python3.11-dev \
+        python3.12 python3.12-venv python3.12-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # ---- Optional: Gazebo Garden (CrazySim full SITL) ---------------------------
@@ -100,15 +119,20 @@ USER dev
 # Copy each requirements file just before its env so editing one env's deps
 # doesn't bust the Docker cache for the others.
 
-# ---- main env (Python 3.11) -------------------------------------------------
-COPY requirements/main.txt /tmp/requirements/main.txt
-RUN python3.11 -m venv /opt/venvs/main && \
+# ---- main env (Python 3.12 — required by learnsyslab/crazyflow) -------------
+# The constraints file keeps jax/jaxlib and the CUDA plugin on one consistent
+# version (installing repos later can otherwise upgrade jaxlib past the plugin,
+# which breaks GPU linear algebra: "No FFI handler registered for cusolver...").
+COPY requirements/${MAIN_REQS} /tmp/requirements/main.txt
+COPY requirements/${MAIN_CONSTRAINTS} /tmp/requirements/constraints.txt
+RUN python3.12 -m venv /opt/venvs/main && \
     /opt/venvs/main/bin/pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    /opt/venvs/main/bin/pip install --no-cache-dir -r /tmp/requirements/main.txt
+    /opt/venvs/main/bin/pip install --no-cache-dir -c /tmp/requirements/constraints.txt \
+        -r /tmp/requirements/main.txt
 
 # ---- datt env (Python 3.10, legacy stack) -----------------------------------
 # gym==0.21 only builds with old setuptools/wheel, so pin those first.
-COPY requirements/datt.txt /tmp/requirements/datt.txt
+COPY requirements/${DATT_REQS} /tmp/requirements/datt.txt
 RUN python3.10 -m venv /opt/venvs/datt && \
     /opt/venvs/datt/bin/pip install --no-cache-dir "pip<24.1" "setuptools==65.5.0" "wheel==0.38.4" && \
     /opt/venvs/datt/bin/pip install --no-cache-dir -r /tmp/requirements/datt.txt

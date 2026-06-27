@@ -1,0 +1,21 @@
+# =============================================================================
+#  DATT environment — CPU-ONLY variant (Python 3.10)
+#  Same as datt.txt but with a CPU build of PyTorch 1.13 (no CUDA 11.7 runtime),
+#  for the CPU-only image. Selected via --build-arg DATT_REQS=datt-cpu.txt.
+# =============================================================================
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+numpy==1.23.4
+scipy==1.11.3
+torch==1.13.0+cpu
+gym==0.21.0
+stable-baselines3==1.6.2
+ale-py==0.7.4
+imageio==2.9.0
+joblib==0.14.1
+meshcat==0.3.2
+pillow
+pygame==2.4.0
+rich==13.6.0
+tqdm==4.64.1
+matplotlib          # let pip pick a 3.10-compatible build (the 3.2.1 pin is too old)
