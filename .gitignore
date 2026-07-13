@@ -1,0 +1,24 @@
+# --- Source repos cloned at runtime (scripts/clone_repos.sh, tasks/*/setup.sh) ---
+# These are large and have their own git history; they are NOT part of this repo.
+/repos/
+
+# --- Python caches / build artifacts ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- Training outputs ---
+# Keep the shipped pre-trained model, ignore everything else students generate.
+tasks/*/models/*.zip
+!tasks/hovering/models/hover_PPO.zip
+!tasks/circle/models/hover_PPO.zip
+!tasks/circle/models/track_PPO.zip
+tasks/*/models/*.pt
+**/tensorboard/
+*.log
+
+# --- Editor / OS noise ---
+.vscode/
+.idea/
+.DS_Store

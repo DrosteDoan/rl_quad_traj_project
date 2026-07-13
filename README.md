@@ -53,6 +53,7 @@ runs inside this one shared container — you don't build a new image per task.
 | Task | What it is |
 |---|---|
 | [`tasks/hovering`](tasks/hovering/README.md) | Learn RL by training a Crazyflie to hover (Stable-Baselines3 + crazyflow). Start here. |
+| [`tasks/circle`](tasks/circle/README.md) | Follow a moving circular path (trajectory tracking), then benchmark the RL tracker vs PID, MPC & the onboard controller. Do `hovering` first. |
 
 Each task's `README.md` tells you the one-time setup (e.g.
 `bash tasks/hovering/setup.sh` to install crazyflow into the `main` env) and how
