@@ -117,7 +117,9 @@ cp tasks/racing/code/race_bridge.py repos/lsy_drone_racing/lsy_drone_racing/cont
 ```
 
 Open it. Everything is written **except `_build_reference`**, which is your job
-because it is the one real design decision. It must:
+because it is the one real design decision. You know the generator from
+Lesson 2b — ops in, quintic chaining and time-scaling inside, `pos/vel/acc(t)`
+out. Your reference must:
 
 - **Start on the ground.** `obs["pos"]` at reset is the true start, `z ≈ 0.01 m`.
   The reference must start *there* and climb. Start it at hover height and step

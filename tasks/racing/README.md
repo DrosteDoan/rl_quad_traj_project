@@ -66,12 +66,14 @@ bash scripts/smoke_test.sh           # the RACING/RACE sections must be all ok
 |---|---|---|---|
 | 1 | [The tracking problem](lessons/01-the-tracking-problem.md) | 45 min | Being able to say what the policy sees, does, and is paid for |
 | 2 | [Train a DATT policy](lessons/02-train-datt.md) | 30 min + compute | Your own trained tracker + its learning curve |
+| 2b | [Where reference trajectories come from](lessons/02b-where-references-come-from.md) | 45 min | You can explain the quintic-chaining generator you are about to use, and name the alternatives (min-snap, MINCO, time-optimal, …) |
 | 3 | [Evaluate like the race](lessons/03-evaluate-like-the-race.md) | 90 min | A lap time on the LSY protocol |
 | 4 | [Brainstorm: make it faster](lessons/04-brainstorm-faster-tracking.md) | open | A pre-registered experiment of *your own* |
 | 5 | [See the trajectory, compare the models](lessons/05-plot-and-compare.md) | 60 min | Speed-profile plots of your reference & flown laps + a head-to-head model comparison |
 
-Lessons 1–3 are guided. **Lesson 4 is where you do research.** Lesson 5 gives
-you the plots and tables to *show* what you did.
+Lessons 1–3 are guided (2b is a concept interlude — read, don't code).
+**Lesson 4 is where you do research.** Lesson 5 gives you the plots and tables
+to *show* what you did.
 
 ## What's in this folder
 
@@ -87,7 +89,7 @@ tasks/racing/
 │   ├── race_bridge.py   ← SCAFFOLD — you complete _build_reference in Lesson 3
 │   ├── plot_trajectory.py   ← trajectory + speed-profile figures  [Lesson 5]
 │   └── compare_models.py    ← head-to-head model comparison       [Lesson 5]
-└── lessons/             ← 01..05 — the actual course
+└── lessons/             ← 01..05, plus interlude 2b — the actual course
 ```
 
 The **LSY race environment** is *not* vendored — it is public and cloned into

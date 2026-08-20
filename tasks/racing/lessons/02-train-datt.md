@@ -174,4 +174,5 @@ for a healthy v5 policy: a few centimetres at `slow`, growing toward ~0.15 m at
 4. **Check the metadata.** Open a `metadata.yaml`. Could a classmate reproduce
    your run from it alone? That is the standard.
 
-**Next:** [Lesson 3 — Evaluate like the race](03-evaluate-like-the-race.md)
+**Next:** [Lesson 2b — Where reference trajectories come from](02b-where-references-come-from.md)
+— before you race the plan, understand who wrote it.
