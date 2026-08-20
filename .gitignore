@@ -18,6 +18,12 @@ tasks/*/models/*.pt
 **/tensorboard/
 *.log
 
+# --- Racing task (vendored crazy_track) ---
+# Training/eval runs write into results/ inside the vendored source tree
+# (crazy_track's RunLogger resolves paths relative to its own repo root).
+tasks/racing/crazy_track/results/
+tasks/racing/figures/
+
 # --- Editor / OS noise ---
 .vscode/
 .idea/

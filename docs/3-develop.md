@@ -42,12 +42,13 @@ For the **C++** repos, after editing you must **recompile**:
 
 ## Which Python environment do I use?
 
-There are **three**, because their libraries conflict (mainly the NumPy
-version). Inside the container:
+There are **four**, because their libraries conflict (mainly the NumPy
+version, plus two different crazyflow pins). Inside the container:
 
 | You're working on…                                          | Use this            | Activate with        |
 |-------------------------------------------------------------|---------------------|----------------------|
-| crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy | **main** (3.11)     | `activate-main`      |
+| crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy, crazy_track training (tasks/racing) | **main** (3.12)     | `activate-main`      |
+| Racing the LSY track (tasks/racing Lesson 3+ — lsy's own crazyflow) | **race** (3.12)     | `activate-race`      |
 | CrazySim Python (talking to the SITL via `cflib`/`cfclient`)| **crazysim** (3.11) | `activate-crazysim`  |
 | DATT                                                        | **datt** (3.10)     | `activate-datt`      |
 
@@ -59,6 +60,7 @@ itself is C and doesn't use any of these envs — you build it with
 You can always be explicit instead of activating:
 ```bash
 /opt/venvs/main/bin/python my_script.py
+/opt/venvs/race/bin/python repos/lsy_drone_racing/scripts/sim.py --config level0.toml
 /opt/venvs/crazysim/bin/python repos/CrazySim/flytest.py
 /opt/venvs/datt/bin/python repos/DATT/main.py
 ```

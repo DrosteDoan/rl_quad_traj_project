@@ -35,8 +35,14 @@ clone https://github.com/learnsyslab/crazyflow.git crazyflow
 # 2) gym-pybullet-drones — RL example
 clone https://github.com/learnsyslab/gym-pybullet-drones.git gym-pybullet-drones
 
-# 2b) lsy_drone_racing — drone-racing task built on crazyflow (main env)
+# 2b) lsy_drone_racing — drone-racing task built on crazyflow (main env, and
+#     the `race` env for the tasks/racing lessons)
 clone https://github.com/learnsyslab/lsy_drone_racing.git lsy_drone_racing
+
+# NOTE on crazy_track (tasks/racing): its upstream repository is PRIVATE, so it
+# is NOT cloned here. The pinned source is vendored inside this repo at
+# tasks/racing/crazy_track/ (see the VENDORED.md there) and installed from that
+# path by scripts/setup_python_envs.sh.
 
 # 3) learning-to-fly — C++ RLtools example.
 #    Only the rl_tools submodule tree is needed to build the RL trainer. The

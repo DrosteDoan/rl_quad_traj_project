@@ -7,9 +7,13 @@
 #  in ./repos on your computer and are mounted into the container so you can
 #  edit them in your normal editor and rebuild from source. See README.md.
 #
-#  Three isolated Python environments are created (their deps conflict on numpy):
+#  Four isolated Python environments are created (their deps conflict):
 #    /opt/venvs/main      (Python 3.12) -> crazyflow, gym-pybullet-drones,
-#                                          lsy_drone_racing, RAPTOR_in_RotorPy
+#                                          lsy_drone_racing, RAPTOR_in_RotorPy,
+#                                          crazy_track (racing task, training side)
+#    /opt/venvs/race      (Python 3.12) -> lsy_drone_racing + ITS OWN crazyflow
+#                                          (racing task, race side — see
+#                                          scripts/setup_python_envs.sh for why)
 #    /opt/venvs/crazysim  (Python 3.11) -> CrazySim cflib/cfclient (numpy<1.25)
 #    /opt/venvs/datt      (Python 3.10) -> DATT (legacy 2022 stack)
 #
@@ -104,6 +108,7 @@ RUN groupadd -g ${GID} dev 2>/dev/null || true && \
     echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     mkdir -p /opt/venvs && chown ${UID}:${GID} /opt/venvs && \
     echo 'alias activate-main="source /opt/venvs/main/bin/activate"' >> /etc/bash.bashrc && \
+    echo 'alias activate-race="source /opt/venvs/race/bin/activate"' >> /etc/bash.bashrc && \
     echo 'alias activate-datt="source /opt/venvs/datt/bin/activate"' >> /etc/bash.bashrc && \
     echo 'alias activate-crazysim="source /opt/venvs/crazysim/bin/activate"' >> /etc/bash.bashrc && \
     echo 'source /opt/venvs/main/bin/activate' >> /etc/bash.bashrc
@@ -136,6 +141,15 @@ COPY requirements/${DATT_REQS} /tmp/requirements/datt.txt
 RUN python3.10 -m venv /opt/venvs/datt && \
     /opt/venvs/datt/bin/pip install --no-cache-dir "pip<24.1" "setuptools==65.5.0" "wheel==0.38.4" && \
     /opt/venvs/datt/bin/pip install --no-cache-dir -r /tmp/requirements/datt.txt
+
+# ---- race env (Python 3.12, racing task) -------------------------------------
+# Starts bare: scripts/setup_python_envs.sh installs lsy_drone_racing (which
+# brings its own crazyflow pin) plus the policy stack into it. Kept separate
+# from `main` because crazy_track and lsy_drone_racing may pin DIFFERENT
+# crazyflow versions — sharing one env can silently downgrade the simulator
+# under a policy you already trained.
+RUN python3.12 -m venv /opt/venvs/race && \
+    /opt/venvs/race/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # ---- crazysim env (Python 3.11) — CrazySim cflib/cfclient need numpy<1.25 ----
 # Isolated because that numpy pin conflicts with the main env (crazyflow needs >=2).

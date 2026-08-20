@@ -1,0 +1,28 @@
+# DATT replication config (Figure 5 setup, arXiv:2311.13081)
+sim:
+  control_freq: 50          # Hz, policy/controller rate
+  episode_duration: 10.0    # s
+
+trajectories:
+  smooth:
+    seg_duration: 2.0
+    pos_range: 1.0          # m, knot sampling box half-width
+    vel_range: 1.0          # m/s
+    acc_range: 2.0          # m/s^2
+  zigzag:
+    seg_duration_range: [0.5, 1.5]
+    pos_range: 1.0
+
+policy:
+  ref_horizon: 10           # future ref positions fed to the policy
+  hidden_sizes: [64, 64, 64]
+
+ppo:
+  n_envs: 8
+  total_timesteps: 5_000_000
+  learning_rate: 3.0e-4
+  gamma: 0.99
+
+eval:
+  n_trajectories: 100       # per family, for the box plots
+  seed: 42

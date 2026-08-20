@@ -31,6 +31,10 @@ stable-baselines3>=2.8
 transforms3d>=0.4
 control>=0.10.2
 
+# --- crazy_track (racing task: DATT trajectory-tracking training) ---
+sb3-contrib>=2.9           # RecurrentPPO — the v7 (GRU-actor) variant
+pyyaml>=6.0
+
 # --- RAPTOR_in_RotorPy (example) ---
 rotorpy
 torch==2.8.0+cpu           # CPU build

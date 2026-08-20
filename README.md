@@ -29,14 +29,16 @@ it normally and rebuild from source.
 | [DATT](https://github.com/KevinHuang8/DATT) | Example | **datt env** (Py 3.10) |
 | [RAPTOR_in_RotorPy](https://github.com/Sheng-Cheng/RAPTOR_in_RotorPy) | Example (RotorPy + PyTorch) | main env |
 
-### Three Python environments (on purpose)
-Some repos pin dependency versions that *conflict* (mainly the NumPy generation),
-so they can't share one environment. Inside the container, switch with
-`activate-main` / `activate-crazysim` / `activate-datt` (main is active by default):
+### Four Python environments (on purpose)
+Some repos pin dependency versions that *conflict* (mainly the NumPy generation,
+and two different crazyflow pins), so they can't share one environment. Inside
+the container, switch with `activate-main` / `activate-race` /
+`activate-crazysim` / `activate-datt` (main is active by default):
 
 | Env | Python | Holds | Stack |
 |---|---|---|---|
-| **`main`** | 3.12 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.2 |
+| **`main`** | 3.12 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy, crazy_track (racing task, training side) | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.2 |
+| **`race`** | 3.12 | lsy_drone_racing + **its own** PyPI crazyflow (racing task, race side) | CPU PyTorch — inference only |
 | **`crazysim`** | 3.11 | CrazySim `cflib` + `cfclient` (talk to the SITL) | NumPy <1.25 (cflib's pin) |
 | **`datt`** | 3.10 | DATT | NumPy 1.23, old `gym` 0.21, PyTorch 1.13 |
 
@@ -54,6 +56,11 @@ runs inside this one shared container — you don't build a new image per task.
 |---|---|
 | [`tasks/hovering`](tasks/hovering/README.md) | Learn RL by training a Crazyflie to hover (Stable-Baselines3 + crazyflow). Start here. |
 | [`tasks/circle`](tasks/circle/README.md) | Follow a moving circular path (trajectory tracking), then benchmark the RL tracker vs PID, MPC & the onboard controller. Do `hovering` first. |
+| [`tasks/racing`](tasks/racing/README.md) | Train a DATT trajectory-tracking policy and race it on the LSY drone-racing track, scored exactly like the leaderboard. Do `circle` first. |
+
+> The racing task's `crazy_track` source is **vendored** inside
+> `tasks/racing/crazy_track/` (its upstream repo is private — see the
+> `VENDORED.md` there). Everything else is cloned into `repos/` as usual.
 
 Each task's `README.md` tells you the one-time setup (e.g.
 `bash tasks/hovering/setup.sh` to install crazyflow into the `main` env) and how
