@@ -146,6 +146,20 @@ class RaceBridgeController(Controller):
         routes these four gates (Level 0 and Level 2 share the nominal poses) —
         then prepend the takeoff and tune `cruise`.
 
+        WHERE THE ROUTE LIVES: it is the `ops` list of that function
+        (freestyle.py lines 420-430): ("gate", g, speed) entries, two
+        ("via", point, velocity) swing-out points — (1.75, 0.5, 0.95) heading north
+        after gate 1, (-1.7, -1.1, 0.95) heading east after gate 3 — and a final
+        ("hover", point, T). The op grammar is the FreestyleTrajectory docstring
+        (line 171); connect() (line 209) turns each op into a quintic segment.
+        Copy that list into THIS method (with `self.gates` instead of the pasted
+        poses) and edit the vias, gate speeds and cruise HERE — the vendored file
+        stays as the lessons cite it. Draw the result before you fly it:
+
+            /opt/venvs/race/bin/python tasks/racing/code/plot_trajectory.py \
+                --bridge repos/lsy_drone_racing/lsy_drone_racing/control/race_bridge.py \
+                --config level0.toml
+
         Returns:
             FreestyleTrajectory beginning at self.start_pos.
         """

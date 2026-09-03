@@ -68,7 +68,9 @@ This is a tiny *domain language* for tracks. `lsy_level2_race()` (line 409) is
 just such an ops list with the LSY gate poses pasted in from their
 `config/level2.toml` — which is why the track ports 1:1 into the race
 environment, where your bridge builds the gates from `obs["gates_pos"]`
-instead.
+instead. Its `("via", ...)` entries (lines 424 and 427) are the two swing-out
+points of the racing line, and that list is exactly what you copy into your
+bridge's `_build_reference` in Lesson 3 §4 and then edit.
 
 ### b) Connect the ops with quintic polynomials (line 209)
 

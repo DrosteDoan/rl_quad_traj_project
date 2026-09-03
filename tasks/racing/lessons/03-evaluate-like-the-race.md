@@ -143,6 +143,23 @@ out. Your reference must:
   the takeoff leg by eye. When a tool's summary bit and your requirements
   disagree, read what the bit is actually made of — same habit as §3.)
 
+**Where the route lives.** The gates, the two swing-out points and the final
+hover of the vendored racing line are the `ops` list of `lsy_level2_race()` —
+`tasks/racing/crazy_track/src/crazy_track/trajectories/freestyle.py:409`. The
+list is lines 420–430; the `("via", point, velocity)` entries at lines 424 and
+427 are the via points (swing wide east after gate 1, swing wide south-west
+after gate 3); the op grammar is the `FreestyleTrajectory` docstring at
+line 171, and `connect()` at line 209 turns each op into a quintic segment
+(with the duration law and time-scaling from Lesson 2b). Copy that list into
+`_build_reference`, prepend the takeoff, and edit the via points, gate speeds
+and `cruise` **there** — your bridge is the place for your route; the vendored
+file stays as the lessons cite it. Draw the result before you fly it (race
+venv, because the bridge imports `lsy_drone_racing`):
+
+```bash
+/opt/venvs/race/bin/python tasks/racing/code/plot_trajectory.py --bridge repos/lsy_drone_racing/lsy_drone_racing/control/race_bridge.py --config level0.toml
+```
+
 Then point their config at it — `repos/lsy_drone_racing/config/level0.toml`:
 
 ```toml

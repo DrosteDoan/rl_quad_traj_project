@@ -55,6 +55,22 @@ It also prints `feasibility_report(...)` — the same check your
 `_build_reference` runs (Lesson 3 §4; remember `feasible` reads `False` on any
 ground-start reference — check the thrust and gate components).
 
+**Draw *your* route (after Lesson 3).** The command above draws the vendored
+line from `TRACKS`. To draw the reference your own bridge builds — takeoff leg,
+your via points, your cruise — hand the script your bridge file and the level
+config it should take the gate poses from (race venv, because the bridge imports
+`lsy_drone_racing`):
+
+```bash
+/opt/venvs/race/bin/python tasks/racing/code/plot_trajectory.py --bridge repos/lsy_drone_racing/lsy_drone_racing/control/race_bridge.py --config level0.toml
+```
+
+It creates your controller class without loading a policy and calls
+`_build_reference()`, so it costs a second. Figures land in
+`tasks/racing/figures/bridge_level0_*.png`. The `feasible` flag reads `False`
+only because of the ground start, as Lesson 3 §4 explains — the script says so
+and you check the thrust and gate lines instead.
+
 **Now do the experiment that makes the point.** Run it again at
 `--cruise 1.5`, `3.0`, `4.5`, and put the three profile plots side by side:
 

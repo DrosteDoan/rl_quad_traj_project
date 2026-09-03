@@ -15,6 +15,14 @@ crazy_track):
 
     python tasks/racing/code/plot_trajectory.py --track lsy-level2-race --cruise 3.0
 
+Draw the reference YOUR race_bridge.py builds (Lesson 3 §4) instead of a TRACKS
+entry -- takeoff leg, your via points, your cruise. This one runs in the RACE venv
+(the bridge imports lsy_drone_racing) and takes the gate poses / start position
+from the level config, exactly what the race hands the bridge in `obs`:
+
+    /opt/venvs/race/bin/python tasks/racing/code/plot_trajectory.py \
+        --bridge repos/lsy_drone_racing/lsy_drone_racing/control/race_bridge.py --config level0.toml
+
 Overlay a flown lap (recorded by race_bridge.py when RACE_LOG_DIR is set,
 see Lesson 5 §3) to see where reality peeled away from the plan:
 
@@ -42,6 +50,7 @@ from crazy_track.trajectories.freestyle import (
 
 TWR = 1.88                      # cf21B_500 thrust-to-weight (measured, Lesson 1)
 ACC_LIMIT = 0.95 * TWR * GRAVITY  # the same bound feasibility_report enforces
+LSY_CONFIG_DIR = Path("/workspace/repos/lsy_drone_racing/config")  # level*.toml (for --bridge)
 
 # One sequential colormap for one job: speed = magnitude. Perceptually uniform
 # and colorblind-safe; never a rainbow (jet distorts magnitudes).
@@ -49,6 +58,41 @@ SPEED_CMAP = "viridis"
 
 
 # --------------------------------------------------------------------- helpers
+def bridge_reference(bridge: Path, config: str):
+    """Build the reference exactly as YOUR race_bridge.py does -- no policy, no race.
+
+    Reads the gate poses, obstacle poles and start position from the level toml
+    (what the race hands the bridge in `obs` at Levels 0/1), creates your
+    controller class WITHOUT running __init__ (so nothing is loaded), fills in
+    `gates` and `start_pos` the way __init__ would, and calls _build_reference().
+    """
+    import importlib.util
+
+    import toml
+    from lsy_drone_racing.control.controller import Controller
+
+    cfg_path = Path(config) if Path(config).is_file() else LSY_CONFIG_DIR / config
+    track = toml.load(cfg_path)["env"]["track"]
+    gates = [RaceGate(tuple(float(v) for v in g["pos"]), yaw=float(g["rpy"][2]))
+             for g in track["gates"]]
+    start = np.asarray(track["drones"][0]["pos"], dtype=np.float64)
+
+    spec = importlib.util.spec_from_file_location("student_race_bridge", bridge)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    classes = [c for c in vars(module).values()
+               if isinstance(c, type) and issubclass(c, Controller)
+               and c.__module__ == module.__name__]
+    if len(classes) != 1:
+        raise SystemExit(f"{bridge}: expected exactly one Controller subclass, found {len(classes)}")
+    ctrl = classes[0].__new__(classes[0])  # skip __init__: no policy, no environment
+    ctrl.gates, ctrl.start_pos = gates, start
+    traj = ctrl._build_reference()
+    if not getattr(traj, "obstacles", None):
+        traj.obstacles = [tuple(o["pos"]) for o in track.get("obstacles", [])]
+    return traj
+
+
 def sample(traj, dt: float = 0.01):
     """Sample the reference on a fixed grid: t, pos (N,3), speed |v| (N,)."""
     t = np.arange(0.0, traj.duration, dt)
@@ -175,6 +219,12 @@ def main():
                    help="Which reference to draw (from crazy_track's TRACKS).")
     p.add_argument("--cruise", type=float, default=3.0,
                    help="Cruise speed handed to the track builder (m/s).")
+    p.add_argument("--bridge", type=Path, default=None,
+                   help="Draw the reference built by YOUR race_bridge.py (its _build_reference) "
+                        "instead of a --track entry. Run in the race venv.")
+    p.add_argument("--config", default="level0.toml",
+                   help="Level toml that provides the gate poses and start for --bridge "
+                        "(a name in repos/lsy_drone_racing/config, or a path).")
     p.add_argument("--flown", type=Path, default=None,
                    help="CSV of a flown lap (t,x,y,z — from race_bridge logging).")
     p.add_argument("--out-dir", type=Path,
@@ -182,7 +232,14 @@ def main():
                    help="Where the PNGs go.")
     args = p.parse_args()
 
-    traj = TRACKS[args.track](cruise=args.cruise)
+    if args.bridge is not None:
+        traj = bridge_reference(args.bridge, args.config)
+        label = f"{args.bridge.name} on {Path(args.config).name}"
+        tag = f"bridge_{Path(args.config).stem}"
+    else:
+        traj = TRACKS[args.track](cruise=args.cruise)
+        label = f"{args.track}, cruise={args.cruise:g}"
+        tag = f"{args.track}_c{args.cruise:g}"
     t, pos, speed = sample(traj)
 
     flown = None
@@ -190,7 +247,6 @@ def main():
         flown = np.loadtxt(args.flown, delimiter=",", skiprows=1)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    tag = f"{args.track}_c{args.cruise:g}"
     figure_track_map(traj, t, pos, speed, flown,
                      args.out_dir / f"{tag}_map.png")
     figure_speed_profile(traj, t, pos, speed, flown,
@@ -198,14 +254,20 @@ def main():
 
     # The habit this course keeps teaching: never fly an unchecked reference.
     rep = feasibility_report(traj)
-    print(f"\nfeasibility_report({args.track}, cruise={args.cruise:g}):")
+    print(f"\nfeasibility_report({label}):")
     for k, v in rep.items():
         if isinstance(v, float):
             print(f"  {k:32s} {v:.3f}")
         else:
             print(f"  {k:32s} {v}")
     if not rep["feasible"]:
-        print("\n⚠️  NOT feasible — no controller can track this. Lower --cruise.")
+        thrust_ok = rep["max_thrust_acc_outside_arc"] <= rep["thrust_acc_limit"]
+        if thrust_ok and rep["gate_crossings_ok"]:
+            print("\nℹ️  `feasible` is False only because min_z <= 0.15 m — expected for a "
+                  "ground-start race reference (Lesson 3 §4). Thrust and gate checks pass.")
+        else:
+            print("\n⚠️  NOT feasible — no controller can track this. Lower the cruise speed "
+                  "or fix the gate crossings.")
     print(f"\nduration {traj.duration:.2f} s, last gate at "
           f"{traj.gate_times[-1]:.2f} s, peak speed {speed.max():.2f} m/s")
 
