@@ -117,6 +117,15 @@ bridge sends 4-number attitude commands. Set `control_mode = "attitude"` under
 Lesson 3 §4. The scaffold `race_bridge.py` now refuses to start in `state` mode
 and prints exactly this advice.
 
+### Racing: `KeyError: 'n_gates_passed'` (or `'gate_sequence'`) on the first control step, or the bridge says "race observation has no [...]"
+Your `repos/lsy_drone_racing` clone predates upstream's 20 July 2026 commit that
+introduced these observation keys (older versions emit `target_gate` instead), so
+it is far behind the pinned commit. Fix:
+```bash
+bash tasks/racing/setup.sh                          # moves the clone to the pin and reinstalls
+git -C repos/lsy_drone_racing log -1 --oneline      # must show 709dbc9
+```
+
 ### A lesson cites `file.py:NN` and the line does not match
 The repo is not at the pinned commit (see above), or you edited the file. The
 citations are exact at the pins in `scripts/pins.sh`.

@@ -119,6 +119,25 @@ there, with exactly one `Controller` subclass per file):
 cp tasks/racing/code/race_bridge.py repos/lsy_drone_racing/lsy_drone_racing/control/
 ```
 
+**What the race hands your bridge.** Every method receives `obs`, a dict the
+*environment* builds in `repos/lsy_drone_racing/lsy_drone_racing/envs/race_core.py`
+(`build_observation_space`, line 247, declares it; `obs()`, line 698, fills it
+every step). Nothing in the bridge computes these numbers — it only reads them:
+
+| key | shape | the scaffold uses it for |
+|---|---|---|
+| `pos`, `vel`, `quat`, `ang_vel` | 3, 3, 4 (xyzw), 3 | the state vector handed to the policy |
+| `gates_pos`, `gates_quat` | (4, 3), (4, 4) | building `self.gates` — nominal poses, which are the true ones at Levels 0 and 1 |
+| `gate_sequence`, `gate_sequence_direction` | (4,), (4,) | the order of gate passes; the lap is complete when `n_gates_passed` reaches its length |
+| `n_gates_passed` | int | the finish test in `step_callback` |
+| `obstacles_pos`, `gates_visited`, `obstacles_visited` | (4, 3), (4,), (4,) | not used by the scaffold — yours to use |
+
+`n_gates_passed` and `gate_sequence` exist since upstream's commit `7e2a296` of
+20 July 2026 ("Add gate order field"); older clones emit `target_gate` instead
+and the scaffold would die on its first step with `KeyError: 'n_gates_passed'`.
+The scaffold now checks for the keys when it starts and tells you to re-run
+`bash tasks/racing/setup.sh`, which moves the clone to the pinned commit.
+
 Open it. Everything is written **except `_build_reference`**, which is your job
 because it is the one real design decision. You know the generator from
 Lesson 2b — ops in, quintic chaining and time-scaling inside, `pos/vel/acc(t)`

@@ -77,6 +77,20 @@ class RaceBridgeController(Controller):
                 f'race_bridge needs control_mode = "attitude" in the race config, got {mode!r}. '
                 "Edit [env] control_mode in repos/lsy_drone_racing/config/<level>.toml (Lesson 3 §4)."
             )
+        # The observation keys this file relies on are PRODUCED BY THE ENVIRONMENT
+        # (race_core.py: build_observation_space, line 247; obs(), line 698 at the
+        # pinned commit) and exist since upstream's 2026-07-20 commit 7e2a296
+        # ("Add gate order field"). Older clones emit `target_gate` instead and
+        # would die with KeyError on the first step. scripts/pins.sh holds
+        # repos/lsy_drone_racing at a newer commit.
+        missing = [k for k in ("gates_pos", "gates_quat", "n_gates_passed", "gate_sequence")
+                   if k not in obs]
+        if missing:
+            raise RuntimeError(
+                f"race observation has no {missing}: repos/lsy_drone_racing is older than the pinned "
+                "commit (scripts/pins.sh, LSY_REF). Re-run bash tasks/racing/setup.sh, then check "
+                "git -C repos/lsy_drone_racing log -1 (Lesson 3 §4, docs/4-troubleshooting.md)."
+            )
 
         # The race hands us the nominal gate poses up front. At Levels 0 and 1
         # these are also the TRUE poses — which is exactly why those levels are
@@ -188,7 +202,9 @@ class RaceBridgeController(Controller):
     def step_callback(self, action, obs, reward, terminated, truncated, info) -> bool:
         self._tick += 1
         # Stop once the last gate is behind us, so we do not keep flying — and
-        # keep the clock running — after the lap is done.
+        # keep the clock running — after the lap is done. Both keys come from the
+        # environment's observation (see the check in __init__), nothing in this
+        # file computes them.
         n_passed = int(obs["n_gates_passed"])
         self._finished = n_passed >= len(np.atleast_1d(obs["gate_sequence"]))
         return self._finished
