@@ -129,9 +129,16 @@ From measured failures in the parent project — each cost real days.
   lessons' file/line citations stay exact — see `crazy_track/VENDORED.md`
   before bumping it.
 * **Two venvs by design.** Training runs in `main` (editable crazyflow, GPU
-  torch); the race runs in `race` (lsy_drone_racing + its own PyPI crazyflow
-  pin, CPU torch). Sharing one env can silently downgrade the simulator under a
-  trained policy.
+  torch); the race runs in `race` (lsy_drone_racing + PyPI crazyflow, CPU
+  torch). Both are held at the same crazyflow / mujoco versions by
+  `requirements/constraints*.txt`; sharing one env can silently downgrade the
+  simulator under a trained policy.
+* **The race repo is pinned** (`scripts/pins.sh`, `LSY_REF`, 2026-08-29). On
+  2026-09-03 upstream changed the track to five gate passes
+  (`gate_order = [1, 2, 3, 4, 2]`); every lap time in these lessons, the
+  vendored `lsy_level2_race()` and the 7.80 s baseline describe the four-gate
+  lap. Moving the pin means re-deriving the reference track, the baseline and
+  the file/line citations (Lesson 3). See `docs/5-versions.md`.
 * **Do not commit a completed `_build_reference`.** It is the Lesson-3
   exercise; keep any reference solution in an instructor-only place.
 

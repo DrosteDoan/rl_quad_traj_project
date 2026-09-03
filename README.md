@@ -1,4 +1,4 @@
-# rl_quad_traj_project
+# rl_quad_control
 
 A project on **reinforcement learning to control a quadrotor so it tracks a
 desired trajectory.** This repo gives you one ready-to-use **GPU Docker
@@ -37,8 +37,8 @@ the container, switch with `activate-main` / `activate-race` /
 
 | Env | Python | Holds | Stack |
 |---|---|---|---|
-| **`main`** | 3.12 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy, crazy_track (racing task, training side) | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.2 |
-| **`race`** | 3.12 | lsy_drone_racing + **its own** PyPI crazyflow (racing task, race side) | CPU PyTorch — inference only |
+| **`main`** | 3.12 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy, crazy_track (racing task, training side) | NumPy 2, JAX, MuJoCo, PyTorch (cu126), gymnasium 1.3, MuJoCo 3.10 (pinned, see docs/5-versions.md) |
+| **`race`** | 3.12 | lsy_drone_racing + PyPI crazyflow (same pinned version as `main`; racing task, race side) | CPU PyTorch — inference only |
 | **`crazysim`** | 3.11 | CrazySim `cflib` + `cfclient` (talk to the SITL) | NumPy <1.25 (cflib's pin) |
 | **`datt`** | 3.10 | DATT | NumPy 1.23, old `gym` 0.21, PyTorch 1.13 |
 
@@ -109,7 +109,7 @@ with an NVIDIA GPU (a Windows/Linux workstation or a remote GPU server).
 ## Quickstart (after installing Docker — see `docs/1`)
 
 ```bash
-cd rl_quad_traj_project
+cd rl_quad_control
 export HOST_UID=$(id -u) HOST_GID=$(id -g)   # UID is read-only in bash; use HOST_UID
 
 bash scripts/clone_repos.sh                 # download all source repos -> ./repos
@@ -138,16 +138,18 @@ Full, click-by-click instructions are in `docs/`.
 2. [Build & run the environment](docs/2-build-and-run.md)
 3. [Develop: edit code & see the effect](docs/3-develop.md)
 4. [Troubleshooting](docs/4-troubleshooting.md)
+5. [Versions & pins — read this if `pip` complains about mujoco or crazyflow](docs/5-versions.md)
 
 ## Repository layout
 ```
-rl_quad_traj_project/
-├── Dockerfile                 # the toolbox image (CUDA 12 + 2 Python venvs + C++ tools)
+rl_quad_control/
+├── Dockerfile                 # the toolbox image (CUDA 12 + 4 Python venvs + C++ tools)
 ├── docker-compose.yml         # base (CPU, works everywhere)
 ├── docker-compose.gpu.yml     # GPU override (NVIDIA machines)
-├── requirements/              # pinned Python deps for each env
+├── requirements/              # pinned Python deps for each env (+ constraints*.txt)
 │   ├── main.txt   └── datt.txt
 ├── scripts/                   # clone_repos, setup_python_envs, build_cpp, smoke_test
+│   └── pins.sh                # the upstream commits crazyflow / lsy_drone_racing are held at
 ├── docs/                      # the step-by-step guides above
 └── repos/                     # (created by clone_repos.sh) all source code lives here
 ```

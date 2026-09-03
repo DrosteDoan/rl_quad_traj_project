@@ -143,8 +143,9 @@ RUN python3.10 -m venv /opt/venvs/datt && \
     /opt/venvs/datt/bin/pip install --no-cache-dir -r /tmp/requirements/datt.txt
 
 # ---- race env (Python 3.12, racing task) -------------------------------------
-# Starts bare: scripts/setup_python_envs.sh installs lsy_drone_racing (which
-# brings its own crazyflow pin) plus the policy stack into it. Kept separate
+# Starts bare: scripts/setup_python_envs.sh (or tasks/racing/setup.sh) installs
+# lsy_drone_racing + PyPI crazyflow, held to the SAME versions as main by
+# requirements/constraints*.txt, plus the CPU policy stack. Kept separate
 # from `main` because crazy_track and lsy_drone_racing may pin DIFFERENT
 # crazyflow versions — sharing one env can silently downgrade the simulator
 # under a policy you already trained.

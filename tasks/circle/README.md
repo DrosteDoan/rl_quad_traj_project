@@ -80,8 +80,8 @@ Read the markdown in `lessons/` on your computer; run the commands in the contai
 | 11 | `lessons/11_run_the_benchmark.md` | Race all four on one circle; score with RMSE |
 | 12 | `lessons/12_stress_test_and_future.md` | Push RL until it breaks; its limits and how to improve it |
 
-(The lessons are numbered 8–12 because they continue the hovering task's 1–6 and
-the root project's deploy lesson 7.)
+(The lessons are numbered 8–12 because they continue the hovering task's 1–6.
+Lesson 7 — deploying to CrazySim — is planned but not part of this repo yet.)
 
 ---
 

@@ -21,16 +21,19 @@ PY=/opt/venvs/main/bin/python
 REPOS="/workspace/repos"
 CRAZYFLOW="$REPOS/crazyflow"
 
-# Keep the JAX stack pinned (so this install can't upgrade jaxlib past the CUDA
-# plugin). The toolbox image ships this constraints file.
-CONSTRAINTS="-c /tmp/requirements/constraints.txt"
-[ -f /tmp/requirements/constraints.txt ] || CONSTRAINTS=""
+# Constraints: jax, mujoco, mujoco-mjx, gymnasium, crazyflow, SB3 (docs/5-versions.md).
+# Prefer the file in the MOUNTED REPO, so a `git pull` updates the pins without
+# rebuilding the image; fall back to the copy baked into the image.
+CONSTRAINTS_FILE=/workspace/requirements/constraints.txt
+[ -f "$CONSTRAINTS_FILE" ] || CONSTRAINTS_FILE=/tmp/requirements/constraints.txt
+CONSTRAINTS="-c $CONSTRAINTS_FILE"
+[ -f "$CONSTRAINTS_FILE" ] || CONSTRAINTS=""
 
+# Pinned commit + pin_repo helper (docs/5-versions.md). Also moves an older
+# clone that was made at HEAD onto the pin.
+source /workspace/scripts/pins.sh
 mkdir -p "$REPOS"
-if [ ! -d "$CRAZYFLOW" ]; then
-  echo "==> Cloning learnsyslab/crazyflow ..."
-  git clone --depth 1 https://github.com/learnsyslab/crazyflow.git "$CRAZYFLOW"
-fi
+pin_repo "$CRAZYFLOW" https://github.com/learnsyslab/crazyflow.git "$CRAZYFLOW_REF"
 
 echo "==> Installing crazyflow into the main venv (editable) ..."
 $PIP install --no-cache-dir $CONSTRAINTS -e "$CRAZYFLOW"

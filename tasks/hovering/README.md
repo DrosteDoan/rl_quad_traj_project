@@ -142,9 +142,9 @@ tasks/hovering/
   every task (hovering, racing, …) runs in the same container. If a task needs a
   package the image lacks, edit `rl_quad_control/requirements/main.txt` (or the
   `Dockerfile`), rebuild, and share the change back.
-* This task uses the `main` environment (Python 3.12). **learnsyslab/crazyflow
-  requires Python ≥ 3.12** (it uses `value in EnumClass`, a 3.12 feature), which
-  is why the toolbox's `main` venv is 3.12.
+* This task uses the `main` environment (Python 3.12). Crazyflow is installed
+  from `repos/crazyflow` at the commit pinned in `scripts/pins.sh` (0.3.2,
+  Python ≥ 3.11); see `docs/5-versions.md` before bumping it.
 * The image pins the JAX stack (`requirements/constraints.txt`) so editable repo
   installs can't upgrade `jaxlib` past the CUDA plugin (which would break GPU
   linear algebra).

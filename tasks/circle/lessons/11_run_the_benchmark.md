@@ -20,8 +20,7 @@ error). Same start, same path, same physics (`first_principles`), same drone
 (`cf21B_500`) — the only thing that differs is the controller's brain.
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/circle            # inside the container; the main venv is already active
 python -m k12_hover.benchmark_traj --model models/track_PPO.zip \
     --n-samples 10 --radius 0.5 --period 4 --laps 3
 ```

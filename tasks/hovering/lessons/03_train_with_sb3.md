@@ -11,8 +11,7 @@ tutorials.
 ## Step 1 — Train
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/hovering          # inside the container; the main venv is already active
 python -m k12_hover.train_sb3 --jax-device gpu --num-envs 128 --timesteps 2000000
 ```
 

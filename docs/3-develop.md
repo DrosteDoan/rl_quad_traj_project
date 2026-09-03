@@ -48,7 +48,7 @@ version, plus two different crazyflow pins). Inside the container:
 | You're working on…                                          | Use this            | Activate with        |
 |-------------------------------------------------------------|---------------------|----------------------|
 | crazyflow, gym-pybullet-drones, lsy_drone_racing, RAPTOR_in_RotorPy, crazy_track training (tasks/racing) | **main** (3.12)     | `activate-main`      |
-| Racing the LSY track (tasks/racing Lesson 3+ — lsy's own crazyflow) | **race** (3.12)     | `activate-race`      |
+| Racing the LSY track (tasks/racing Lesson 3+ — PyPI crazyflow, same pinned version as main) | **race** (3.12)     | `activate-race`      |
 | CrazySim Python (talking to the SITL via `cflib`/`cfclient`)| **crazysim** (3.11) | `activate-crazysim`  |
 | DATT                                                        | **datt** (3.10)     | `activate-datt`      |
 

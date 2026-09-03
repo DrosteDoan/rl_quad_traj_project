@@ -15,6 +15,8 @@ set -uo pipefail
 # Resolve project root (the folder that contains this script's parent).
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPOS="$ROOT/repos"
+# Pinned commits for the simulator repos + the pin_repo helper (docs/5-versions.md).
+source "$ROOT/scripts/pins.sh"
 mkdir -p "$REPOS"
 cd "$REPOS"
 
@@ -29,15 +31,18 @@ clone() {
   fi
 }
 
-# 1) crazyflow — MAIN simulator (MuJoCo / JAX)
-clone https://github.com/learnsyslab/crazyflow.git crazyflow
+# 1) crazyflow — MAIN simulator (MuJoCo / JAX). PINNED: the numbers in the
+#    lessons and the vendored crazy_track code were validated at this commit
+#    (docs/5-versions.md).
+pin_repo "$REPOS/crazyflow" https://github.com/learnsyslab/crazyflow.git "$CRAZYFLOW_REF"
 
 # 2) gym-pybullet-drones — RL example
 clone https://github.com/learnsyslab/gym-pybullet-drones.git gym-pybullet-drones
 
 # 2b) lsy_drone_racing — drone-racing task built on crazyflow (main env, and
-#     the `race` env for the tasks/racing lessons)
-clone https://github.com/learnsyslab/lsy_drone_racing.git lsy_drone_racing
+#     the `race` env for the tasks/racing lessons). PINNED: upstream changed the
+#     track to five gate passes on 2026-09-03; the course races the four-gate lap.
+pin_repo "$REPOS/lsy_drone_racing" https://github.com/learnsyslab/lsy_drone_racing.git "$LSY_REF"
 
 # NOTE on crazy_track (tasks/racing): its upstream repository is PRIVATE, so it
 # is NOT cloned here. The pinned source is vendored inside this repo at

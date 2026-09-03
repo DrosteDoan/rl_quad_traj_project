@@ -48,7 +48,10 @@ carrying an on-line disturbance estimate (the `l1.sigma_f` block from Lesson 1
 
 ## 2. Install the race environment
 
-You already cloned it. Confirm both environments are healthy:
+You already cloned it — at a **pinned commit** (`scripts/pins.sh`; why, and what
+changed upstream since, is in `docs/5-versions.md`: the public repo now races a
+five-pass track, this course and every number in it use the four-gate lap).
+Confirm both environments are healthy:
 
 ```bash
 bash scripts/smoke_test.sh
@@ -150,11 +153,25 @@ file = "race_bridge.py"
 control_mode = "attitude"
 ```
 
+`control_mode = "attitude"` is not optional: in `state` mode the environment
+clips your 4-number command against 13-number state bounds and fails with an
+opaque `Incompatible shapes for broadcasting: shapes=[(13,), (1, 1, 4)]` (the
+scaffold now checks the mode and says so in plain words). `compare_models.py`
+(Lesson 5) reads the same config file, so make the same edit in `level1.toml`
+before you race Level 1.
+
 Fly one episode and watch:
 
 ```bash
 cd repos/lsy_drone_racing && /opt/venvs/race/bin/python scripts/sim.py --config level0.toml
 ```
+
+The config has `render = true`, so this opens a MuJoCo window and needs the GUI
+override from the hovering README. Without a display add `--render False`: the lap
+still runs and prints its time and gates passed. If the window opens and then dies
+with `TypeError: mjv_moveCamera(): incompatible function arguments` the moment you
+move the mouse, your venv has mujoco 3.11 or newer next to gymnasium 1.3.0 — re-run
+`bash tasks/racing/setup.sh` (see `docs/4-troubleshooting.md`).
 
 ## 5. Score it properly
 

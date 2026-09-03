@@ -18,8 +18,7 @@ The stress test keeps the radius fixed and makes the lap faster and faster, scor
 RL, PID and MPC at each speed.
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/circle            # inside the container; the main venv is already active
 python -m k12_hover.stress_test
 ```
 
@@ -142,7 +141,7 @@ would push the limits, roughly easiest first:
   3-D paths that climb and dive.
 - **Disturbances:** add wind or payload changes during training so the policy learns
   to reject them — a step toward the real world.
-- **Sim-to-real:** carry the tracker through the CrazySim pipeline from Lesson 7 and,
+- **Sim-to-real:** carry the tracker through a CrazySim deploy pipeline (a planned lesson, not in this repo yet) and,
   eventually, onto a real Crazyflie.
 
 ---

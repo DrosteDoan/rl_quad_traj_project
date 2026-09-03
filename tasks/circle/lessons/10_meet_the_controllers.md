@@ -183,7 +183,7 @@ sim.state_control(cmd); sim.step()
 0.0434 kg), copying how a real Crazyflie is a little miscalibrated from the
 factory. Because it thinks the drone is lighter than it is, it doesn't push quite
 hard enough, so it **sags below** the target. Watch for that in the benchmark — it's
-a preview of the **sim-to-real gap** from Lesson 7, and part of *why* tuning and
+a preview of the **sim-to-real gap** (the planned deploy lesson), and part of *why* tuning and
 learning are worth the effort.
 
 ---

@@ -6,7 +6,8 @@ config, the same number of episodes, scored by the race's own `simulate()` —
 the exact loop `scripts/evaluate.py` uses — never a re-implementation of it.
 
 Run in the RACE venv, with your completed race_bridge.py already copied into
-repos/lsy_drone_racing/lsy_drone_racing/control/ (Lesson 3):
+repos/lsy_drone_racing/lsy_drone_racing/control/ and `control_mode = "attitude"`
+set in the config you pass (both from Lesson 3 §4):
 
     /opt/venvs/race/bin/python tasks/racing/code/compare_models.py \
         --episodes 20 --config level0.toml \

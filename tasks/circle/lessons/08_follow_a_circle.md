@@ -43,8 +43,7 @@ numbers** the hover brain already understands. That is the whole trick.
 Use the hover model you trained back in Lesson 3 (`models/hover_PPO.zip`):
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/circle            # inside the container; the main venv is already active
 # A gentle circle: 0.5 m radius, one lap every 8 seconds.
 python -m k12_hover.eval_traj --model models/hover_PPO.zip --period 8 --render
 ```

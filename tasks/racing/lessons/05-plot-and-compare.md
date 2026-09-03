@@ -79,8 +79,10 @@ your completed bridge installed (Lesson 3 §4):
 ```bash
 cd repos/lsy_drone_racing
 RACE_LOG_DIR=/workspace/tasks/racing/figures/mylap \
-  /opt/venvs/race/bin/python scripts/sim.py --config level0.toml
+  /opt/venvs/race/bin/python scripts/sim.py --config level0.toml --render False
 ```
+
+(`--render False`: the recorder needs no window, and headless runs work everywhere.)
 
 Then overlay it on the reference:
 
@@ -115,6 +117,9 @@ flip). Race them against each other on the exact leaderboard protocol:
     v5_s1=tasks/racing/crazy_track/results/<run-b>/datt_ppo_final.zip \
     v5_s2=tasks/racing/crazy_track/results/<run-c>/datt_ppo_final.zip
 ```
+
+It reads the race config you name, so `level0.toml` / `level1.toml` must already
+carry `control_mode = "attitude"` and point at your bridge (Lesson 3 §4).
 
 Three design decisions in that script are the lesson — open it and find them:
 

@@ -41,7 +41,7 @@ def main():
           f"started {target_distance(obs).mean() * 100:.0f} cm from target)")
 
     print("\nEverything works! ✅")
-    print("Next: open lessons/01_what_is_rl.md")
+    print("Next: open lessons/08_follow_a_circle.md")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ Then in repos/lsy_drone_racing/config/level0.toml:
 Run (note the race environment's interpreter):
 
     cd repos/lsy_drone_racing
-    /opt/venvs/race/bin/python scripts/sim.py --config level0.toml
+    /opt/venvs/race/bin/python scripts/sim.py --config level0.toml     # add --render False without a display
 
 Two OPTIONAL environment variables (Lesson 5 uses both):
 
@@ -66,6 +66,17 @@ class RaceBridgeController(Controller):
         super().__init__(obs, info, config)
         self.freq = int(config.env.freq)      # 50 Hz at every level
         self._tick = 0
+
+        # The race must run in ATTITUDE mode (Lesson 3 §4: `control_mode =
+        # "attitude"` under [env] in the level toml). In "state" mode the env
+        # clips our 4-number command against 13-number state bounds and dies
+        # with an opaque "Incompatible shapes for broadcasting: (13,), (1, 1, 4)".
+        mode = str(config.env.control_mode)
+        if mode != "attitude":
+            raise RuntimeError(
+                f'race_bridge needs control_mode = "attitude" in the race config, got {mode!r}. '
+                "Edit [env] control_mode in repos/lsy_drone_racing/config/<level>.toml (Lesson 3 §4)."
+            )
 
         # The race hands us the nominal gate poses up front. At Levels 0 and 1
         # these are also the TRUE poses — which is exactly why those levels are

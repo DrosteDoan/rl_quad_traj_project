@@ -50,8 +50,7 @@ changed *what the drone sees*.
 Train a policy that *can* see ahead, on a circle too fast for the hover brain:
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/circle            # inside the container; the main venv is already active
 python -m k12_hover.train_traj_sb3 --jax-device gpu --num-envs 256 \
     --timesteps 3000000 --n-samples 10 --period 4 --save-name track_PPO
 ```
@@ -92,11 +91,11 @@ reward — a better observation.**
    `--period 4`). More look-ahead isn't always better — where do the gains stop?
 2. **Reuse the hover knobs.** The reward knobs from Lesson 4 all still work here.
    Add `--velocity-coef 0.05` or `--tilt-action-coef 0.1` and see if the flight
-   gets smoother (the tilt-action penalty also helps sim-to-real, see Lesson 7).
+   gets smoother (the tilt-action penalty also helps sim-to-real; the deploy lesson is planned but not in this repo yet).
 3. **A mini curriculum.** Train first on a slow circle (`--period 8`), then keep
    training the *same* model on a faster one (`--period 4`). Does starting easy and
    speeding up beat training on the fast circle from scratch?
-4. **Sim-to-real.** Everything from Lesson 7 (export → deploy to CrazySim) applies
+4. **Sim-to-real.** A deploy-to-CrazySim lesson is planned (not in this repo yet); everything in it applies
    to a tracker too. For deployment, train with `--physics first_principles`,
    `--yaw-coef`, and `--tilt-action-coef` set, exactly as for the deployable hover
    model.

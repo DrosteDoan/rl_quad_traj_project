@@ -104,8 +104,7 @@ Run this small experiment (it does NOT train; it just steps the env so you can
 *see* the observation and reward):
 
 ```bash
-conda activate crazyflow
-cd k12_RL_quad_traj
+cd /workspace/tasks/hovering          # inside the container; the main venv is already active
 python - <<'PY'
 import numpy as np
 from k12_hover import make_sb3_env, target_distance

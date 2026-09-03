@@ -11,14 +11,16 @@ On Windows, run everything **inside the Ubuntu (WSL) terminal**, not PowerShell.
 
 ```bash
 # go to where you keep projects, then:
-cd rl_quad_traj_project          # this folder (the one with the Dockerfile)
+cd rl_quad_control               # this folder (the one with the Dockerfile)
 
-# download all 7 source repositories into ./repos
+# download all 8 source repositories into ./repos
+# (crazyflow and lsy_drone_racing are checked out at pinned commits — see 5-versions.md)
 bash scripts/clone_repos.sh
 ```
 
-This downloads crazyflow, CrazySim, gym-pybullet-drones, learning-to-fly,
-raptor, DATT and RAPTOR_in_RotorPy into `repos/`. It can take a few minutes.
+This downloads crazyflow, lsy_drone_racing, CrazySim, gym-pybullet-drones,
+learning-to-fly, raptor, DATT and RAPTOR_in_RotorPy into `repos/`. It can take a
+few minutes.
 
 ---
 

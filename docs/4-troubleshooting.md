@@ -72,6 +72,55 @@ docker system df       # see what's using space
 docker system prune    # remove stopped containers / dangling images (safe)
 ```
 
+### `pip` complains "mujoco-mjx 3.12.0 requires mujoco>=3.12.0.dev0, but you have mujoco 3.10.0" (or any mujoco / crazyflow "ResolutionImpossible")
+Two packages that must move together got different versions: `mujoco` and
+`mujoco-mjx` (the race repo needs `mujoco<3.11`, an unpinned image installed 3.12).
+Since 2026-09 everything is pinned (`requirements/constraints*.txt`,
+`scripts/pins.sh`, [5-versions.md](5-versions.md)). Fix:
+```bash
+git pull                                   # get the pinned scripts
+bash tasks/racing/setup.sh                 # (or scripts/setup_python_envs.sh) — moves the clones to the pins and reinstalls
+bash scripts/smoke_test.sh                 # every version line should read ok
+```
+No image rebuild is needed: the setup scripts read `requirements/constraints.txt`
+from your checkout (mounted at `/workspace`) and move `mujoco` and `mujoco-mjx`
+to the pinned pair together. Rebuild only if you also want the baked packages
+refreshed.
+
+### The MuJoCo window dies with `TypeError: mjv_moveCamera(): incompatible function arguments` as soon as the mouse moves over it
+Your venv has **mujoco 3.11 or newer** next to gymnasium 1.3.0. MuJoCo 3.11.0
+(27 July 2026) removed the `mjvScene` argument from `mjv_moveCamera`; gymnasium's
+MuJoCo viewer (up to 1.3.0) still passes it, so the first cursor event over the
+window raises this error (this is also why `lsy_drone_racing` pins `mujoco<3.11`).
+Check and fix:
+```bash
+/opt/venvs/race/bin/pip freeze | grep -i mujoco     # must read mujoco==3.10.0 and mujoco-mjx==3.10.0
+bash tasks/racing/setup.sh                           # re-pins BOTH venvs to mujoco / mujoco-mjx 3.10.0
+```
+The same applies to `--render` in the hovering and circle tasks (they use the same
+viewer). Headless runs are unaffected: `scripts/sim.py ... --render False`,
+`compare_models.py` and `evaluate.py` never open a window.
+
+### Racing: every episode "fails" / the lap never finishes / success 0/20
+Your `repos/lsy_drone_racing` is probably at upstream HEAD, where the track has
+**five** gate passes (`gate_order = [1, 2, 3, 4, 2]`). The course races the
+four-gate lap at a pinned commit. Check and fix:
+```bash
+git -C repos/lsy_drone_racing log -1 --oneline     # must show 709dbc9 "Pin MuJoCo below 3.11"
+bash tasks/racing/setup.sh                          # re-pins the clone
+```
+
+### Racing: `ValueError: Incompatible shapes for broadcasting: shapes=[(13,), (1, 1, 4)]`
+The race config is still in `state` control mode (13-number commands) while the
+bridge sends 4-number attitude commands. Set `control_mode = "attitude"` under
+`[env]` in `repos/lsy_drone_racing/config/level0.toml` (and `level1.toml`) —
+Lesson 3 §4. The scaffold `race_bridge.py` now refuses to start in `state` mode
+and prints exactly this advice.
+
+### A lesson cites `file.py:NN` and the line does not match
+The repo is not at the pinned commit (see above), or you edited the file. The
+citations are exact at the pins in `scripts/pins.sh`.
+
 ---
 
 Still stuck? Copy the **first 15 lines** of the error and the command you ran,

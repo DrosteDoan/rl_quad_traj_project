@@ -29,6 +29,10 @@ set -uo pipefail   # not -e: a single repo problem shouldn't abort the rest
 REPOS="/workspace/repos"
 MAIN=/opt/venvs/main/bin/pip
 CRAZYSIM=/opt/venvs/crazysim/bin/pip
+# Pinned commits + pin_repo helper. Re-running this script moves an older,
+# unpinned clone (made at HEAD) onto the pins -- that is the fix for the
+# "mismatching versions" problem described in docs/5-versions.md.
+source /workspace/scripts/pins.sh
 
 einstall() { # einstall <pip> <path[extra]>
   local pip="$1" spec="$2"; shift 2
@@ -50,16 +54,28 @@ echo "############ MAIN env (Python 3.12, numpy>=2) ############"
 # nvidia-*-cu13 libraries shadow JAX's cu12 cudnn, breaking JAX on GPU with
 # "Could not create cudnn handle" (measured, 2026-08-20).
 RUNTIME_CONSTRAINTS=/tmp/runtime-constraints.txt
-cat /tmp/requirements/constraints.txt > "$RUNTIME_CONSTRAINTS" 2>/dev/null || : > "$RUNTIME_CONSTRAINTS"
+# Prefer the constraints in the MOUNTED REPO (a `git pull` updates the pins
+# without rebuilding the image); fall back to the copy baked into the image.
+CONSTRAINTS_FILE=/workspace/requirements/constraints.txt
+[ -f "$CONSTRAINTS_FILE" ] || CONSTRAINTS_FILE=/tmp/requirements/constraints.txt
+cat "$CONSTRAINTS_FILE" > "$RUNTIME_CONSTRAINTS" 2>/dev/null || : > "$RUNTIME_CONSTRAINTS"
 /opt/venvs/main/bin/python -c "import torch; print(f'torch=={torch.__version__}')" >> "$RUNTIME_CONSTRAINTS" \
   || echo "WARN: could not read baked torch version (torch unpinned)"
 CONSTRAINTS="-c $RUNTIME_CONSTRAINTS"
+# Move an older image's simulator stack onto the pinned mujoco/mujoco-mjx pair
+# BEFORE anything else (see tasks/racing/setup.sh for the story).
+if [ -s "$RUNTIME_CONSTRAINTS" ]; then
+  echo "==> [main] simulator stack at the pinned versions (mujoco, mujoco-mjx, gymnasium)"
+  "$MAIN" install $CONSTRAINTS mujoco mujoco-mjx gymnasium || echo "WARN: could not re-pin mujoco/mujoco-mjx"
+fi
+[ -d "$REPOS/crazyflow" ] && pin_repo "$REPOS/crazyflow" https://github.com/learnsyslab/crazyflow.git "$CRAZYFLOW_REF"
+[ -d "$REPOS/lsy_drone_racing" ] && pin_repo "$REPOS/lsy_drone_racing" https://github.com/learnsyslab/lsy_drone_racing.git "$LSY_REF"
 einstall "$MAIN" "$REPOS/crazyflow" $CONSTRAINTS
 # gym-pybullet-drones declares torch ^2.13 (conflicts with the pin above), but
 # every runtime dependency it needs is already baked into the image via
 # requirements/main.txt — so install just the package itself.
 einstall "$MAIN" "$REPOS/gym-pybullet-drones" $CONSTRAINTS --no-deps
-einstall "$MAIN" "$REPOS/lsy_drone_racing[sim]" $CONSTRAINTS   # [sim] pulls crazyflow, jax, warp-lang
+einstall "$MAIN" "$REPOS/lsy_drone_racing" $CONSTRAINTS   # its deps (crazyflow, jax, mujoco, warp-lang) are pinned by the constraints
 einstall "$MAIN" "$REPOS/RAPTOR_in_RotorPy" $CONSTRAINTS
 # crazy_track (tasks/racing, training side). VENDORED inside this repo (its
 # upstream is private — see tasks/racing/crazy_track/VENDORED.md). Base deps
@@ -77,12 +93,18 @@ if [ -x "$RACE" ]; then
   # satisfied instead of downloading the multi-GB default CUDA build. The race
   # env only runs policy inference at 50 Hz — CPU is plenty (training happens
   # in `main`, where torch has CUDA).
-  "$RACE" install --extra-index-url https://download.pytorch.org/whl/cpu \
+  # The SAME constraints file as main (jax, mujoco, mujoco-mjx, gymnasium,
+  # crazyflow==0.3.2, SB3): the race venv must simulate the same physics that the
+  # policy was trained on, and load the same SB3 model format.
+  RACE_CONSTRAINTS="-c $CONSTRAINTS_FILE"
+  [ -f "$CONSTRAINTS_FILE" ] || RACE_CONSTRAINTS=""
+  "$RACE" install --extra-index-url https://download.pytorch.org/whl/cpu $RACE_CONSTRAINTS \
       "torch==2.8.0+cpu" "scipy>=1.11" "matplotlib>=3.8" \
       "stable-baselines3>=2.3" "sb3-contrib>=2.9" \
+      jax mujoco mujoco-mjx gymnasium \
       || echo "WARN: race env policy stack install failed"
-  # lsy_drone_racing, editable, WITH deps — this brings its own crazyflow pin.
-  einstall "$RACE" "$REPOS/lsy_drone_racing"
+  # lsy_drone_racing, editable, WITH deps — brings crazyflow from PyPI (pinned 0.3.2).
+  einstall "$RACE" "$REPOS/lsy_drone_racing" $RACE_CONSTRAINTS
   # crazy_track policy/trajectory code, WITHOUT deps (see header note).
   einstall "$RACE" "$CRAZY_TRACK" --no-deps
 else
