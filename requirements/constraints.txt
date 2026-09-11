@@ -23,3 +23,6 @@ crazyflow==0.3.2
 # Model files must load in both venvs: same SB3 in main (training) and race.
 stable-baselines3==2.9.0
 sb3-contrib==2.9.0
+# casadi ships its own ipopt; the MPC of racing Lesson 6 runs in BOTH venvs (crazyflow
+# depends on casadi, so the race venv has it too). Pinned so solver numerics match.
+casadi==3.8.0

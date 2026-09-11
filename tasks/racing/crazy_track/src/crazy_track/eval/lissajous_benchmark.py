@@ -47,6 +47,14 @@ def make_controller(name: str, seed: int = 0):
     if name == "mpc":
         from crazy_track.controllers.mpc import MPCController
         return MPCController(control_freq=CONTROL_FREQ)
+    if name.startswith("mpc_l1"):  # optional _c<Hz> suffix: L1 low-pass cutoff (default 4 Hz)
+        import re
+        from crazy_track.controllers.mpc import MPCController
+        m = re.fullmatch(r"mpc_l1(?:_c(\d+))?", name)
+        if m is None:
+            raise ValueError(f"Unknown controller: {name}")
+        return MPCController(control_freq=CONTROL_FREQ, disturbance="l1",
+                             l1_cutoff_hz=float(m.group(1)) if m.group(1) else 4.0)
     if name == "xadapt":
         from crazy_track.controllers.xadapt import XAdaptPIDController
         return XAdaptPIDController(control_freq=500)

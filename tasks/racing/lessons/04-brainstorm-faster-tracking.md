@@ -164,6 +164,14 @@ a real and easy-to-miss mismatch.
 Nobody optimises it, and it is inside the clock. Measure it (Lesson 3 🛠️ #2).
 If it is 0.6 s of a 3.4 s lap, 30 % off it beats a heroic tracking gain.
 
+### G. Replace the plan, or the tracker → *path term*, *tracking term*
+
+Lesson 6 hands you both levers ready to run: a time-optimal planner (TOGT)
+whose raw plan is 42 % shorter than the closed-form line but untrackable until
+its gate crossings are shaped, and a model-predictive tracker (MPC) precise
+enough to fly the shaped plan unstretched. Do that lesson before spending
+training time here — it moves the bottleneck, and tells you which term is left.
+
 ## 4. What is already known (do not re-measure)
 
 | finding | receipt |
@@ -172,7 +180,7 @@ If it is 0.6 s of a 3.4 s lap, 30 % off it beats a heroic tracking gain.
 | Asymmetric actor-critic (v5) beats the plain noisy-obs variant | parent project, 3 training seeds |
 | Frame stacking (v6a) did **not** fix noise adaptation at 4 M steps | parent project reports |
 | Single-seed policy conclusions invert; three seeds minimum | measured twice, both directions |
-| A tracker can beat its own reference by corner-cutting | the 4.464 s speed-run analysis |
+| A tracker can beat its own reference by corner-cutting | the parent project's 4.464 s speed-run analysis (its *benchmark clock* — hover start, motion onset → last gate — not the leaderboard's; Lesson 6 §0) |
 | Best-precision checkpoint ≠ most-robust checkpoint | measured twice, independently |
 
 That last row deserves emphasis: the seed with the *best* precision was the

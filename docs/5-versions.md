@@ -12,7 +12,7 @@ files own the pins:
 
 | File | Pins |
 |---|---|
-| `scripts/pins.sh` | the git commits `repos/crazyflow` and `repos/lsy_drone_racing` are checked out at (`CRAZYFLOW_REF`, `LSY_REF`) |
+| `scripts/pins.sh` | the git commits `repos/crazyflow`, `repos/lsy_drone_racing` and (racing Lesson 6) `repos/TOGT-Planner` are checked out at (`CRAZYFLOW_REF`, `LSY_REF`, `TOGT_REF`) |
 | `requirements/constraints.txt` (GPU image) / `constraints-cpu.txt` (CPU image) | the Python packages every `pip install` in this project is held to. At runtime the setup scripts read `constraints.txt` from the **mounted repo** first, so a `git pull` updates the pins without an image rebuild (a constraint on a package that is not requested, e.g. the CUDA plugin on the CPU image, has no effect) |
 
 `bash scripts/smoke_test.sh` prints the versions that are actually installed
@@ -39,8 +39,10 @@ unless noted):
 | sb3-contrib | **2.9.0** | **2.9.0** | RecurrentPPO (`--v7`) |
 | flax | 0.12.6 | 0.12.6 | highest that accepts jax 0.9.2 |
 | warp-lang | 1.17.x | 1.17.x | lsy dependency |
+| casadi | **3.8.0** | **3.8.0** | the MPC family of racing Lesson 6 (ipopt is bundled in the wheel); crazyflow depends on it, so both venvs have it |
 | lsy_drone_racing | editable, `repos/lsy_drone_racing` @ `709dbc9` (2026-08-29) | same | see below |
-| crazy_track (vendored) | editable, `tasks/racing/crazy_track` | editable, `--no-deps` | pinned snapshot `1921aa3` (see its `VENDORED.md`) |
+| crazy_track (vendored) | editable, `tasks/racing/crazy_track` | editable, `--no-deps` | pinned snapshot `58eed32` (2026-09-09; was `1921aa3` until 2026-09-10 — see its `VENDORED.md`) |
+| TOGT-Planner (C++) | `repos/TOGT-Planner` @ `0ed9afb`, built into `repos/togt-build/` | — | racing Lesson 6's time-optimal planner; `tasks/racing/code/togt/build.sh` (cmake ≥ 3.25 from a pip wheel if needed, Eigen 3.4.0 tarball if the system has none) |
 
 The other venvs (`crazysim`, `datt`) are unchanged and unrelated to the tasks.
 
@@ -76,6 +78,8 @@ already-built image is repaired by `bash tasks/racing/setup.sh` (or
 |---|---|---|---|
 | `learnsyslab/crazyflow` | `dede875b685e29de5b65d3cbd29b481035f6fa30` (version 0.3.2) | 2026-08-26 | the release the race venv gets from PyPI, so `main` and `race` are identical; 0.3.1 → 0.3.2 only touched Gaussian-splat rendering |
 | `learnsyslab/lsy_drone_racing` | `709dbc9dfa4c07ea13381959b2520f5d981dbff1` | 2026-08-29 | last commit before the five-pass track; includes the mujoco pin; the Lesson-3 citations (`controller.py:63`, `race_core.py:237`, `attitude_controller.py:130`) are exact here |
+| `FSC-Lab/TOGT-Planner` | `0ed9afb9071b5dc0fd5c443b830f0eec96b225d5` | 2026-09-02 | upstream HEAD when the parent project ran its planner benchmark; the parameter sets in `tasks/racing/crazy_track/configs/togt/` were tuned against it |
+| `crazy_track` (vendored, private) | `58eed327120aa9e75dc288a41998ae6e3226373a` | 2026-09-09 | adds the TOGT plan loader, `togt_race_eval`, the `mpc_l1` variant and `configs/togt/`; the files Lessons 1–5 cite by line are byte-identical to the previous snapshot `1921aa3` |
 
 ## Upgrading (for teachers)
 
@@ -98,6 +102,12 @@ Do it deliberately, all at once, and re-verify:
    vendored `crazy_track` research code was developed on crazyflow 0.2.1, the
    racing lessons were validated on 0.3.x, and policies are only comparable
    within one version.
+6. To bump the vendored snapshot: `git -C <crazy_track> archive <commit> src configs
+   tests pyproject.toml | tar -x -C tasks/racing/crazy_track`, update `VENDORED.md`,
+   run the vendored tests, and re-check every `file.py:NN` citation
+   (`grep -o -E "[a-z_]+\.py:[0-9]+" tasks/racing/lessons/*.md`). For a new
+   `TOGT-Planner` commit, re-run Lesson 6's planner on the raw and tube tracks and
+   compare the planned lap times and crossing angles with the lesson's table.
 
 ## Checking your own machine
 
@@ -130,3 +140,64 @@ The pinned configuration was exercised on Linux (WSL Ubuntu 24.04, Python 3.12, 
 - **End to end:** a completed Lesson-3 bridge (instructor copy, not in this repo) driving a 4 M-step
   v5 policy lapped Level 0 **20/20** under `compare_models.py` on this stack (1.5 s takeoff, cruise
   1.5 m/s, 8.20 s). Faster references clip a gate frame — the speed–risk dial of Lessons 3–5.
+
+## Verified (2026-09-10) — the Lesson 6 additions
+
+Same emulation (WSL Ubuntu 24.04, the two venvs exactly as the Dockerfile creates them,
+casadi 3.8.0 in both):
+
+- **Snapshot bump `1921aa3` → `58eed32`:** `python -m pytest tasks/racing/crazy_track/tests -q`
+  → **75 passed** (was 70; the five new ones are `test_sampled.py`). The files Lessons 1–5 cite
+  by line are byte-identical between the two snapshots. `python -m pytest
+  tasks/racing/code/test_race_refs.py -q` → 4 passed.
+- **TOGT-Planner** cloned at `0ed9afb` and built by `tasks/racing/code/togt/build.sh` in 71 s
+  without sudo (cmake wheel + Eigen tarball route). The lesson's three plans reproduce upstream
+  to the millisecond: raw 2.592 s (crossing angles 45 / 12 / 86 / 8°), tube at 0.85 × TWR
+  3.867 s, tube at 0.95 × TWR 3.566 s.
+- **Benchmark matrix** (`race_eval.py`, 5 trackers × 8 plans × 2 clocks = 80 runs): plain MPC
+  3.593 s and offset-free MPC 3.603 s on the unstretched f0.95 tube plan on the benchmark clock
+  (upstream 3.596 / 3.592); the L1 hybrid fails it (2/4); the ground clock adds exactly 1.500 s
+  wherever the takeoff is benign.
+- **Real race** (`race_bridge_mpc.py` + `compare_models.py --bridge`, 20 episodes): offset-free
+  MPC on the pole-safe line at cruise 2.0 → **7.14 s, 20/20 at Level 0 and at Level 1** (plain
+  MPC 7.18 s, 20/20 both); on `lsy_level2_race()`'s own line at cruise 2.5 → 6.12 s at 18/20
+  (Level 0) and 16/20 (Level 1), plain MPC 0/20 (pole 4). Every TOGT tube plan ends on a pole
+  contact in the real race (the corridors stand on poles 1, 3 and 4). `scripts/smoke_test.sh`
+  reports the TOGT pin, the built driver, casadi and the MPC family in both venvs.
+
+## Verified (2026-09-11) — the Lesson 7 additions
+
+Same emulation (WSL Ubuntu 24.04, 14 cores, no GPU, the two venvs as the Dockerfile creates
+them); every log and table lives outside this repo in `rl_track_student/results/2026-09-11_lesson7/`:
+
+- **Training** (`tasks/racing/code/train_racing.py`, 16 envs, obs 56, 4 M steps = 977 PPO
+  iterations): three seeds. Two runs sharing the cores took 3080 s and 3069 s (a cumulative
+  1299 / 1303 steps/s); the third, alone, 1530 s (2615 steps/s); while an MPC matrix ran
+  alongside, the rate dipped to ~740 steps/s (`training/seed*.log`).
+- **Harness matrix** (`race_eval.py`; 234 `RESULT` lines in `nominal_s*.log`, `matrix_s*.log`,
+  `closedform.log` and `tube.log`: 48 nominal runs of the three seeds — 8 plans × 2 clocks —,
+  10 nominal ground-clock re-runs of the five Lesson-6 trackers on the two matrix plans
+  (reproducing Lesson 6's cells), and 176 condition runs on the leaderboard clock: 8 trackers ×
+  2 plans × {wind_const, payload, 3 gust seeds, 3 Lighthouse seeds, 3 wind + Lighthouse seeds}).
+  Seeds 0 and 2 fly the
+  unstretched f0.95 tube plan (3.648 / 3.639 s on the benchmark clock; plain MPC 3.593 s; the
+  baseline v5 policy 3/4); seed 1 scores 3/4 on every plan. Under Lighthouse noise on the ×1.05
+  tube plan every MPC variant fails all three seeds while `racing_s0`, `racing_s2` and the
+  baseline complete all three (5.311 / 5.306 / 5.343 s); under gusts only the racing seeds do
+  (3/3, 3/3; baseline 0/3).
+- **Pole-aware TOGT tube** (`togt_plan.py --track poles`, `code/togt/lsy_level2_tube_poles.yaml`):
+  planned 3.830 s at 0.85 × TWR (3.527 s at 0.95), reference clearance ≥ 0.20 m from every pole
+  (upstream's tube: 0.02–0.06 m at poles 1, 3, 4), crossing angles 10 / 5 / 16 / 17°, no
+  frame-zone crossing.
+- **Real race** (`compare_models.py --bridge race_bridge_mpc.py`, 20 episodes per cell, 1,400
+  episodes in all): plain MPC on the pole-aware tube **5.320 s, 15/20 at Level 0** (8/20 at
+  Level 1; 13/20 and 11/20 with `--no-poles`); the offset-free MPC and the three policies 0/20 on
+  every fast-plan row, with or without poles; upstream's f0.95 ×1.05 tube 0/20 for everyone even
+  without poles (a logged replay ends on the gate-4 frame, 0.24 m off the opening;
+  `diagnostics/protocolB_replay_eso.log`); the baseline v5 policy
+  on the Lesson-3 line (`RACE_TAKEOFF_Z=0.7`, cruise 1.5) **8.099 ± 0.004 s, 20/20** (Level 0) and
+  8.086 ± 0.042 s, 17/20 (Level 1); every racing-envelope seed 0/20 on every row.
+- **Hover start inside the race** (`compare_models.py --start hover`, `RACE_START=auto`,
+  `RACE_SETTLE=1.0`): `mpc_offsetfree` on the lsy line at cruise 2.5, 4/5 at 5.62 s = 4.62 s +
+  the 1.0 s settle hold (harness benchmark clock: 4.641 s); without the hold one lap in five
+  ended on the gate-1 frame.

@@ -133,6 +133,7 @@ concrete option rather than a mystery.
 | **Minimum-snap** (Mellinger & Kumar, ICRA 2011) | optimize polynomial coefficients to minimize snap (4th derivative) through waypoints | the classic; smooth by construction, small QP / time allocation still heuristic |
 | **MINCO / GCOPTER** (Wang et al., T-RO 2022, [arXiv:2103.00190](https://arxiv.org/abs/2103.00190)) | jointly optimize the *spatial shape* and the *time allocation*, constraints included | today's standard for aggressive flight; big lap-time gains / a real optimizer to tune, minutes not milliseconds |
 | **Time-optimal CPC** (Foehn, Romero & Scaramuzza, *Science Robotics* 2021) | full-state optimal control: find the provably fastest trajectory through the gates | beat human champions' lap times / hours of offline compute per track |
+| **TOGT** (Qin et al., ICRA 2024, [FSC-Lab/TOGT-Planner](https://github.com/FSC-Lab/TOGT-Planner)) | time-optimal *gate traversal*: MINCO-style polynomial pieces through gate corridors, minimum time with thrust/rate penalties | near-CPC lap times in seconds of compute / spends every margin it is given — you fly it in Lesson 6 |
 | **Time-parameterization** (TOPP-RA — Pham & Pham, 2018) | keep a fixed geometric path, compute the fastest feasible speed profile along it | decouples "where" from "how fast"; our time-scaling is a crude cousin of this |
 | **Online jerk-limited** (Ruckig — Berscheid & Kröger, 2021) | recompute a feasible trajectory to a moving target every millisecond | reactive, real-time / short-horizon, not a racing-line planner |
 | **Learn the plan too** (Swift — Kaufmann et al., *Nature* 2023) | end-to-end RL: one network does planning *and* tracking from perception | champion-level racing / you lose the clean plan/track separation this course is built on — and with it, the ability to say *which* half failed |
@@ -143,7 +144,9 @@ Two things to notice in that table:
    course's verified baseline (7.80 s at 100 % success) tracks a *closed-form*
    reference; the 3.39 s leaderboard entries fly *optimized* ones. Your
    tracker is not 2× worse than theirs — your **plan** is slower, by design,
-   and Lessons 3 §6 / 5 §3 gave you the measurements to prove it.
+   and Lessons 3 §6 / 5 §3 gave you the measurements to prove it. Lesson 6
+   puts the TOGT row in your hands and measures how much of that gap a
+   time-optimal plan actually recovers — and what it costs the tracker.
 2. **The last row is the road not taken.** Swift shows you *can* collapse
    planning and tracking into one policy. This course deliberately keeps them
    separate — because when a combined system is slow, you cannot ask it which

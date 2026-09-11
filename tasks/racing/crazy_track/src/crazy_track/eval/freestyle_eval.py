@@ -108,36 +108,52 @@ def plot_track(traj: FreestyleTrajectory, path: np.ndarray | None, outfile,
     plt.close(fig)
 
 
+def make_race_controller(spec: str):
+    """Controller from a lissajous_benchmark spec (datt_acro:<zip>, mpc, mpc_l1, mppi_l1,
+    pid, adrc, xadapt_adrc, ...) plus the sim control mode and rate it needs."""
+    from crazy_track.eval.lissajous_benchmark import make_controller
+
+    if spec.startswith("datt_acro"):
+        mode, freq = "force_torque", 100
+    elif spec.startswith("xadapt"):
+        mode, freq = "rotor_vel", 500
+    else:
+        mode, freq = "attitude", 100
+    return make_controller(spec), mode, freq
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=None,
-                        help="acro4 policy zip; omit for plan-only")
+                        help="acro4 policy zip (shorthand for --controller datt_acro:<zip>)")
+    parser.add_argument("--controller", default=None,
+                        help="any lissajous_benchmark spec: mpc, mpc_offsetfree, mpc_l1, mppi_l1, pid, ...")
     parser.add_argument("--reason", required=True)
     parser.add_argument("--track", default="lsy-level2", choices=sorted(TRACKS))
     parser.add_argument("--cruise", type=float, default=1.5)
     args = parser.parse_args()
+    spec = args.controller or (f"datt_acro:{args.model}" if args.model else None)
 
     traj = TRACKS[args.track](cruise=args.cruise)
-    kind = "freestyle-eval" if args.model else "freestyle-plan"
+    kind = "freestyle-eval" if spec else "freestyle-plan"
     log = RunLogger(tag=f"{kind}-{args.track}",
                     reason=args.reason,
-                    config={"model": args.model, "track": args.track,
+                    config={"model": args.model, "controller": spec, "track": args.track,
                             "cruise": args.cruise, "duration": traj.duration,
                             "feasibility": dict(feasibility_report(traj))})
     rep = feasibility_report(traj)
     print(f"Logging to {log.dir}")
     print(f"plan feasibility: {rep}")
     title = f"Freestyle: {args.track} (cruise {args.cruise} m/s)"
-    if not args.model:
+    if spec is None:
         plot_track(traj, None, log.dir / "freestyle_plan.png", title=title)
         return
 
-    from crazy_track.controllers.datt_acro import DATTAcroController
     from crazy_track.envs.rollout import make_sim, rollout
 
-    sim = make_sim(control="force_torque")
-    ctrl = DATTAcroController(args.model, control_freq=100)
-    data = rollout(ctrl, traj, control_freq=100, sim=sim)
+    ctrl, mode, freq = make_race_controller(spec)
+    sim = make_sim(control=mode)
+    data = rollout(ctrl, traj, control_freq=freq, sim=sim)
     pos, t = data["pos"], data["t"]
     gates = gate_crossing_metrics(pos, t, traj)
     flips = flip_rotation_metrics(data["quat"], t, traj)
@@ -154,7 +170,7 @@ def main() -> None:
         "race_time": round(gates[-1]["t_cross"] - traj.lead_in, 3)
                      if gates and all(g["passed"] for g in gates) else np.inf,
     }
-    log.log_rollout("datt_acro", f"freestyle-{args.track}", data, metrics)
+    log.log_rollout(spec.split(":")[0], f"freestyle-{args.track}", data, metrics)
     plot_track(traj, pos, log.dir / "freestyle_rollout.png", title=title)
     for k, g in enumerate(gates):
         print(f"gate {k + 1}: {g}")

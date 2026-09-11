@@ -1,0 +1,173 @@
+# lsy level-2 nominal gates with POLE-AWARE tube corridors -- Lesson 7 (and Lesson 6 exercise 3).
+# Upstream's tube (crazy_track/configs/togt/lsy_level2_tube.yaml) puts a 0.6 m entry/exit corridor
+# on every gate axis; three of them stand ON the track's obstacle poles (G1in on pole 1, G3out on
+# pole 3, G4in on pole 4), so every upstream tube plan ends on a contact in the real race. Here those
+# three corridors are replaced by SingleBall vias placed BESIDE the poles (B1 south-east of pole 1,
+# B3 south of pole 3, B4 south of pole 4; radius 0.15 m); the other corridors, the gates and the
+# start/end are upstream's. Found on 2026-09-11 by a search over via placements ("ball vias").
+#   planned lap: 3.830 s at 0.85 x TWR (top speed 4.5 m/s), 3.527 s at 0.95 x TWR (5.0 m/s)
+#   reference clearance from the pole surfaces: 0.21 / 0.33 / 0.30 / 0.20 m (upstream: 0.06 / 0.31 / 0.02 / 0.03)
+#   crossing angles G1..G4: 10 / 5 / 16 / 17 deg (upstream tube: 2-7 deg; the pole-4 clearance and
+#   the G4 angle trade off: a pole 0.5 m in front of a gate on its axis forbids a long straight approach)
+#   real race (Level 0, one episode): plain MPC 4/4 in 5.32 s at 0.85 x TWR unstretched; the ESO
+#   variant needs x1.15 (5.90 s). Plan it with:  python tasks/racing/code/togt_plan.py --track poles
+initState:
+  pos: [-1.5, 0.75, 1.0]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+endState:
+  pos: [1.0, -0.75, 1.2]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+orders: ['B1', 'G1', 'G1out', 'G2in', 'G2', 'G2out', 'G3in', 'G3', 'B3', 'B4', 'G4', 'G4out']
+
+B1:
+  type: 'SingleBall'
+  name: 'pole1_via'
+  position: [0.0800, 0.3500, 0.8000]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G1:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.5000, 0.2500, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G1out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.9265, -0.1720, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.4716, 0.3231, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.0500, 0.7500, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6284, 1.1769, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-0.4000, -0.2510, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-1.0000, -0.2500, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+B3:
+  type: 'SingleBall'
+  name: 'pole3_via'
+  position: [-1.4500, -0.7200, 0.8500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+B4:
+  type: 'SingleBall'
+  name: 'pole4_via'
+  position: [-0.5500, -1.1500, 1.0500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G4:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.0000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G4out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true

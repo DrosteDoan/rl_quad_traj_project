@@ -1,0 +1,20 @@
+# cf21B_500 (Crazyflie 2.1 brushless) for TOGT-Planner, DYNAMICALLY RESCALED.
+# True values (from the crazyflow sim / crazy_track.controllers.utils): mass 0.04338 kg,
+# inertia [2.5e-5, 2.8e-5, 4.9e-5] kg m^2, per-rotor thrust 0.02136..0.20 N (TWR 1.88),
+# armLength 0.035355 m, beta 45 deg, torCoeff 0.00611 (torque/thrust at hover rpm).
+# Everything below is multiplied by k = 1/0.04338 = 23.0521 so mass = 1 kg: accelerations,
+# body rates and the optimal trajectory are IDENTICAL (thrust = m*(a+g) scales with m), but
+# TOGT's per-rotor thrust penalty is evaluated in Newtons and for the real 43 g drone it is
+# ~k^2 = 530x too weak against the time cost - the solver then ignores the thrust bounds
+# (measured: -0.21..0.51 N "solutions" against 0.022..0.19 N bounds). Bounds are 0.95x
+# the platform limit so the tracker keeps headroom.
+mass:               1.0
+gravity:            9.81
+inertia:            [5.763024e-04, 6.454587e-04, 1.129553e-03]
+armLength:          0.035355
+beta:               45.0
+torCoeff:           0.00611
+
+thrust_min: 0.5071
+thrust_max: 4.3799          # per rotor = 0.19 N true x k; 4x/mass = 17.52 m/s^2 = 0.95*TWR*g
+omega_max:  [12.0, 12.0, 4.0]

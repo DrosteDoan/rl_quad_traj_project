@@ -126,6 +126,64 @@ bash tasks/racing/setup.sh                          # moves the clone to the pin
 git -C repos/lsy_drone_racing log -1 --oneline      # must show 709dbc9
 ```
 
+### Racing Lesson 6: `bash tasks/racing/code/togt/build.sh` stops at cmake ("CMake 3.25 or higher is required") or at RapidJSON / Eigen
+TOGT-Planner needs cmake ≥ 3.25 and Ubuntu 22.04's apt package is 3.22, so the build
+script installs a cmake wheel into the main venv when the system one is too old (if you
+set `CMAKE=` yourself, use `/opt/venvs/main/bin/cmake`). TOGT's own CMake downloads
+RapidJSON at configure time and the script downloads Eigen 3.4.0 if the system has none,
+so the first build needs network. A configure that fails after a partial run is usually
+a stale tree: `rm -rf repos/togt-build` and re-run the script.
+
+### Racing Lesson 6: the planner says `Config files not found!`
+TOGT reads its YAML with a hand-rolled parser that keeps a trailing carriage return in
+every value, so a CRLF checkout of `tasks/racing/crazy_track/configs/togt/` breaks every
+path lookup. The repo's `.gitattributes` forces LF for those files; a clone made before it
+existed needs a re-checkout after `git pull`:
+```bash
+git rm --cached -r -q tasks/racing/crazy_track/configs/togt && git checkout -- tasks/racing/crazy_track/configs/togt
+file tasks/racing/crazy_track/configs/togt/lsy_level2_tube.yaml     # must not say "with CRLF line terminators"
+```
+
+### Racing Lesson 6: `Optimizatoin fails!` (sic), a segfault, or `never crosses gate N inside its opening`
+`dynamicConstCheck` must stay `false` in `configs/togt/cf21b_togt/*/planning.yaml` — with it
+on, L-BFGS never converges on this track's short pieces. A segfault comes from relative
+parameter paths (call the planner through `togt_plan.py`, which absolutizes them) or from
+prism gates (`length > 0` in a track yaml). A plan that misses a gate usually means the
+`--margin` left no window, or `--mode aos`, whose refine stage drops gates on this track.
+
+### Racing Lesson 6: `Controller execution time exceeded loop frequency by 0.0xx s` on every step
+Expected for the MPC family: one ipopt solve takes 10–40 ms and the race loop has 20 ms.
+The race is simulated step by step, so the lap is still valid. `race_bridge_mpc.py`
+silences lsy's per-step warning and prints the measured solve time once per episode —
+that number is why MPC is a reference point, not a deployable stack (Lesson 6 §6). The very
+first solve of a run takes about a second (ipopt builds the problem and prints its banner);
+later solves are warm-started.
+
+### Racing Lesson 7: `compare_models.py --start hover` — the first lap ends on the gate-1 frame
+`--start hover` writes `level0_hoverstart.toml` with the drone at rest at z = 1.0 m and the
+rotors stopped; lsy spins them up from rest, and the drone sags about 0.5 m in the first
+0.4 s. A plan that moves off at t = 0 reaches gate 1 before the drone has climbed back:
+measured without a hold, one lap in five ended on the gate-1 frame. `race_bridge_mpc.py`
+therefore holds the plan's first point for `RACE_SETTLE` seconds (default 1.0) before the
+plan moves — keep it — and the printed time is the benchmark clock plus that hold
+(`mpc_offsetfree`, lsy line, cruise 2.5: 5.62 s = 4.62 s + 1.0 s, against 4.641 s from
+`race_eval.py --start hover`). If you drive your own Lesson-3 bridge with `--start hover`,
+it has no such hold: `obs["pos"]` arrives at z ≈ 1.0 and your `_build_reference` must hold
+there before it moves, or you will see the same frame contact. The benchmark harness never
+shows this because its 1.5 s lead-in does the settling.
+
+### Racing Lesson 7: `train_racing.py` is slow / how long does it take?
+4 M steps at 16 envs is 977 PPO iterations of 4096 steps. Measured on the validation
+machine (14-core CPU, no GPU): 2615 steps/s and 25.5 min when the run had the machine to
+itself; 1300 steps/s and 51 min when two seeds ran at once; about 740 steps/s while an MPC
+matrix ran alongside. Every iteration prints `fps` (the cumulative average since the start)
+and `time_elapsed`, so the time left is `(4000000 - total_timesteps) / fps`. Lesson 2's
+"~50 minutes" for the baseline is the same simulator and the same PPO — the racing
+envelope changes the references, not the cost per step — so the two runs are equally long
+on the same machine. Do not start more than about six simulations at once (each
+`race_eval.py` MPC cell is one), and the line "An NVIDIA GPU may be present ... Falling
+back to cpu" at the top of the log is expected on a machine without a CUDA jaxlib.
+
 ### A lesson cites `file.py:NN` and the line does not match
 The repo is not at the pinned commit (see above), or you edited the file. The
 citations are exact at the pins in `scripts/pins.sh`.

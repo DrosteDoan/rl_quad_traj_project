@@ -49,12 +49,18 @@ def _build_scene(traj):
 
 
 def render_sim_gif(npz_path: str, track: str, out: str, fps: int = 25,
-                   slowmo: int = 4, width: int = 960, height: int = 640) -> None:
+                   slowmo: int = 4, width: int = 960, height: int = 640,
+                   csv: str | None = None, time_scale: float = 1.0) -> None:
     import mujoco
     from PIL import Image
 
     data = np.load(npz_path)
     traj = TRACKS[track]()
+    if csv:  # an externally planned (TOGT) reference on the same gates/obstacles
+        from crazy_track.trajectories.sampled import SampledRaceTrajectory
+
+        traj = SampledRaceTrajectory(csv, gates=traj.gates, obstacles=traj.obstacles,
+                                     time_scale=time_scale)
     t, pos, quat = data["t"], data["pos"], data["quat"]
     windows = [(f["t_rot_start"], f["t_rot_end"]) for f in traj.flips]
     ftimes = _frame_times(float(t[-1]), windows, fps, slowmo)
@@ -103,9 +109,11 @@ def main() -> None:
     parser.add_argument("--slowmo", type=int, default=4)
     parser.add_argument("--width", type=int, default=960)
     parser.add_argument("--height", type=int, default=640)
+    parser.add_argument("--csv", default=None, help="TOGT plan CSV (reference) instead of the track")
+    parser.add_argument("--time-scale", type=float, default=1.0)
     args = parser.parse_args()
     render_sim_gif(args.npz, args.track, args.out, args.fps, args.slowmo,
-                   args.width, args.height)
+                   args.width, args.height, csv=args.csv, time_scale=args.time_scale)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,5 @@
+# Shell scripts run inside the Linux container: CRLF line endings break bash.
+*.sh text eol=lf
+# TOGT-Planner (racing Lesson 6) reads these with a hand-rolled YAML parser that keeps a
+# trailing CR in values; a CRLF checkout fails with "Config files not found!".
+tasks/racing/crazy_track/configs/togt/** text eol=lf

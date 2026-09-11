@@ -1,0 +1,79 @@
+# lsy_drone_racing level-2 nominal gates (identical to level 0) for TOGT-Planner.
+# Start/end = crazy_track's closed-form race reference (hover start at (-1.5,0.75,1.0),
+# rest at (1.0,-0.75,1.2)) so lap times compare apples-to-apples with the 4.464 s result.
+# RectanglePrisma: local z is the traversal normal; rpy [0,-90,y] maps it to -(cos y, sin y, 0),
+# so y = lsy_yaw_deg + 180 aligns it with the lsy normal R_z(yaw)*x. Opening 0.4 m with a
+# 0.14 m total margin -> allowed crossing window +-0.13 m, the same clearance bound the
+# freestyle feasibility check uses.
+initState:
+  pos: [-1.5, 0.75, 1.0]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+endState:
+  pos: [1.0, -0.75, 1.2]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+orders: ['Gate1', 'Gate2', 'Gate3', 'Gate4']
+
+Gate1:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.5, 0.25, 0.7]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.14
+  marginH: 0.14
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+Gate2:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.05, 0.75, 1.2]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.14
+  marginH: 0.14
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+Gate3:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-1.0, -0.25, 0.7]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.14
+  marginH: 0.14
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+Gate4:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.0, -0.75, 1.2]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.14
+  marginH: 0.14
+  length: 0.0
+  midpoints: 0
+  stationary: true
+

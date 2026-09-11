@@ -40,3 +40,9 @@ pin_repo() {
   fi
   echo "==> $name @ $(git -C "$dir" log -1 --format='%h %ad %s' --date=short)"
 }
+
+# TOGT-Planner (FSC-Lab), the time-optimal gate-traversal planner of racing Lesson 6.
+# Upstream HEAD when the planner benchmark was run (2026-09-02); cloned into
+# repos/TOGT-Planner and built by tasks/racing/code/togt/build.sh (not by
+# clone_repos.sh -- it is a C++ build only the racing task needs).
+TOGT_REF="${TOGT_REF:-0ed9afb9071b5dc0fd5c443b830f0eec96b225d5}"

@@ -247,8 +247,10 @@ reached, and the RMSE between drone and reference. Then:
 
 - **Tracking error small, lap slow** → your *reference* is the slow part. This
   is the expected outcome: the parent project measured a tracker that beat its
-  own reference by corner-cutting. Since this course does not optimise the plan,
-  this is a legitimate place to stop and **report a bound**.
+  own reference by corner-cutting. Since Lessons 1–5 do not optimise the plan,
+  this is a legitimate place to stop and **report a bound** — Lesson 6 then
+  replaces the plan with a time-optimal one and measures how much of that bound
+  is real.
 - **Tracking error large** → the tracker is the problem, and Lesson 4 is for you.
 - **Success below 50 %** → you are past the risk limit. Slow the reference until
   you clear it; an unranked fast lap scores nothing.

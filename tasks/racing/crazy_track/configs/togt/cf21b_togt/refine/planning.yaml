@@ -1,0 +1,27 @@
+piecesPerSegment:   13
+speedGuess:         1.0
+maxVelNorm:         60.0
+maxOmgXY:           12.0
+maxOmgZ:            4.0
+maxTiltedAngle:     6.28
+maxThr:             4.3799
+minThr:             0.5071
+
+weightTime:         1.0
+weightEnergy:       0.0
+weightPos:          0.0
+weightVel:          0.0
+weightOmg:          1.0
+weightRot:          1.0
+weightThr:          1.0
+smoothingEps:       1.0e-2
+numConstPena:       16
+
+dynamicConstCheck:  false
+minNumCheck:        8
+maxNumCheck:        32
+checkTimeSec:       0.05
+
+boundX:             [-3.0, 3.0]
+boundY:             [-2.0, 2.0]
+boundZ:             [0.15, 3.0]

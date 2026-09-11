@@ -16,23 +16,43 @@ class MPCController(Controller):
     multiple-shooting transcription, ipopt with warm starting. crazyflow ships
     the same model as CasADi symbolics; we rebuild the Euler form here directly
     from its parameters.
+
+    Disturbance handling (`disturbance`):
+      "none" - plain MPC; re-predicts the same biased trajectory under steady
+               wind (measured: 0.196 m RMSE).
+      "eso"  - offset-free MPC (Maeder/Morari style): a velocity ESO on the
+               model residual estimates a constant disturbance acceleration
+               that enters the prediction model (= `offset_free=True`).
+      "l1"   - the same injection point, fed by an L1 piecewise-constant
+               adaptation law (DATT / MPPI+L1 recipe) instead of the ESO. ONE
+               estimate, shared by the predictor and the plant model, on the
+               same so_rpy thrust map the MPC predicts with - so the estimator
+               cannot "discover" the thrust-calibration bias that acc_coef /
+               cmd_f_coef already encode and double-count it. Everything else
+               (horizon, weights, soft-start ramp) is identical to "eso", so
+               the comparison isolates the adaptation law.
     """
 
     def __init__(self, horizon: int = 20, dt_plan: float = 0.04, control_freq: int = 100,
-                 offset_free: bool = False, eso_w: float = 7.0):
+                 offset_free: bool = False, eso_w: float = 7.0,
+                 disturbance: str | None = None, l1_a_s: float = -5.0,
+                 l1_cutoff_hz: float = 4.0):
         import casadi as cs
 
         self.H, self.dtp = horizon, dt_plan
-        # Offset-free MPC (Maeder/Morari style): a constant disturbance-acceleration
-        # state, estimated by a velocity ESO, enters the prediction model so the
-        # optimizer plans against it. Plain MPC re-predicts the same biased
-        # trajectory under steady wind (measured: 0.196 m RMSE).
+        if disturbance is None:
+            disturbance = "eso" if offset_free else "none"
+        if disturbance not in ("none", "eso", "l1"):
+            raise ValueError(f"disturbance must be none|eso|l1, got {disturbance!r}")
+        self.disturbance = disturbance
+        self.offset_free = disturbance != "none"   # kept for callers that read it
+        self.dt = 1.0 / control_freq
         # Unlike ADRC, the ESO here is not in a high-gain feedback path — it only
         # biases the prediction model — so its bandwidth can sit well below the
         # tracking bandwidth (noise robustness) and still cancel quasi-static wind.
-        self.offset_free = offset_free
-        self.dt = 1.0 / control_freq
         self._w = eso_w  # ESO bandwidth for the disturbance estimate
+        self._a_s = l1_a_s
+        self._alpha_f = 1.0 - np.exp(-2 * np.pi * l1_cutoff_hz * self.dt)  # L1 LPF
         p = _load_so_rpy_params()
         self.p = p
         self.hover = float((p["mass"] * 9.81 - p["acc_coef"]) / p["cmd_f_coef"])
@@ -85,13 +105,41 @@ class MPCController(Controller):
 
     def _eso_reset(self) -> None:
         self._v_hat = np.zeros(3)
-        self._sigma = np.zeros(3)
+        self._sigma = np.zeros(3)      # ESO disturbance state / L1 raw estimate
+        self._sigma_f = np.zeros(3)    # L1 low-passed estimate (what the MPC sees)
         self._last_thrust = self.hover
 
     def reset(self, trajectory: Trajectory) -> None:
         self._traj = trajectory
         self._prev = None
         self._eso_reset()
+
+    def _model_acc(self, quat: np.ndarray) -> np.ndarray:
+        """Nominal translational acceleration of the so_rpy model for the last
+        commanded thrust — the SAME map the MPC predicts with."""
+        from scipy.spatial.transform import Rotation as R
+
+        p = self.p
+        z_b = R.from_quat(quat).as_matrix()[:, 2]
+        return ((p["acc_coef"] + p["cmd_f_coef"] * self._last_thrust) * z_b
+                / p["mass"] + p["gravity_vec"])
+
+    def _estimate(self, vel: np.ndarray, quat: np.ndarray) -> np.ndarray:
+        """Disturbance-acceleration estimate for the prediction model."""
+        if self.disturbance == "eso":
+            # velocity ESO on the model residual -> disturbance accel estimate
+            e_v = vel - self._v_hat
+            self._v_hat += self.dt * (self._model_acc(quat) + self._sigma + 2 * self._w * e_v)
+            self._sigma = np.clip(self._sigma + self.dt * self._w**2 * e_v, -3.0, 3.0)
+            return self._sigma
+        # "l1": piecewise-constant adaptation (DATT, arXiv:2310.09053), as in
+        # MPPIL1Controller._l1_update, but with the so_rpy thrust map.
+        v_err = self._v_hat - vel
+        self._v_hat += self.dt * (self._model_acc(quat) + self._sigma + self._a_s * v_err)
+        e = np.exp(self._a_s * self.dt)
+        self._sigma = np.clip(-(self._a_s / (e - 1.0)) * e * (self._v_hat - vel), -3.0, 3.0)
+        self._sigma_f = (1 - self._alpha_f) * self._sigma_f + self._alpha_f * self._sigma
+        return self._sigma_f
 
     def act(self, state: np.ndarray, t: float) -> np.ndarray:
         from scipy.spatial.transform import Rotation as R
@@ -103,22 +151,16 @@ class MPCController(Controller):
         E_inv = np.array([[1, sr * tp, cr * tp], [0, cr, -sr], [0, sr / cp, cr / cp]])
         x0 = np.concatenate([pos, rpy, vel, E_inv @ omega])
 
-        if self.offset_free:
-            # velocity ESO on the model residual -> disturbance accel estimate
-            p = self.p
-            z_b = R.from_quat(quat).as_matrix()[:, 2]
-            a_model = ((p["acc_coef"] + p["cmd_f_coef"] * self._last_thrust) * z_b
-                       / p["mass"] + p["gravity_vec"])
-            e_v = vel - self._v_hat
-            self._v_hat += self.dt * (a_model + self._sigma + 2 * self._w * e_v)
-            self._sigma = np.clip(self._sigma + self.dt * self._w**2 * e_v, -3.0, 3.0)
-            # Soft-start: under sensor noise the cold ESO's first innovations are
-            # noise-dominated at full gain, and planning against that phantom
+        if self.disturbance != "none":
+            sigma = self._estimate(vel, quat)
+            # Soft-start: under sensor noise the cold estimator's first innovations
+            # are noise-dominated at full gain, and planning against that phantom
             # disturbance during the launch acceleration caused 0.7-1.5 m
             # transients (t=0.5-1.6 s) that dominated the lighthouse RMSE
             # (0.178 full-window vs 0.046 steady-state). Ramp the estimate's
-            # authority over ~3x the ESO convergence time instead.
-            self.opti.set_value(self.DISTP, self._sigma * min(1.0, t / 1.5))
+            # authority over ~3x the ESO convergence time instead. Applied to
+            # both estimators so the ESO-vs-L1 comparison changes one thing.
+            self.opti.set_value(self.DISTP, sigma * min(1.0, t / 1.5))
         else:
             self.opti.set_value(self.DISTP, np.zeros(3))
 

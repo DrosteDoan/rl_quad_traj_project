@@ -23,6 +23,13 @@ from the level config, exactly what the race hands the bridge in `obs`:
     /opt/venvs/race/bin/python tasks/racing/code/plot_trajectory.py \
         --bridge repos/lsy_drone_racing/lsy_drone_racing/control/race_bridge.py --config level0.toml
 
+Draw a TOGT plan (Lesson 6 §2, the CSV written by togt_plan.py), optionally stretched
+in time, and optionally on the LEADERBOARD clock -- ground start plus takeoff leg
+(Lesson 6 §0) -- instead of the benchmark's hover start:
+
+    python tasks/racing/code/plot_trajectory.py --plan tasks/racing/plans/tube_f0.95.csv --time-scale 1.05
+    python tasks/racing/code/plot_trajectory.py --plan tasks/racing/plans/tube_f0.95.csv --ground-start
+
 Overlay a flown lap (recorded by race_bridge.py when RACE_LOG_DIR is set,
 see Lesson 5 §3) to see where reality peeled away from the plan:
 
@@ -225,6 +232,15 @@ def main():
     p.add_argument("--config", default="level0.toml",
                    help="Level toml that provides the gate poses and start for --bridge "
                         "(a name in repos/lsy_drone_racing/config, or a path).")
+    p.add_argument("--plan", type=Path, default=None,
+                   help="Draw a TOGT plan CSV (togt_plan.py, Lesson 6) instead of a --track entry.")
+    p.add_argument("--time-scale", type=float, default=1.0,
+                   help="--plan only: stretch the plan in time (same path, v/s, a/s^2).")
+    p.add_argument("--ground-start", action="store_true",
+                   help="--track / --plan: draw the reference on the leaderboard clock "
+                        "(ground start at (-1.5, 0.75, 0.01) + rest-to-rest takeoff, Lesson 6 §0).")
+    p.add_argument("--takeoff-t", type=float, default=1.5,
+                   help="--ground-start: seconds for the takeoff leg.")
     p.add_argument("--flown", type=Path, default=None,
                    help="CSV of a flown lap (t,x,y,z — from race_bridge logging).")
     p.add_argument("--out-dir", type=Path,
@@ -236,10 +252,31 @@ def main():
         traj = bridge_reference(args.bridge, args.config)
         label = f"{args.bridge.name} on {Path(args.config).name}"
         tag = f"bridge_{Path(args.config).stem}"
+    elif args.plan is not None:
+        from crazy_track.trajectories.freestyle import lsy_level2_race
+        from crazy_track.trajectories.sampled import SampledRaceTrajectory
+
+        ref = lsy_level2_race()   # the same gates / obstacles the plan was made for
+        traj = SampledRaceTrajectory(str(args.plan), gates=ref.gates, obstacles=ref.obstacles,
+                                     time_scale=args.time_scale)
+        label = f"{args.plan.name} x{args.time_scale:g}"
+        tag = f"plan_{args.plan.stem}_x{args.time_scale:g}"
     else:
         traj = TRACKS[args.track](cruise=args.cruise)
         label = f"{args.track}, cruise={args.cruise:g}"
         tag = f"{args.track}_c{args.cruise:g}"
+    if args.ground_start and args.bridge is None:
+        import os
+        import sys
+
+        # race_refs.py lives next to this script; RACE_CODE_DIR covers a copied script.
+        sys.path.insert(0, os.environ.get("RACE_CODE_DIR", "/workspace/tasks/racing/code"))
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from race_refs import RACE_START, GroundStartTrajectory
+
+        traj = GroundStartTrajectory(traj, RACE_START, takeoff_t=args.takeoff_t)
+        label += f", ground start (takeoff {args.takeoff_t:g} s)"
+        tag += "_ground"
     t, pos, speed = sample(traj)
 
     flown = None
@@ -268,6 +305,9 @@ def main():
         else:
             print("\n⚠️  NOT feasible — no controller can track this. Lower the cruise speed "
                   "or fix the gate crossings.")
+            if args.plan is not None:
+                print("   (for a TOGT plan: python tasks/racing/code/togt_plan.py --diagnose-only "
+                      f"{args.plan}  shows which gate-plane crossing tripped it)")
     print(f"\nduration {traj.duration:.2f} s, last gate at "
           f"{traj.gate_times[-1]:.2f} s, peak speed {speed.max():.2f} m/s")
 

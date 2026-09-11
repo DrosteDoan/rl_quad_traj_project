@@ -13,20 +13,27 @@ else
 fi
 
 echo; echo "===== Pinned source repos (scripts/pins.sh) ====="
-for r in crazyflow lsy_drone_racing; do
+for r in crazyflow lsy_drone_racing TOGT-Planner; do
   d=/workspace/repos/$r
   if [ -d "$d/.git" ]; then
     echo "  $r @ $(git -C "$d" log -1 --format='%h %ad %s' --date=short)"
+  elif [ "$r" = "TOGT-Planner" ]; then
+    echo "  $r  (not cloned yet -- racing Lesson 6: bash tasks/racing/code/togt/build.sh)"
   else
     echo "  $r  (not cloned yet -- run scripts/clone_repos.sh or a tasks/*/setup.sh)"
   fi
 done
+if [ -x /workspace/repos/togt-build/togt_race ]; then
+  echo "  togt_race driver: built (repos/togt-build/togt_race)"
+else
+  echo "  togt_race driver: not built (racing Lesson 6: bash tasks/racing/code/togt/build.sh)"
+fi
 
 echo; echo "===== MAIN env (Python 3.12) ====="
 /opt/venvs/main/bin/python - <<'PY'
 import importlib
 for m in ["numpy", "scipy", "jax", "mujoco", "mujoco.mjx", "gymnasium", "crazyflow",
-          "gym_pybullet_drones", "pybullet", "torch",
+          "casadi", "gym_pybullet_drones", "pybullet", "torch",
           "stable_baselines3", "sb3_contrib", "crazy_track"]:
     try:
         mod = importlib.import_module(m)
@@ -55,6 +62,15 @@ try:
           f"(TWR {THRUST_MAX / (MASS * 9.81):.2f}) -- Lesson 1 section 3")
 except Exception as e:
     print(f"  FAIL DATTTrackingEnv {type(e).__name__}: {e}")
+# Lesson 6: the TOGT plan loader and the MPC family (casadi / ipopt) of the vendored snapshot.
+try:
+    import casadi
+    from crazy_track.controllers.mpc import MPCController
+    from crazy_track.trajectories.sampled import SampledRaceTrajectory  # noqa: F401
+    MPCController(control_freq=100, disturbance="l1")
+    print(f"  ok   MPC family builds (casadi {casadi.__version__}) + SampledRaceTrajectory -- Lesson 6")
+except Exception as e:
+    print(f"  FAIL Lesson-6 stack {type(e).__name__}: {e}")
 PY
 
 echo; echo "===== RACE env (Python 3.12, tasks/racing lesson 3) ====="
@@ -62,7 +78,7 @@ if [ -x /opt/venvs/race/bin/python ]; then
 /opt/venvs/race/bin/python - <<'PY'
 import importlib
 for m in ["lsy_drone_racing", "crazyflow", "mujoco", "gymnasium", "jax", "torch",
-          "stable_baselines3", "sb3_contrib"]:
+          "stable_baselines3", "sb3_contrib", "casadi"]:
     try:
         mod = importlib.import_module(m)
         print(f"  ok   {m:22s} {getattr(mod,'__version__','')}")
@@ -86,6 +102,12 @@ try:
     print("  ok   crazy_track.controllers.datt (policy importable in race env)")
 except Exception as e:
     print(f"  FAIL crazy_track.controllers.datt {type(e).__name__}: {e}")
+try:
+    from crazy_track.controllers.mpc import MPCController
+    MPCController(control_freq=50, disturbance="eso")
+    print("  ok   crazy_track.controllers.mpc builds in the race env (race_bridge_mpc.py, Lesson 6)")
+except Exception as e:
+    print(f"  FAIL crazy_track.controllers.mpc {type(e).__name__}: {e}")
 PY
 else
   echo "  (race venv not present — rebuild the image to get /opt/venvs/race)"
