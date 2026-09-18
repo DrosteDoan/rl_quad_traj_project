@@ -214,8 +214,10 @@ Read it in this order:
    coin. Which gate it misses, and by how much, is in each run's directory
    (`rollout.png`); look before you retrain.
 4. **The ground clock adds 1.500 s and nothing else** for the policies, as for
-   the MPC family in Lesson 6 §4: no new failures. The policies have no
-   estimator ramp to meet the takeoff.
+   the MPC family in Lesson 6 §4: no new failures. The policies carry no
+   estimator at all — which, as Lesson 8 §5 shows, is the whole of the
+   difference: what the MPC's estimator loses on this clock is not the takeoff
+   but its own model error.
 
 **Caveats, before you believe any of it:** 4 M steps and one recipe — no
 hyper-parameter search, no curriculum, no second variable; three training
@@ -352,14 +354,16 @@ figure-8 disturbance benchmark, RMSE in metres) or to a row above:
    is the worst in the pool (0.196 m). On the closed-form line its feedback
    absorbs 2.5 m/s² (6.073 s, 4/4); on the tube plan, planned at 0.95 of the
    thrust limit, it does not (2/4, a 1.29 m excursion).
-2. **The estimator variants meet the takeoff** (Lesson 6 §4). On the figure-8
-   the offset-free MPC ties the deployment cell (0.057 m), and its 1.5 s
-   soft-start ramp exists to keep a cold ESO's noise-dominated first
-   innovations out of the optimiser during the launch; on the leaderboard
-   clock that ramp opens during the climb, and the estimate that should cancel
-   the wind or the payload arrives half-converged into a 0.8 s horizon. That is why `mpc_offsetfree` does *not*
-   rescue the tube plan under wind (2/4) or payload (3/4) here, although both
-   are the constant forces it was built for.
+2. **The estimator variants do not rescue the plan they were built for.** On
+   the figure-8 the offset-free MPC ties the deployment cell (0.057 m), yet
+   here it does *not* rescue the tube plan under wind (2/4) or payload (3/4),
+   although both are the constant forces it was built for. Lesson 6 §4 blamed
+   the 1.5 s soft-start ramp opening during the climb; Lesson 8 §5 tested that
+   and found it innocent (gating the ramp on lift-off: 0/10 either way). The
+   estimate the optimiser receives is dominated by the **prediction model's own
+   error** — an attitude gain of 0.73 against the simulator's 0.94 — learned in
+   one turn as a world-frame force and applied in the next. An estimator is only
+   as good as the model it corrects.
 3. **Noise enters an optimiser as a phantom disturbance.** On the figure-8 the
    MPC family's Lighthouse failures are ipopt transients on a noisy,
    zero-order-held position, not the latency (plain MPC 0.136 ± 0.057 m over
@@ -518,8 +522,12 @@ Read the two tables together:
 1. **The pole-aware plan works — for plain MPC.** 5.32 s at 15/20 on Level 0 is
    the fastest ranked lap of this course, 1.8 s under Lesson 6's 7.14 s, and
    every one of its 15 successes reads 5.32 s: the failures are contacts, not
-   slow laps. Level 1's mass and start-pose randomisation take it to 8/20
-   (unranked) with the poles and 11/20 without. Note the reversal since
+   slow laps. Level 1 takes it to 8/20 (unranked) with the poles and 11/20
+   without — and the term that does it is the **mass**, not the start pose:
+   Lesson 8 §5 logs the sampled mass per episode and finds the start offset
+   uncorrelated with the outcome (r = −0.01 / +0.05) while the heaviest drones
+   cross gate 2 0.10–0.25 m low (a thrust-scale adaptation on a corrected model
+   takes this same cell to 18/20). Note the reversal since
    Lesson 6: on the `safe` line the ESO variant was 0.04 s faster and equally
    ranked; on the fast plan it never completes — §3's mechanism 2, now with
    contacts.
@@ -591,10 +599,13 @@ Five mechanisms, each one a sentence you can defend with a row:
    or pole 2. The harness never told you, because it has no walls: read the
    *max deviation* column against the 0.2 m half-opening, not against
    "completed".
-3. **An estimator that ramps in during the takeoff is a liability on the
-   leaderboard clock** (Lesson 6 §4, twice more here): the ESO variant loses
-   the tube plan under wind and payload in the harness and cuts inside the plan
-   at pole 1 in the race; the L1 hybrid never ranks.
+3. **An estimator is a liability when it is correcting the wrong model**
+   (Lesson 6 §4, twice more here): the ESO variant loses the tube plan under
+   wind and payload in the harness and cuts inside the plan at pole 1 in the
+   race; the L1 hybrid never ranks. Lesson 8 §5 re-measures this with the ramp
+   gated on lift-off and on a corrected model, and names the mechanism: an
+   additive disturbance estimate is the wrong *structure* for a model error that
+   scales with tilt and thrust.
 4. **Reference clearance is not flown clearance.** 0.25 m on the plan became
    0.083 m on the flown path for a tracker that cut the leg; the race registers
    a contact at ≈ 0.10 m. Check the flown CSV.
@@ -654,9 +665,12 @@ not necessarily your own bridge's reference.
 5. **What you would do next, and why** — one paragraph. The evidence points
    three ways: precision (train against the flown deviation, not only the
    reference), contacts (a planner that knows the frames and the flown
-   clearance, not only the gates), or the estimator's ramp (a soft-start gated
-   on motion onset). Pick one, say which corner of §5's triangle it moves, and
-   name the number that would tell you it did.
+   clearance, not only the gates), or the model the tracker predicts with.
+   Write your answer before you read Lesson 8, which takes the third road and
+   measures the other two on the way — including the fourth idea that used to
+   stand here, a soft-start gated on motion onset: it gains nothing (§5 there).
+   Pick one, say which corner of §5's triangle it moves, and name the number
+   that would tell you it did.
 
 **Back to:** [Lesson 4 — Brainstorm: make it faster](04-brainstorm-faster-tracking.md)
 — with the whole board measured: plan, tracker, clock, world, walls.

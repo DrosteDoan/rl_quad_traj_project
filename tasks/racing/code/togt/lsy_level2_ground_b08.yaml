@@ -1,0 +1,193 @@
+# The ground-start track with gates 1 and 2 PRE-COMPENSATED -- Lesson 8 section 3.
+#                                                                        --track ground-b08
+#
+# lsy_level2_ground.yaml with three gate positions moved against the VENDORED MPC's measured,
+# systematic corner cut (Lesson 8 section 1: the tracker crosses every gate 0.03-0.05 m inside
+# the turn, and gate 1 with about 1 cm of margin left). If the error is systematic, shift the
+# REFERENCE against it -- nothing in the controller changes, and the real gates do not move:
+#
+#   gate 1, with its exit corridor (G1, G1out): +0.08 m along gate 1's +y, against the
+#       tracker's measured -0.10 m cut. The flown crossing then lands within 0.02 m of the
+#       true centre.
+#   gate 2, with both corridors (G2in, G2, G2out): -0.08 m along gate 2's +y, against its
+#       +0.13...+0.18 m cut at the exit of the climbing U-turn, AND 0.06 m up, against the
+#       0.1 m climb lag into it. The flown crossing lands within 0.06 m of the true centre.
+#
+# 0.08 m is the largest shift that stays legal: the reference's own gate-2 crossing then sits
+# (-0.13, +0.11) from the TRUE centre, exactly the planner's 0.13 m bound (the 0.20 m opening
+# minus the drone's 0.07 m collision box); at 0.10 m the planner's own check calls it a FRAME
+# crossing. A pre-compensation is tracker-specific: it is built from one tracker's error, and
+# the corrected-model tracker of Lesson 8 section 4 crosses gate 2 on the other side of it.
+#
+# Measured with the UNMODIFIED vendored MPC (RACE_START_BLEND=1.0, hold 0.2 s):
+#   0.85 x TWR: planned 4.09 s -> 4.28 s on the ground clock; 19/20 at Level 0 and 17/20 at
+#       Level 1 (cells A1, A2; the three Level-1 losses are three of the five heaviest draws
+#       -- the heaviest of all completed the lap).
+#   0.90 x TWR: planned 3.92 s -> 4.12 s, the same lap as the headline -- but on 5 screening
+#       episodes only, never raced at 20.
+# lsy_level2_ground_b08_g3.yaml is THIS track plus one further shift, of gate 3. Planning both
+# at 0.90 and racing them at 20 episodes is how you measure what that shift is worth (Lesson 8,
+# "Before you move on", exercise 2).
+#
+#   python tasks/racing/code/togt_plan.py --track ground-b08 --thrust-frac 0.90
+#   -> tasks/racing/plans/ground-b08_f0.90.csv
+initState:
+  pos: [-1.5, 0.75, 0.05]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+endState:
+  pos: [1.0, -0.75, 1.2]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+orders: ['B1', 'G1', 'G1out', 'G2in', 'G2', 'G2out', 'G3in', 'G3', 'B3', 'B4', 'G4', 'G4out']
+
+B1:
+  type: 'SingleBall'
+  name: 'pole1_via'
+  position: [0.0800, 0.3500, 0.8000]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G1:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.5563, 0.3069, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G1out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.9828, -0.1151, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.5285, 0.3793, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.1069, 0.8062, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6853, 1.2331, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-0.4000, -0.2510, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-1.0000, -0.2500, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+B3:
+  type: 'SingleBall'
+  name: 'pole3_via'
+  position: [-1.4500, -0.7200, 0.8500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+B4:
+  type: 'SingleBall'
+  name: 'pole4_via'
+  position: [-0.5500, -1.1500, 1.0500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G4:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.0000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G4out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true

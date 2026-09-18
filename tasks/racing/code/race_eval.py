@@ -7,7 +7,10 @@
 Runs in the MAIN venv. `--controller` takes any spec the vendored benchmark knows
 (`crazy_track/eval/lissajous_benchmark.py`, make_controller): mpc, mpc_offsetfree,
 mpc_l1, mppi_l1, pid, adrc, datt:<zip>, datt_acro:<zip>. The sim interface is chosen
-per family, exactly as the parent project's race evaluators do.
+per family, exactly as the parent project's race evaluators do. It also takes the
+switchable copy of the vendored MPC, `mpcdev[:key=val,...]` (mpc_dev.py, Lesson 8 §4);
+the bare `mpcdev` is the vendored controller exactly. When the controller records its
+solve times, a `SOLVE` line reports them next to the `RESULT` line.
 
 THE TWO CLOCKS (the one thing to get right before comparing anything):
 
@@ -53,17 +56,21 @@ from crazy_track.trajectories.sampled import SampledRaceTrajectory  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 DISTURBANCES = ("none", "wind_const", "wind_gust", "payload", "ground")
+HARNESS_FREQ = 100          # the vendored harness's attitude-mode control rate
 
 
 def make_race_controller(spec: str, seed: int = 0):
-    """The vendored benchmark's controller specs + the sim interface each family needs
-    (as crazy_track.eval.togt_race_eval does), with the seed passed through (MPPI sampling)."""
+    """The vendored benchmark's controller specs + 'mpcdev[:...]' + the sim interface each family
+    needs (as crazy_track.eval.togt_race_eval does), with the seed passed through (MPPI sampling)."""
+    if spec == "mpcdev" or spec.startswith("mpcdev:"):
+        from mpc_dev import parse_spec           # next to this file, already on sys.path
+        return parse_spec(spec, control_freq=HARNESS_FREQ), "attitude", HARNESS_FREQ
     if spec.startswith("datt_acro"):
-        mode, freq = "force_torque", 100
+        mode, freq = "force_torque", HARNESS_FREQ
     elif spec.startswith("xadapt"):
         mode, freq = "rotor_vel", 500
     else:
-        mode, freq = "attitude", 100
+        mode, freq = "attitude", HARNESS_FREQ
     return make_controller(spec, seed=seed), mode, freq
 
 
@@ -111,7 +118,8 @@ def main() -> None:
     p.add_argument("--time-scale", type=float, default=1.0,
                    help="CSV plans only: stretch the plan in time (same path, v/s, a/s^2)")
     p.add_argument("--controller", default="mpc",
-                   help="mpc | mpc_offsetfree | mpc_l1 | mppi_l1 | pid | adrc | datt:<zip> | datt_acro:<zip>")
+                   help="mpc | mpcdev[:key=val,...] | mpc_offsetfree | mpc_l1 | mppi_l1 | pid | "
+                        "adrc | datt:<zip> | datt_acro:<zip>")
     p.add_argument("--label", default=None,
                    help="name for this controller in the table (default: the spec before ':')")
     p.add_argument("--start", choices=["hover", "ground"], default="hover",
@@ -203,6 +211,14 @@ def main() -> None:
               f"  at t={g['t_cross']}  (plan {g['t_gate']}; crossing angle {angles[k]['angle_deg']:.0f} deg)")
     print(f"obstacle clearance (pole surface): " + " ".join(f"{c:.2f}" for c in clear) + " m"
           + ("   [!] < 0.10 m -- the race would likely score a contact" if min(clear) < 0.10 else ""))
+    solve = getattr(ctrl, "solve_ms", None)
+    if solve:
+        ms = np.asarray(solve[1:] or solve)        # the first call warms the solver
+        extra = f", ipopt failures {getattr(ctrl, 'n_fail', 0)}"
+        if getattr(ctrl, "mass_adapt", False):
+            extra += f", thrust scale k {ctrl._k:.3f}"
+        print(f"SOLVE controller={label} steps={len(solve)} mean_ms={ms.mean():.1f} "
+              f"max_ms={ms.max():.0f} p95_ms={np.percentile(ms, 95):.0f}{extra}")
     print(f"RESULT plan={plan_name} start={args.start} cond={cond} seed={args.seed} controller={label} "
           f"gates={metrics['gates_passed']}/4 race_time={metrics['race_time']} "
           f"t_gate1={metrics['t_gate1']} max_dev={metrics['max_ref_dev']} "

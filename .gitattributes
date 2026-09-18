@@ -3,3 +3,6 @@
 # TOGT-Planner (racing Lesson 6) reads these with a hand-rolled YAML parser that keeps a
 # trailing CR in values; a CRLF checkout fails with "Config files not found!".
 tasks/racing/crazy_track/configs/togt/** text eol=lf
+# The same parser reads the track files the lessons add next to the driver: the pole-aware
+# tube (Lesson 7) and the ground-start tracks (Lesson 8).
+tasks/racing/code/togt/*.yaml text eol=lf

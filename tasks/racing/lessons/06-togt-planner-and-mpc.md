@@ -298,11 +298,17 @@ Three things these two tables say that the upstream table could not:
 - **The estimator variants lose laps on the ground clock that they complete on the
   hover clock** (`mpc_offsetfree` on the closed-form plan at cruise 3.0: 4.478 s in the
   air, 3/4 with a 1.74 m excursion from the ground; `mpc_l1` on tube f0.85 ×1.00 and
-  the closed-form plans). The 1.5 s soft-start ramp in `mpc.py:156–163` was designed
-  for a hover start, where the lead-in gives the estimator 1.5 s of stationary flight to
-  converge; on the leaderboard clock the same 1.5 s coincide with the takeoff, the most
-  aggressive transient of the lap, and a half-converged estimate is fed forward over
-  the whole horizon. The benchmark's lead-in was doing work nobody had noticed.
+  the closed-form plans). The obvious suspect is the 1.5 s soft-start ramp in
+  `mpc.py:156–163`: it was written for a hover start, where the lead-in gives the
+  estimator 1.5 s of stationary flight to converge, and on the leaderboard clock those
+  same 1.5 s coincide with the takeoff. That reading stood until Lesson 8 §5 tested it
+  directly — gating the ramp on lift-off, shortening it, removing it: 0/10 either way,
+  and the same estimator on a *corrected* model is still worse than no estimator at all.
+  What the ESO and the L1 law actually learn is the **prediction model's own error**
+  (`mpc.py` predicts with an attitude gain of 0.73 where this simulator's is 0.94), as a
+  world-frame "disturbance" discovered in one turn and applied in the next. The ramp is
+  a symptom; the model is the cause. Keep the observation, and read §5's mechanism 2
+  knowing that the axis it names is not the one that decides.
 - **The course's v5 policy is a precision tracker too, ~0.07–0.10 s behind the MPC on
   every plan it completes**, and it fails the unstretched f0.95 plan the way the parent
   project's best acro policy did (3/4). Your own seeds go in that column.
@@ -376,10 +382,11 @@ things; each shows up in this table:
    on the flown CSV show it). The drone's collision body in lsy is a 0.07 m box: a faithful
    tracker on a line that shaves a pole *will* touch it; the Lesson-3 policy at cruise
    1.5 got away with it by being slower and less faithful.
-2. **The estimators meet the takeoff** (as in §4's ground-clock table): `mpc_l1` leaves
-   the line inside the first two seconds at every cruise — the 1.5 s soft-start ramp
-   opens during the climb — and `mpc_offsetfree` is the most precise variant at cruise 2.5
-   but not at 3.0.
+2. **The estimators lose the line early** (as in §4's ground-clock table): `mpc_l1`
+   leaves it inside the first two seconds at every cruise, and `mpc_offsetfree` is the
+   most precise variant at cruise 2.5 but not at 3.0. The soft-start ramp opening during
+   the climb is the tempting explanation; §4's bullet says why it is the wrong one
+   (Lesson 8 §5 gated the ramp on lift-off and gained nothing).
 3. **50 Hz instead of 100 Hz**, and about 20–30 ms of solve time per 20 ms step — the
    number the bridge prints. The race is simulated step by step, so this costs wall time,
    not laps; on a real drone it would cost the lap.
@@ -419,9 +426,11 @@ successes out of 20; a row below 50 % is unranked):
   absorbed by the MPC's own feedback (a 0.5 g mass error at hover is a 5 % thrust
   error, well inside its control authority). The prediction "the estimator recovers
   what it cost" is **not supported** at this randomisation level; the L1 hybrid is
-  unranked on every row for the reason §4 measured (its estimate ramps in during the
-  takeoff). Write down what would make H4 right — a heavier payload, wind — and notice
-  that Level 1 does not contain it.
+  unranked on every row for the reason §4's bullet now gives: its estimate is learning
+  the prediction model's error rather than a disturbance. Write down what would make H4
+  right — a heavier payload, wind — and notice that Level 1 does not contain it. (Lesson 8
+  §5 finds the randomisation that *does* defeat plain MPC on a fast plan, and it is
+  multiplicative: the mass, through the thrust map, not an additive force.)
 - **Against the leaderboard, on the leaderboard's clock:** 7.14 s at 100 % success is
   the best fully-ranked number of this course so far (the Lesson-3 policy baseline is
   7.80 s), still 3.7 s from the record — and the whole gap is *plan*: the pole-safe line
@@ -516,7 +525,8 @@ about policies in general (Lesson 2 §5 — three seeds).
    `togt_plan.py --track-yaml <your.yaml>`, and find the fastest plan whose
    clearance is above 0.12 m everywhere. Race it through the bridge. What did
    the poles cost, in seconds? (Lesson 7 §4 shows one answer,
-   `togt_plan.py --track poles` — do yours before you read it.)
+   `togt_plan.py --track poles` — do yours before you read it; `--track` also takes
+   `raw`, `tube` and, after Lesson 8, `ground` and `ground-b08g3`.)
 4. **One variable.** `mpc_offsetfree_w3` and `mpc_offsetfree_w15` change only
    the ESO bandwidth; `mpc_l1_c2` only the L1 cutoff. Pick the axis §6's
    mechanism 2 predicts and test it on the f0.95 plan.

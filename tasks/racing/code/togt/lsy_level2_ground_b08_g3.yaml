@@ -1,0 +1,200 @@
+# The HEADLINE track of Lesson 8 -- ground start, gates 1, 2 and 3 pre-compensated.
+#                                                                      --track ground-b08g3
+#
+# lsy_level2_ground.yaml with four shifts. Each one moves the REFERENCE against an error of the
+# VENDORED MPC that was measured first (Lesson 8 sections 1 and 3); the real gates never move,
+# and the controller is not touched:
+#
+#   gate 1, with its exit corridor (G1, G1out)
+#       +0.08 m along gate 1's +y ..... against the tracker's -0.10 m inside cut at 3.8 m/s.
+#       [0.5000, 0.2500, 0.7000] -> [0.5563, 0.3069, 0.7000], likewise G1out.
+#   gate 2, with both corridors (G2in, G2, G2out)
+#       -0.08 m along gate 2's +y ..... against its +0.13...+0.18 m cut out of the U-turn,
+#       +0.06 m in z .................. against the 0.1 m climb lag into it.
+#       [1.0500, 0.7500, 1.2000] -> [1.1069, 0.8062, 1.2600], likewise G2in and G2out.
+#   gate 3, with its entry corridor (G3in, G3)
+#       -0.05 m along gate 3's +y ..... against the hairpin-exit cut that costs about one
+#       episode in ten at 0.90 x TWR (the flown crossing sits at +0.11/+0.12 m where the frame
+#       is at 0.13; after the shift it sits at +0.02...+0.07). In world coordinates that is
+#       y + 0.05 m: [-1.0000, -0.2500, 0.7000] -> [-0.9999, -0.2000, 0.7000] and
+#       [-0.4000, -0.2510, 0.7000] -> [-0.3999, -0.2010, 0.7000]. To UNDO it -- exercise 2 of
+#       the lesson -- move G3 and G3in back by -0.05 m in world y, which is +0.05 m along
+#       gate 3's +y. It costs no lap time and pulls the pole-3 reference clearance from 0.30 to
+#       0.28 m.
+#
+# 0.08 m is the largest gate-1/2 shift that stays legal: the reference's own gate-2 crossing
+# then sits (-0.13, +0.11) from the TRUE centre, exactly the planner's 0.13 m bound (the 0.20 m
+# opening minus the drone's 0.07 m collision box). A pre-compensation is tracker-specific: it is
+# built from ONE tracker's systematic error, and any change of tracker, mass model or track
+# invalidates it (the corrected model of Lesson 8 section 4 crosses gate 2 on the other side).
+#
+# Measured with the UNMODIFIED vendored MPC at 0.90 x TWR (RACE_START_BLEND=1.0):
+#   planned lap 3.92 s, gate 1 at 0.97 s, top speed 3.86 m/s, thrust 16.5 of 17.5 m/s^2,
+#   crossings 0.03 / 0.13 / 0.03 / 0.05 m off centre, clearance 0.24 / 0.24 / 0.28 / 0.20 m;
+#   with a 0.2 s hold that is 4.12 s on the ground clock, which the race reads as 4.12.
+#   20 episodes per cell: Level 0 20/20 and 20/20, Level 1 18/20 and 16/20 (cells C1, C1r,
+#   C2, C2r) -- 1.20 s under Lesson 7's 5.32 s at higher success at both levels.
+#   With a 0.3 s hold: 4.22 s, 20/20 and 18/20 (C4, C3). The hold is a pure additive term.
+#
+#   python tasks/racing/code/togt_plan.py --track ground-b08g3 --thrust-frac 0.90
+#   -> tasks/racing/plans/ground-b08g3_f0.90.csv
+initState:
+  pos: [-1.5, 0.75, 0.05]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+endState:
+  pos: [1.0, -0.75, 1.2]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+orders: ['B1', 'G1', 'G1out', 'G2in', 'G2', 'G2out', 'G3in', 'G3', 'B3', 'B4', 'G4', 'G4out']
+
+B1:
+  type: 'SingleBall'
+  name: 'pole1_via'
+  position: [0.0800, 0.3500, 0.8000]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G1:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.5563, 0.3069, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G1out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.9828, -0.1151, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.5285, 0.3793, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.1069, 0.8062, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6853, 1.2331, 1.2600]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-0.3999, -0.2010, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-0.9999, -0.2000, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+B3:
+  type: 'SingleBall'
+  name: 'pole3_via'
+  position: [-1.4500, -0.7200, 0.8500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+B4:
+  type: 'SingleBall'
+  name: 'pole4_via'
+  position: [-0.5500, -1.1500, 1.0500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G4:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.0000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G4out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true

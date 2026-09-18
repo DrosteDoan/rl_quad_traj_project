@@ -184,6 +184,41 @@ on the same machine. Do not start more than about six simulations at once (each
 `race_eval.py` MPC cell is one), and the line "An NVIDIA GPU may be present ... Falling
 back to cpu" at the top of the log is expected on a machine without a CUDA jaxlib.
 
+### Racing Lesson 8: a ground-start plan at Level 1 ends after 0.3–0.9 s with 0 gates
+
+The drone never leaves the floor (or slides into pole 1 from the start pad). Level 1
+draws the start pose up to 0.1 m away from the plan's first point, and a ground-start
+plan holds that first point for 0.2–0.3 s while the rotors spin up — so the reference
+asks for a 0.1 m rest-to-rest move in 0.2 s — a quintic's peak acceleration is 5.77·d/T²,
+so about 14 m/s² — while the drone is still on the ground and cannot make it. Set `RACE_START_BLEND=1.0`: the reference then holds the
+drone *where it actually is* and fades the offset out over one second. It is not needed
+for the Lesson-6/7 plans (they start with a 1.5 s takeoff from the observed pose), and it
+is a no-op only when the plan's first point is the start pose itself — the `ground`
+tracks start 0.04 m higher, so the blend is doing something there even at Level 0.
+
+### Racing Lesson 8: my shell mangles `mpcdev:att=sim,drag=0.495,fgain=1.0`
+
+Quote the spec: `RACE_CONTROLLER='mpcdev:att=sim,drag=0.495,fgain=1.0'` (and the same for
+`--controller`). Unquoted, some shells split on the commas or treat `=` specially, and the
+spec parser then rejects a key it never received. An unknown key is always an error, on
+purpose: a typo in a sweep is worth a crash, not a silent default.
+
+### Racing Lesson 8: `No controller found in ...` or `Multiple controllers found in ...`
+
+lsy's loader imports the file you name and expects **exactly one** `Controller` subclass in
+it. Copy the *file* into `repos/lsy_drone_racing/lsy_drone_racing/control/`, not the folder,
+and copy `race_bridge_mpc.py` and `race_probe.py` separately — they are one controller each.
+If you extended a bridge by pasting a second class into it, move that class to its own file.
+
+### Racing Lesson 8: the harness and the race disagree by 0.02 s for `mpcdev`
+
+Both are right. The race reports the time at the *start* of the 20 ms step in which the last
+gate is crossed (lsy's `sim.py`: `curr_time = i / freq`), so every lap is floored to a
+multiple of 0.02 s. The corrected-model tracker crosses gate 4 about 10–30 ms earlier than
+the vendored one on the same plan, which is often enough to fall into the previous step — so
+its 5.30 s against 5.32 s is a rounding boundary, not 20 ms of speed. Compare plans by their
+reference's last-gate time, and trackers by their success count.
+
 ### A lesson cites `file.py:NN` and the line does not match
 The repo is not at the pinned commit (see above), or you edited the file. The
 citations are exact at the pins in `scripts/pins.sh`.

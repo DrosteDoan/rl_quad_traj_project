@@ -32,6 +32,7 @@ Knowing the boundary of your own method is half of engineering.
 | This course's verified baseline | **7.80 ± 0.004 s** | Level 0, 20/20 success — one 4 M-step v5 seed on a deliberately conservative reference (cruise 2.0 m/s, wide obstacle margins). Known-achievable with exactly the tools in these lessons; beating it is your job. |
 | Lesson 6's model-based reference | **7.14 s**, 20/20 at Level 0 *and* Level 1 | offset-free MPC on the pole-safe closed-form line (`race_bridge_mpc.py`, `RACE_LINE=safe RACE_CRUISE=2.0`); 6.12 s at 18/20 (Level 0) / 16/20 (Level 1) on the original line at cruise 2.5. Not a policy — the precision a model-based optimiser reaches on this plan, on the leaderboard's own clock. The parent project's 3.59–4.46 s numbers are on a different clock (Lesson 6 §0). |
 | Lesson 7's fastest ranked lap | **5.32 s**, 15/20 at Level 0 (8/20 at Level 1 — unranked) | plain MPC on the pole-aware TOGT tube (`togt_plan.py --track poles`, 0.85 × TWR, unstretched, through `race_bridge_mpc.py`). **Not a policy**, and ranked at Level 0 only. The ranked *policy* number of this course remains the baseline's **8.10 s** — v5 seed 0 on the Lesson-3 line at cruise 1.5: 8.099 ± 0.004 s, 20/20 at Level 0 and 8.086 ± 0.042 s, 17/20 at Level 1, re-measured 2026-09-11 through the MPC bridge (`RACE_TAKEOFF_Z=0.7 RACE_CRUISE=1.5`). Lesson 7's racing-envelope policies beat the MPC family in the harness under noise and rank nowhere in the race (gate-frame contacts, Lesson 7 §4). |
+| Lesson 8's fastest ranked lap | **4.12 s**, 40/40 at Level 0 and 34/40 at Level 1 | the **unmodified** MPC of Lesson 6 on a ground-start TOGT plan whose gates are pre-shifted against that tracker's measured cut (`togt_plan.py --track ground-b08g3 --thrust-frac 0.90`), a 0.2 s hold and `RACE_START_BLEND=1.0`. Still **not a policy**. Two 20-episode cells per level; the audit re-derived every number (Lesson 8 §6–§7). The corrected-model tracker of Lesson 8 §4 ranks the *Lesson-7* plan at 20/20 (Level 0) and, with the thrust-scale adaptation, 18/20 at Level 1, both at 5.30 s. The ranked *policy* number of this course is still the baseline's 8.10 s. |
 
 The baseline's tracking is tight — its lap time lives almost entirely in the
 *reference*, which is precisely the decomposition Lessons 3 §6 and 5 teach you
@@ -74,6 +75,7 @@ bash scripts/smoke_test.sh           # the RACING/RACE sections must be all ok
 | 5 | [See the trajectory, compare the models](lessons/05-plot-and-compare.md) | 60 min | Speed-profile plots of your reference & flown laps + a head-to-head model comparison |
 | 6 | [Plan faster, track tighter: the TOGT planner and MPC](lessons/06-togt-planner-and-mpc.md) | 3 h + compute | A (plan × tracker) benchmark on both clocks — the parent project's and the leaderboard's — with pre-registered verdicts |
 | 7 | [The final benchmark: MPC versions vs RL trackers, under disturbance and noise](lessons/07-final-benchmark.md) | 3 h + compute | The conditions matrix (wind, gusts, payload, Lighthouse noise) on the leaderboard clock, a racing-envelope policy trained in one run, and the 20-episode race tables that say which tracker ranks — and why the fastest one does not |
+| 8 | [Closing the gap: diagnose, identify, replan, adapt](lessons/08-closing-the-gap.md) | 4 h + compute | 1.2 s off this course's best lap without changing the controller — a failure anatomy, your own system identification of the simulator, a ground-start plan, and the Level-1 randomisation that actually decides the laps |
 
 Lessons 1–3 are guided (2b is a concept interlude — read, don't code).
 **Lesson 4 is where you do research.** Lesson 5 gives you the plots and tables
@@ -97,16 +99,20 @@ tasks/racing/
 │   ├── race_bridge.py   ← SCAFFOLD — you complete _build_reference in Lesson 3
 │   ├── plot_trajectory.py   ← trajectory + speed-profile figures  [Lessons 5, 6]
 │   ├── compare_models.py    ← head-to-head comparison on the race protocol [Lessons 5, 6]
-│   ├── togt/                ← TOGT-Planner driver (C++) + build.sh, and the pole-aware track yaml [Lessons 6, 7]
-│   ├── togt_plan.py         ← plan a lap (raw / tube / poles) and diagnose it [Lessons 6, 7]
+│   ├── togt/                ← TOGT-Planner driver (C++) + build.sh, and the track yamls: pole-aware [Lessons 6, 7] and ground-start [Lesson 8]
+│   ├── togt_plan.py         ← plan a lap (raw / tube / poles / ground / ground-b08g3) and diagnose it [Lessons 6, 7, 8]
 │   ├── race_eval.py         ← one (plan, tracker) run on either clock, any condition [Lessons 6, 7]
 │   ├── race_table.py        ← the (plan × tracker) table from those runs    [Lessons 6, 7]
 │   ├── race_refs.py         ← ground-start wrapper + diagnostics (shared)   [Lesson 6]
 │   ├── test_race_refs.py    ← checks for race_refs.py (pytest, main venv)   [Lessons 6, 7]
-│   ├── race_bridge_mpc.py   ← COMPLETE bridge: MPC family in the LSY race   [Lessons 6, 7]
-│   └── train_racing.py      ← one-run racing-envelope policy (Lesson 2's v5 recipe, faster references) [Lesson 7]
+│   ├── race_bridge_mpc.py   ← COMPLETE bridge: MPC family in the LSY race   [Lessons 6, 7, 8]
+│   ├── train_racing.py      ← one-run racing-envelope policy (Lesson 2's v5 recipe, faster references) [Lesson 7]
+│   ├── mpc_dev.py           ← the MPC with switches: model, cost, horizon, adaptation  [Lesson 8]
+│   ├── race_probe.py        ← identification probes flown in the race environment   [Lesson 8]
+│   ├── probe_fit.py         ← fits the probes: attitude, thrust, drag, spin-up       [Lesson 8]
+│   └── race_runner.py       ← 20-episode race cells with the sampled mass logged     [Lesson 8]
 ├── plans/               ← TOGT plans you generate (git-ignored)
-└── lessons/             ← 01..07, plus interlude 2b — the actual course
+└── lessons/             ← 01..08, plus interlude 2b — the actual course
 ```
 
 The **LSY race environment** is *not* vendored — it is public and cloned into
@@ -178,6 +184,21 @@ From measured failures in the parent project — each cost real days.
   result — the racing-envelope policies win the noise matrix and never rank in
   the race — depends on contacts, so never let a student rank a tracker from
   the harness tables alone.
+* **Lesson 8 adds no new dependency** — same venvs, same pins, same planner
+  build. It adds four tools (`code/mpc_dev.py`, `race_probe.py`, `probe_fit.py`,
+  `race_runner.py`), three track yamls (`code/togt/lsy_level2_ground.yaml`,
+  `lsy_level2_ground_b08.yaml` and `lsy_level2_ground_b08_g3.yaml`, i.e.
+  `togt_plan.py --track ground`, `--track ground-b08` and `--track ground-b08g3`,
+  each one edit apart from the last), and two knobs on the existing bridge
+  (`RACE_CONTROLLER=mpcdev[:...]`, `RACE_START_BLEND`). One repo policy matters
+  here: **the vendored `crazy_track/.../mpc.py` stays exactly as the parent
+  project identified it** — its attitude parameters are wrong *for this
+  simulator*, and that is the lesson; the corrected model lives in
+  `code/mpc_dev.py` as a set of switches whose defaults reproduce the vendored
+  controller bit for bit (`test_race_refs.py` asserts it). The headline plan is
+  pre-compensated for *that* tracker's systematic error, so if a student changes
+  the tracker the gate shifts are no longer right — which is the lesson's last
+  finding, not a bug.
 
 ## Credits
 

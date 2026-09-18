@@ -12,6 +12,14 @@ Two things every Lesson-6 tool needs that the vendored crazy_track does not prov
       first point, drops the lead-in and shifts the gate times, so the SAME plan can be
       scored on the clock the leaderboard uses.
 
+  StartBlendTrajectory    a ground-start reference for a race that randomises the start
+      pose -- Lesson 8 §5. A ground-start TOGT plan begins at a FIXED point on the floor,
+      but Level 1 draws the drone's start within +-0.1 m of it. Holding the plan's first
+      point would then demand a rest-to-rest slide across the floor while the rotors are
+      still spinning up. This wrapper holds the plan's first point and carries the
+      OBSERVED offset alongside it, fading the offset out with a quintic once the hold
+      ends.
+
   closed_form_line(gates, cruise)   `lsy_level2_race()`'s racing line (freestyle.py,
       lines 420-430) rebuilt from the gate poses the race hands a bridge (Lesson 3
       section 4), so a bridge never hard-codes a track.
@@ -99,6 +107,79 @@ class GroundStartTrajectory(Trajectory):
         return self._split(t, "acc")
 
     def maneuver_descriptor(self, t) -> np.ndarray:
+        t = np.asarray(t, dtype=np.float64)
+        return np.zeros((6,) if t.ndim == 0 else t.shape + (6,))
+
+
+class StartBlendTrajectory(Trajectory):
+    """`inner` plus the start offset `d`, faded out with a quintic after the hold — Lesson 8 §5.
+
+    `inner` is a GroundStartTrajectory built on the PLAN's first point p1 (so it holds p1 for
+    `hold` seconds and then flies the plan), and `d = observed_start - p1` is how far the race
+    actually put the drone from that point. The reference this class returns is
+
+        p(t) = inner.pos(t) + w(t) * d,      w(t) = 1                            t <= hold
+                                             w(t) = 1 - (10 s^3 - 15 s^4 + 6 s^5)
+                                                               with s = (t - hold)/T,
+                                                                          hold < t < hold + T
+                                             w(t) = 0                            t >= hold + T
+
+    so the drone is asked to stay where it is during the hold, and the offset is taken out in
+    flight over T seconds. The weight is a quintic smoothstep: w, w' and w'' are continuous and
+    w'(hold) = w''(hold) = 0; vel and acc carry the matching d*w' and d*w'' terms. The peak blend
+    speed is 1.875 |d| / T and the peak blend acceleration 5.77 |d| / T^2 — for a 0.14 m draw over
+    1 s that is 0.26 m/s and 0.81 m/s^2, against 0.88 m/s and 9.05 m/s^2 for the 0.3 s
+    rest-to-rest quintic a plain GroundStartTrajectory would build from the observed start.
+
+    Everything else — gates, gate_times, obstacles, duration, flips, lead_in, takeoff_t /
+    takeoff_target and the manoeuvre descriptor — is the inner reference's, so the clock and the
+    gate times are unchanged. With d = 0 (Level 0 on a plan whose first point IS the start pose)
+    this is the inner reference exactly.
+    """
+
+    def __init__(self, inner, d, hold: float, T: float):
+        self.inner = inner
+        self.d = np.asarray(d, dtype=np.float64).reshape(3)
+        self.hold, self.T = float(hold), float(T)
+        if self.T <= 0.0:
+            raise ValueError("StartBlendTrajectory needs T > 0")
+        self.duration = float(inner.duration)
+        self.gates = list(inner.gates)
+        self.gate_times = list(inner.gate_times)
+        self.obstacles = list(getattr(inner, "obstacles", []))
+        self.flips = list(getattr(inner, "flips", []))
+        self.lead_in = float(getattr(inner, "lead_in", 0.0))
+        self.takeoff_t = float(getattr(inner, "takeoff_t", hold))
+        self.takeoff_target = np.asarray(getattr(inner, "takeoff_target", inner.pos(self.takeoff_t)))
+        self.plan = getattr(inner, "plan", inner)
+
+    def _w(self, t):
+        """w, w', w'' at t (scalar or array), shape t.shape each."""
+        t = np.asarray(t, dtype=np.float64)
+        s = np.clip((t - self.hold) / self.T, 0.0, 1.0)
+        w = 1.0 - (10.0 * s**3 - 15.0 * s**4 + 6.0 * s**5)
+        dw = -(30.0 * s**2 - 60.0 * s**3 + 30.0 * s**4) / self.T
+        ddw = -(60.0 * s - 180.0 * s**2 + 120.0 * s**3) / self.T**2
+        return w, dw, ddw
+
+    def _blend(self, t, method: str, which: int) -> np.ndarray:
+        t = self._clamp(t)
+        base = getattr(self.inner, method)(t)
+        wk = self._w(t)[which]
+        return base + wk[..., None] * self.d
+
+    def pos(self, t):
+        return self._blend(t, "pos", 0)
+
+    def vel(self, t):
+        return self._blend(t, "vel", 1)
+
+    def acc(self, t):
+        return self._blend(t, "acc", 2)
+
+    def maneuver_descriptor(self, t) -> np.ndarray:
+        if hasattr(self.inner, "maneuver_descriptor"):
+            return self.inner.maneuver_descriptor(t)
         t = np.asarray(t, dtype=np.float64)
         return np.zeros((6,) if t.ndim == 0 else t.shape + (6,))
 

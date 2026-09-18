@@ -1,0 +1,191 @@
+# The pole-aware tube of Lesson 7, started ON THE GROUND -- Lesson 8 section 3.   --track ground
+#
+# Identical to togt/lsy_level2_tube_poles.yaml except for ONE line: initState.pos is
+# (-1.5, 0.75, 0.05) -- where the race actually puts the drone -- instead of the hover point
+# (-1.5, 0.75, 1.0). Everything else is the Lesson-7 track: the four nominal gates with their
+# entry/exit corridors, and the three SingleBall vias (B1, B3, B4, radius 0.15 m) that replace
+# the corridors standing on poles 1, 3 and 4.
+#
+# Why the start height matters. Lesson 7's lap spends its first 2.32 s standing still twice: a
+# 1.5 s rest-to-rest takeoff to the hover point, and then 0.82 s to gate 1 from rest again,
+# because the plan's initState is at rest in the air. A plan that starts on the floor replaces
+# both by one 0.97 s manoeuvre. Two details:
+#   * z = 0.05 and not 0.01: the reference then climbs 4 cm during the hold instead of asking
+#     for motion while the drone is still pinned to the floor. The lap is the same to 0.01 s.
+#   * TOGT's own boundZ starts at 0.15 m and NO trajectory from z = 0.05 can satisfy it, so
+#     togt_plan.py plans every track whose initState z is below 0.15 m with boundZ [0, 3]
+#     automatically. --bound-z LO HI overrides that.
+# The hold is not in this file: it is the bridge's RACE_TAKEOFF_T (0.2 s -- the rotor spin-up
+# Lesson 8 section 2 measured), and it is a pure additive term on the lap.
+#
+# Measured (Lesson 8 section 3): planned lap 4.02 s at 0.85 x TWR (top speed 4.55 m/s, gate 1
+# at 0.97 s instead of 2.32), every crossing 0.05 m off centre, reference pole clearance
+# 0.25 / 0.32 / 0.30 / 0.20 m; 4.32 s on the ground clock with a 0.3 s hold.
+#   The VENDORED MPC cannot fly it: 0/5 at Level 0 at every thrust fraction and every start
+#   height, always gate 1's frame -- the tracker cuts 0.10 m inside a 4 m/s turn where the plan
+#   already sits 0.05 m inside the window. This is the CORRECTED-model tracker's plan
+#   (mpcdev:att=sim,drag=0.495,fgain=1.0 -- 18/20 at 4.296 s at Level 0, cell F1). For the
+#   vendored MPC use lsy_level2_ground_b08_g3.yaml, whose gates are pre-shifted against that cut.
+#
+#   python tasks/racing/code/togt_plan.py --track ground --thrust-frac 0.85
+#   -> tasks/racing/plans/ground_f0.85.csv
+initState:
+  pos: [-1.5, 0.75, 0.05]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+endState:
+  pos: [1.0, -0.75, 1.2]
+  vel: [0.0, 0.0, 0.0]
+  acc: [0.0, 0.0, 0.0]
+  jer: [0.0, 0.0, 0.0]
+  rot: [1.0, 0.0, 0.0, 0.0]
+  cthrustmass: 9.81
+  euler: [0.0, 0.0, 0.0]
+
+orders: ['B1', 'G1', 'G1out', 'G2in', 'G2', 'G2out', 'G3in', 'G3', 'B3', 'B4', 'G4', 'G4out']
+
+B1:
+  type: 'SingleBall'
+  name: 'pole1_via'
+  position: [0.0800, 0.3500, 0.8000]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G1:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.5000, 0.2500, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G1out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.9265, -0.1720, 0.7000]
+  rpy: [0.0, -90.0, 135.309]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.4716, 0.3231, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [1.0500, 0.7500, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G2out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6284, 1.1769, 1.2000]
+  rpy: [0.0, -90.0, 314.645]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3in:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-0.4000, -0.2510, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G3:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [-1.0000, -0.2500, 0.7000]
+  rpy: [0.0, -90.0, 359.909]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+B3:
+  type: 'SingleBall'
+  name: 'pole3_via'
+  position: [-1.4500, -0.7200, 0.8500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+B4:
+  type: 'SingleBall'
+  name: 'pole4_via'
+  position: [-0.5500, -1.1500, 1.0500]
+  radius: 0.15
+  margin: 0.0
+  stationary: true
+
+G4:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.0000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true
+
+G4out:
+  type: 'RectanglePrisma'
+  name: 'lsy_gate'
+  position: [0.6000, -0.7500, 1.2000]
+  rpy: [0.0, -90.0, 180.000]
+  width: 0.4
+  height: 0.4
+  marginW: 0.3
+  marginH: 0.3
+  length: 0.0
+  midpoints: 0
+  stationary: true

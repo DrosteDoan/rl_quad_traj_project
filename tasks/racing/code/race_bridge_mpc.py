@@ -22,8 +22,10 @@ Score it like the leaderboard (20 episodes) and compare the variants in one go:
         --episodes 20 --config level0.toml mpc=mpc eso=mpc_offsetfree l1=mpc_l1
 
 Knobs (environment variables):
-    RACE_CONTROLLER   mpc (default) | mpc_offsetfree[_w<N>] | mpc_l1[_c<Hz>] | mppi_l1 | pid | adrc
-                      | datt:<zip>  (the same specs race_eval.py takes)
+    RACE_CONTROLLER   mpc (default) | mpcdev[:key=val,...] | mpc_offsetfree[_w<N>] | mpc_l1[_c<Hz>]
+                      | mppi_l1 | pid | adrc | datt:<zip>  (the same specs race_eval.py takes).
+                      mpcdev is the switchable copy of the vendored MPC (mpc_dev.py, Lesson 8 §4);
+                      the bare spec is the vendored controller exactly.
     RACE_PLAN         a TOGT plan CSV (Lesson 6 §2); default = the closed-form line
     RACE_TIME_SCALE   stretch a CSV plan in time (default 1.0)
     RACE_CRUISE       cruise of the closed-form line (default 2.5 m/s)
@@ -32,7 +34,19 @@ Knobs (environment variables):
     RACE_LINE         lsy (default: lsy_level2_race()'s line, which passes ~0.1 m from poles 3
                       and 4) | safe (two extra vias that clear those poles; race_refs.py)
     RACE_TAKEOFF_T    seconds for the rest-to-rest climb from the ground to the plan's
-                      first point (default 1.5)
+                      first point (default 1.5). For a GROUND-START plan (whose first point is
+                      already the start pose) the quintic degenerates to a pure HOLD of that
+                      length — 0.2 s is the rotor spin-up Lesson 8 §2 measured; 0 starts the
+                      plan at t = 0.
+    RACE_START_BLEND  seconds, default 0 = exactly the Lesson-6 behaviour. With T > 0 and a
+                      ground start the reference holds the PLAN's first point p1 (not the
+                      randomised start) and carries the observed offset d = obs_start - p1
+                      alongside it, fading d out with a quintic over T seconds after the hold
+                      (race_refs.StartBlendTrajectory). Level 1 draws the start within ±0.1 m
+                      of p1 while the plan's first point is fixed, and a 0.3 s hold would
+                      otherwise demand a 9 m/s^2 rest-to-rest slide on the floor: set
+                      RACE_START_BLEND=1.0 for every ground-start cell at Level 1 (Lesson 8 §5).
+                      RACE_VERBOSE prints d and T once per episode.
     RACE_START        auto (default) | ground | hover. auto = hover when the race put the drone
                       at hover height (z > 0.5, i.e. a *_hoverstart.toml made by
                       compare_models.py --start hover), else ground. hover = no takeoff leg;
@@ -62,8 +76,9 @@ from pathlib import Path
 import numpy as np
 from lsy_drone_racing.control.controller import Controller
 
-sys.path.insert(0, os.environ.get("RACE_CODE_DIR", "/workspace/tasks/racing/code"))
-from race_refs import GroundStartTrajectory, closed_form_line  # noqa: E402
+RACE_CODE_DIR = os.environ.get("RACE_CODE_DIR", "/workspace/tasks/racing/code")
+sys.path.insert(0, RACE_CODE_DIR)
+from race_refs import GroundStartTrajectory, StartBlendTrajectory, closed_form_line  # noqa: E402
 
 from crazy_track.trajectories.freestyle import RaceGate, feasibility_report  # noqa: E402
 
@@ -73,12 +88,17 @@ def _drop_loop_warnings(record: logging.LogRecord) -> bool:
 
 
 def make_race_controller(spec: str, freq: int):
-    """The vendored benchmark's controller specs, built at the RACE's control rate.
+    """The vendored benchmark's controller specs + the switchable 'mpcdev' ones, built at the
+    RACE's control rate.
 
     lissajous_benchmark.make_controller hard-codes 100 Hz; the race steps at 50 Hz
-    and the estimators (ESO / L1) integrate with the controller's dt, so the rate
-    must be the real one.
+    and the estimators (ESO / L1) and the mass adaptation integrate with the
+    controller's dt, so the rate must be the real one.
     """
+    if spec == "mpcdev" or spec.startswith("mpcdev:"):
+        # mpc_dev.py sits next to race_refs.py, i.e. in RACE_CODE_DIR (already on sys.path)
+        from mpc_dev import parse_spec
+        return parse_spec(spec, control_freq=freq)
     if spec == "mpc":
         from crazy_track.controllers.mpc import MPCController
         return MPCController(control_freq=freq)
@@ -104,8 +124,8 @@ def make_race_controller(spec: str, freq: int):
     if spec.startswith("datt:"):
         from crazy_track.controllers.datt import DATTPolicyController
         return DATTPolicyController(spec.split(":", 1)[1], control_freq=freq)
-    raise ValueError(f"unknown RACE_CONTROLLER {spec!r} (mpc | mpc_offsetfree | mpc_l1 | mppi_l1 | "
-                     "pid | adrc | datt:<zip>)")
+    raise ValueError(f"unknown RACE_CONTROLLER {spec!r} (mpc | mpcdev[:key=val,...] | "
+                     "mpc_offsetfree | mpc_l1 | mppi_l1 | pid | adrc | datt:<zip>)")
 
 
 class RaceBridgeMPCController(Controller):
@@ -195,7 +215,20 @@ class RaceBridgeMPCController(Controller):
             plan = closed_form_line(self.gates, cruise=cruise, line=line,
                                     start=(float(self.start_pos[0]), float(self.start_pos[1]), z0))
             plan_name = f"closed-form ({line}) cruise {cruise:g}, from z {z0:g}"
-        traj = GroundStartTrajectory(plan, start=start, takeoff_t=takeoff_t)
+        blend_t = float(os.environ.get("RACE_START_BLEND", "0"))
+        blend_note = ""
+        if start_mode == "ground" and blend_t > 0.0:
+            # Lesson 8 §5: hold the PLAN's first point (not the randomised start) and fade the
+            # measured start offset out over blend_t seconds after the hold.
+            p1 = np.asarray(plan.pos(float(getattr(plan, "lead_in", 0.0))), dtype=np.float64)
+            inner = GroundStartTrajectory(plan, start=p1, takeoff_t=takeoff_t)
+            d = self.start_pos - p1
+            traj = StartBlendTrajectory(inner, d, hold=takeoff_t, T=blend_t)
+            blend_note = (f"; start blend: d = obs_start - p1 = {np.round(d, 3)} "
+                          f"(|d| {np.linalg.norm(d):.3f} m) faded out over T = {blend_t:g} s "
+                          "after the hold")
+        else:
+            traj = GroundStartTrajectory(plan, start=start, takeoff_t=takeoff_t)
         rep = feasibility_report(traj)
         if rep["max_thrust_acc_outside_arc"] > rep["thrust_acc_limit"]:
             raise RuntimeError(f"reference demands {rep['max_thrust_acc_outside_arc']:.1f} m/s^2 > "
@@ -205,7 +238,7 @@ class RaceBridgeMPCController(Controller):
                   f"{np.round(traj.takeoff_target, 2)}, "
                   f"last gate at {traj.gate_times[-1]:.2f} s, duration {traj.duration:.2f} s, "
                   f"thrust {rep['max_thrust_acc_outside_arc']:.1f}/{rep['thrust_acc_limit']:.1f}, "
-                  f"gate_crossings_ok {rep['gate_crossings_ok']}")
+                  f"gate_crossings_ok {rep['gate_crossings_ok']}{blend_note}")
         return traj
 
     # ---- the control loop ----------------------------------------------------
@@ -234,8 +267,13 @@ class RaceBridgeMPCController(Controller):
     def episode_reset(self):
         if self._solve_ms:
             ms = np.asarray(self._solve_ms[1:] or self._solve_ms)   # the first call warms the solver
+            extra = ""
+            if hasattr(self.ctrl, "n_fail"):        # mpc_dev records them; the vendored class does not
+                extra = f", ipopt failures {self.ctrl.n_fail}"
+            if getattr(self.ctrl, "mass_adapt", False):
+                extra += f", thrust scale k {self.ctrl._k:.3f}"
             print(f"[race_bridge_mpc] {self.spec}: {len(self._solve_ms)} steps, controller "
-                  f"{ms.mean():.1f} ms mean / {ms.max():.0f} ms max per 20 ms step")
+                  f"{ms.mean():.1f} ms mean / {ms.max():.0f} ms max per 20 ms step{extra}")
         if self._log_dir is not None and self._flown:
             out = Path(self._log_dir)
             out.mkdir(parents=True, exist_ok=True)

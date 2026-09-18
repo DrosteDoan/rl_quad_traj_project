@@ -201,3 +201,61 @@ them); every log and table lives outside this repo in `rl_track_student/results/
   `RACE_SETTLE=1.0`): `mpc_offsetfree` on the lsy line at cruise 2.5, 4/5 at 5.62 s = 4.62 s +
   the 1.0 s settle hold (harness benchmark clock: 4.641 s); without the hold one lap in five
   ended on the gate-1 frame.
+
+## Verified (2026-09-18) — the Lesson 8 additions
+
+Same emulation and the same two venvs; **no new dependency, no new pin, no change to the
+vendored snapshot** (`pytest tasks/racing/crazy_track/tests`: 75 passed, unchanged). Every log
+lives outside this repo in `rl_track_student/results/2026-09-18_lesson8-validation/logs/`, and
+the measurements Lesson 8 reports come from `rl_track_student/results/2026-09-17_mpc-gap/`.
+
+- **Tests** (`tests.log`): `tasks/racing/code/test_race_refs.py` 10 passed in the main venv
+  (the five Lesson-6/7 checks plus `StartBlendTrajectory` and the assertion that a bare
+  `mpcdev` spec and the vendored `MPCController` produce the *same action*, max |Δu| = 0).
+- **Planner** (`plan.log`): `togt_plan.py --track ground-b08g3 --thrust-frac 0.90` plans
+  3.924 s (4.124 s on the ground clock with the 0.2 s hold), crossings 0.03 / 0.13 / 0.03 /
+  0.05 m off the gate centres, pole clearance 0.24 / 0.24 / 0.28 / 0.20 m; `--track ground
+  --thrust-frac 0.85` plans 4.015 s. The generated `ground-b08g3_f0.90.csv` is **numerically
+  identical** to the experiment's plan (450 rows × 30 columns, max |difference| = 0.000e+00).
+  Backward compatibility: `--track poles --thrust-frac 0.85` still plans Lesson 7's 3.830 s
+  with the same clearances and the same printed diagnostics.
+- **Harness** (`harness.log`, `race_eval.py --start ground --takeoff-t 0.3` on
+  `ground_f0.85.csv`): vendored `mpc` 4/4 at 4.319 s, max deviation 0.209 m; the corrected
+  model `mpcdev:att=sim,drag=0.495,fgain=1.0` 4/4 at 4.302 s, 0.096 m, 10.6 ms mean solve;
+  **the bare `mpcdev` default reproduces the vendored controller to the printed precision**
+  (4.319 s, 0.209 m, rmse 0.123 — the same three numbers). Lesson 6's own command
+  (`--plan closed-form --cruise 2.5 --start hover`) is unchanged at 4.657 s.
+- **Race** (`race0.log`, `race1.log`, `raceM1.log`; `race_runner.py`, 10 episodes per cell,
+  unmodified `level0.toml` / `level1.toml`): the headline — `ground-b08g3_f0.90.csv`,
+  `RACE_TAKEOFF_T=0.2`, `RACE_START_BLEND=1.0`, the **unmodified vendored MPC** — **10/10 at
+  4.120 s at Level 0** and **8/10 at 4.117 s at Level 1** (light half 5/5, heavy half 3/5;
+  both failures at +10.5 % and +10.6 % of mass, a gate-2 and a gate-3 frame), matching the
+  archive's 40/40 and 34/40. On Lesson 7's plan with the 1.5 s takeoff,
+  `mpcdev:att=sim,drag=0.495,fgain=1.0,mass=1` laps **9/10 at 5.300 s at Level 1** (light 4/4,
+  heavy 5/6) where the vendored controller scores 6–8/20. Solve times 14–15 ms mean, 25–41 ms
+  max per 20 ms step, 0 ipopt failures.
+- **Lesson 5/6/7 path** (`compat.log`): `compare_models.py --bridge race_bridge_mpc.py` runs
+  unchanged through the extended bridge. Its 0/2 for plain `mpc` on the default `lsy` line at
+  cruise 2.5 is Lesson 6 §5's documented result for that tracker on that line (it touches
+  pole 4), not a regression.
+- **Identification probes** (`probe.log`, `logs/probes/`): `race_probe.py` + `probe_fit.py`
+  reproduce the physics Lesson 8 §2 is built on — attitude dc gain 0.94 with real poles
+  −12.2 / −23.0 s⁻¹ (so_rpy: 0.73, −6.4 ± 12.2j), rise 0.235 s against 0.114, open-loop RMSE
+  0.019 rad against the model's 0.064 and the MPC's Euler-40 ms 0.111; thrust gain 0.98–1.00
+  against 0.968; fitted drag 0.547 s⁻¹ (crazyflow's `drag_matrix`: 0.544 z); nothing leaves the
+  floor before 0.140 s. The lesson has students run both step sizes, which
+  reproduces `att=sim` closely: a re-run after the 2026-09-18 review fit (−337.7, −40.7, 318.0)
+  against the preset's (−338.1, −40.8, 318.3), and `probe_fit.py` named `att=sim` as the
+  nearest preset at 0.1 % (`verify_fixes.log`). The 0.3-rad step alone fits (−282.9, −35.4,
+  266.3) = `att=sim03`; both are within 0.02 rad of the simulator.
+- **Adversarial review** (`review.md`, 2 blockers / 6 should-fixes, all fixed and re-verified in
+  `verify_fixes.log`): `race_probe.py` resolved a relative `PROBE_LOG_DIR` against the working
+  directory, so probes launched from the race clone — as the lesson instructs — wrote their CSVs
+  into the clone where `probe_fit.py` could not find them; it now resolves against the repo root
+  via `RACE_CODE_DIR`, like the bridges. And `probe_fit.py` recommended `att=sim` under any fit;
+  it now names whichever preset the student's own fit is nearer to and prints the exact
+  `ka`/`kb`/`kc` override.
+- **`.gitattributes`**: `tasks/racing/code/togt/*.yaml` is now forced to LF, like the vendored
+  `configs/togt/**`. The track files next to the driver (Lesson 7's pole-aware tube and Lesson
+  8's three ground-start tracks) are read by the same hand-rolled parser, which fails on CRLF;
+  a Windows checkout would previously have broken Lesson 7's planner command.
