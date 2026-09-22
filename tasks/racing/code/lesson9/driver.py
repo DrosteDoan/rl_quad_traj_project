@@ -76,6 +76,11 @@ def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
         return (MPPIL1Controller(horizon=MPPI_HORIZON, dt_plan=MPPI_DTP, control_freq=control_freq, seed=seed),
                 "attitude", control_freq)
     if spec.startswith("robust:"):
+        # recipe-agnostic: correct for ANY policy trained with the 0.8 s window / freq=100 fixes, whether it
+        # was trained with the study-matched disturbance ranges (train_robust.py) or the contrast group's
+        # vendored ones (train_contrast.py) -- the inference wrapper only depends on the window and the
+        # frequency, not on what the model was trained to be robust TO. "robust:" names the window/freq
+        # convention, not a specific training recipe.
         from robust_policy import RobustPolicyController
 
         return RobustPolicyController(spec.split(":", 1)[1], control_freq=control_freq), "attitude", control_freq

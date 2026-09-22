@@ -76,6 +76,7 @@ bash scripts/smoke_test.sh           # the RACING/RACE sections must be all ok
 | 6 | [Plan faster, track tighter: the TOGT planner and MPC](lessons/06-togt-planner-and-mpc.md) | 3 h + compute | A (plan × tracker) benchmark on both clocks — the parent project's and the leaderboard's — with pre-registered verdicts |
 | 7 | [The final benchmark: MPC versions vs RL trackers, under disturbance and noise](lessons/07-final-benchmark.md) | 3 h + compute | The conditions matrix (wind, gusts, payload, Lighthouse noise) on the leaderboard clock, a racing-envelope policy trained in one run, and the 20-episode race tables that say which tracker ranks — and why the fastest one does not |
 | 8 | [Closing the gap: diagnose, identify, replan, adapt](lessons/08-closing-the-gap.md) | 4 h + compute | 1.2 s off this course's best lap without changing the controller — a failure anatomy, your own system identification of the simulator, a ground-start plan, and the Level-1 randomisation that actually decides the laps |
+| 9 | [Where the crossover is: learned vs model-based racing under graded disturbance](lessons/09-crossover-under-disturbance.md) — **in progress** | 5+ h + compute | A random-track library, a graded disturbance coefficient with five conditions calibrated to a shared rule, a box contact model, and a robust-vs-contrast RL pair that separates "matched training" from "learned control" |
 
 Lessons 1–3 are guided (2b is a concept interlude — read, don't code).
 **Lesson 4 is where you do research.** Lesson 5 gives you the plots and tables

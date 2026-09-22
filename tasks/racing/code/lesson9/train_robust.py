@@ -45,7 +45,7 @@ from robust_env import DR_LAM_MAX, FORCE_XY_MAX, FORCE_Z_HI, FORCE_Z_LO, FREQ, W
 from crazy_track.eval.runlog import RunLogger  # noqa: E402
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--timesteps", type=int, default=8_000_000,
                    help="env-step budget; DOUBLE train_racing.py's 4,000,000 because freq=100 halves the "
@@ -61,27 +61,47 @@ def main() -> None:
                    help="training box, as a fraction of the study's own lambda axis (Lighthouse and mass)")
     p.add_argument("--no-perturb", action="store_true", help="also disables the mass channel (both ride the "
                                                               "same _sample_perturb hook -- see robust_env.py)")
+    p.add_argument("--gamma", type=float, default=0.99,
+                   help="discount factor. 0.99 restores the vendored recipe's ~1.0 s effective value-"
+                        "function horizon at freq=100 (0.98 at freq=50 gave 1/(1-0.98)/50 = 1.0 s; the same "
+                        "0.98 at freq=100 halves that to 0.5 s -- shorter than the 0.8 s observation window "
+                        "the policy is trained to look ahead over). Override to 0.98 to reproduce round 1-3's "
+                        "exact setting.")
+    p.add_argument("--n-steps", type=int, default=512,
+                   help="rollout length per env before each PPO update. 512 restores the vendored recipe's "
+                        "~5.12 s / ~85%% episode-coverage rollout window at freq=100 (256 at freq=50 covered "
+                        "256/50=5.12 s of a 300-step episode; the same 256 at freq=100 covers only 2.56 s of "
+                        "a 600-step episode, 43%% instead of 85%%). Override to 256 to reproduce round 1-3.")
+    p.add_argument("--batch-size", type=int, default=2048,
+                   help="scaled with --n-steps to keep the same 4-minibatch-per-epoch structure (n_steps * "
+                        "n_envs / batch_size = 4, as in the vendored 256*16/1024). Override to 1024 with "
+                        "--n-steps 256 to reproduce round 1-3.")
     p.add_argument("--tag", default="racing-robust-train")
-    args = p.parse_args()
+    return p
+
+
+def main() -> None:
+    args = build_parser().parse_args()
 
     from stable_baselines3 import PPO
 
     from crazy_track.training.asymmetric import AsymmetricPolicy
-    from crazy_track.training.ppo_train import SB3Adapter
+
+    from monitored_adapter import MonitoredSB3Adapter
 
     log = RunLogger(tag=args.tag, reason=args.reason,
                     config={**vars(args), "recipe": "racing-robust-v5",
                             "freq": FREQ, "window_dt": WINDOW_DT,
                             "force_xy_max": FORCE_XY_MAX, "force_z": [FORCE_Z_LO, FORCE_Z_HI]})
     print(f"Logging to {log.dir}", flush=True)
-    env = SB3Adapter(RobustTrackingEnv(num_envs=args.n_envs, seed=args.seed, v3=True, v5=True,
+    env = MonitoredSB3Adapter(RobustTrackingEnv(num_envs=args.n_envs, seed=args.seed, v3=True, v5=True,
                                        vel_max=args.vel_max, acc_max=args.acc_max,
                                        seg_min=args.seg_min, seg_max=args.seg_max,
                                        perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max))
     print(f"obs dim: {env.env.single_observation_space.shape} (must be 56: the v5 layout, unchanged)", flush=True)
     model = PPO(
         AsymmetricPolicy, env, verbose=1, seed=args.seed,
-        n_steps=256, batch_size=1024, learning_rate=3e-4, gamma=0.98,
+        n_steps=args.n_steps, batch_size=args.batch_size, learning_rate=3e-4, gamma=args.gamma,
         tensorboard_log=str(log.dir / "tb"),
     )
     model.learn(total_timesteps=args.timesteps, progress_bar=False)

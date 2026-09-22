@@ -24,7 +24,9 @@ thresholds for learned or model-based control.
   reference to any controller. Three more (the dev tracks) are used only for calibration.
 - **Disturbances:** five conditions, each applied at a coefficient lambda in [0, 1], the fraction of
   that disturbance's own range.
-- **Members:** 5 model-based controllers and 3 robust RL policies, each plotted as its own line.
+- **Members:** 5 model-based controllers and 3 robust RL policies, each plotted as its own line, plus a
+  3-seed contrast group (section 5b) shown thin/muted on the same charts, isolating whether matched
+  disturbance-training buys anything beyond generic robustness training.
 - **Trials:** 25 seeds for random disturbances, a repeat check for deterministic ones.
 - **Outcome:** completion (4 gates in order, no contact), plus lap time, RMSE and other per-lap measures.
 - **Deliverable:** per-track charts of completion against lambda, stored with one row per lap so any
@@ -160,11 +162,24 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
   40 points instead of M1's 20).
 - **Learned (3), "robust RL":** the racing-envelope recipe, training seeds 0, 1, 2, with a per-episode
   domain-randomization box matched to the frozen ceilings (section 5a). All three are used, no re-rolling.
-  **Not yet trained** (2026-09-22): the design below is agreed; no training has been launched.
-- **Not in the study:** `v5_s0`, `racing_s0`, `racing_s1`, `racing_s2`. No family mean: every member is
-  its own line.
+  **Code written, not yet trained** (2026-09-22): see section 5a.
+- **Contrast group (3), "contrast RL"** (added 2026-09-22, user request): the SAME racing envelope, PPO
+  settings, preview window and frequency as the robust group, but the VENDORED, unmatched disturbance
+  training (section 5b) -- isolates whether matching the domain-randomization ranges to the study's frozen
+  ceilings buys anything beyond generic robustness training. Training seeds 0, 1, 2 (matching the robust
+  group's count on purpose -- section 5b). Shown thin/muted on the study's charts, not folded into either
+  family's story: its only job is to say whether the robust family's crossover location moves relative to
+  it, or stays where it is. **Code written, not yet trained.**
+- **Not in the study as first-class members:** `v5_s0`, `racing_s0`, `racing_s1`, `racing_s2` (the course's
+  own Lesson 2/7 checkpoints). `v5_s0` was considered as a free contrast and rejected: it is trained on a
+  narrower reference envelope (|v| up to 3.5 m/s) than this study's tracks need (stretched to a 4.4 m/s
+  cap; Lesson 7 already measured it failing the unstretched fast tube plan, 3/4), so it would conflate
+  "wrong reference envelope" with "unmatched disturbance training" -- not a clean isolation of the one
+  variable the contrast group exists to test. No family mean for any of the three RL-family lines
+  (robust, contrast): every member is its own line.
 
-## 5a. The robust RL training recipe (design agreed 2026-09-22; not yet run)
+## 5a. The robust RL training recipe (`robust_env.py`, `lighthouse_batch.py`, `robust_policy.py`,
+`train_robust.py` -- code written and mechanics-tested 2026-09-22, `test_robust_env.py`, 9 tests; NOT yet run)
 
 Same policy, same environment, same PPO settings as `train_racing.py` (Lesson 7 section 2) -- one change,
 the per-episode domain-randomization ranges, each set to 0.8 x its condition's frozen ceiling so the training
@@ -183,75 +198,126 @@ None of the three channels represents the gust's time-varying structure (0.7 Hz 
 the force channel is a single constant per episode, as in the vendored recipe; this is an existing
 limitation of the base recipe, not new here (see the limitations list).
 
-**Preview-window equalisation (user decision, 2026-09-22; PLANNED, not yet built).** Every MPC-family member
-now looks 0.8 s ahead (`mppi_l1` was reconfigured to match, section 5 above), but the vendored v5/DATT
-observation looks only 0.6 s ahead (`WINDOW = 10` points at `WINDOW_DT = 0.06` s, both module-level constants
-in `crazy_track/envs/datt_env.py`, imported directly by `crazy_track/controllers/datt.py` at inference). These
-constants are SHARED by every model this course has ever trained (`v5_s0`, `racing_s0/1/2`, ...); changing them
-would silently break every other lesson's already-trained policy the next time `DATTPolicyController` loads it,
-so they cannot be edited in place. The plan is a lesson9-local training env subclass that leaves `WINDOW = 10`
-alone (same point count, same observation dimensionality, so the network architecture and the vendored
-`DATTPolicyController`'s obs-dim auto-detection are untouched) and overrides the one instance attribute that
-actually sets the spacing, `self._t_offsets = WINDOW_DT * np.arange(1, WINDOW + 1)` (`datt_env.py` line 107,
-set once in `__init__`, used once in `_refs`), to `0.08 * np.arange(1, 11)` -- 10 points, 0.8 s total, coarser
-spacing (0.08 s vs 0.04 s for M1) but the same total lookahead. A matching lesson9-local inference controller
-(NOT a reuse of the vendored `DATTPolicyController`, which imports the shared `WINDOW_DT` and would silently
-feed the wrong window to a model trained with a different one) computes `_t_offsets` the same way. This is
-recorded as limitation 14 until it is built and verified.
+**Training-progress logging (`monitored_adapter.py`, added 2026-09-22 after round 1's seed-0 pair finished
+with no `rollout/ep_rew_mean` in either log).** The vendored `SB3Adapter` (`crazy_track/training/ppo_train.py`,
+used unmodified by `train_racing.py` too) never sets `infos[i]["episode"]`, so SB3's own
+`_update_info_buffer` (`stable_baselines3/common/base_class.py`) never has anything to add to
+`ep_info_buffer`, and `OnPolicyAlgorithm.train()` skips the `rollout/ep_rew_mean` / `ep_len_mean` log lines
+entirely -- structurally, every run, not intermittently; a pre-existing gap in the vendored recipe, unnoticed
+until now because Lesson 7's policies were validated by flying them afterward, not by watching training
+curves live. `MonitoredSB3Adapter(SB3Adapter)` tracks per-env cumulative reward and length and populates the
+missing key on `done`; confirmed by inspecting `on_policy_algorithm.py` and `ppo.py` that nothing in the
+actual PPO update (GAE, the policy/value loss, clipping) reads `ep_info_buffer` -- it is purely a logging
+sink, so wrapping the adapter changes what gets logged, not how the policy trains. `train_robust.py` and
+`train_contrast.py` both use it from round 2 on (2 tests, `test_monitored_adapter.py`); round 1's seed-0 pair
+was trained before this existed and has no `ep_rew_mean` history, only the optimizer-internal diagnostics
+below.
 
-**Training frequency (user decision, 2026-09-22; PLANNED, not yet built).** Train at `freq = 100` (the
-harness's own rate) instead of the vendored default `freq = 50`. `DATTTrackingEnv.__init__` already threads
-`freq` through everything that needs it (`self.l1 = L1Estimator(..., dt=1.0/freq)`, the Lighthouse sensor's
-`control_freq=freq`, `self.n_substeps = self.sim.freq // freq` = 500 // 100 = 5, an exact divisor) -- so this
-is a constructor argument, not new plumbing, and it directly removes the mismatch behind limitation 14's
-second half: the deployed policy's own L1 estimator (`controllers/datt.py`, always active) currently
-integrates its adaptation law at `dt = 1/100` in the harness after being effectively shaped by `dt = 1/50`
-during training, changing its closed-loop bandwidth relative to what the policy learned to expect.
-**Consequence to plan around:** at a fixed `--timesteps` budget, doubling `freq` HALVES the simulated
-wall-clock experience the policy sees, because `max_steps = int(episode_time * freq)` doubles while
-`total_timesteps` (an ENV-STEP count, not a wall-clock count) stays whatever `--timesteps` says -- 4,000,000
-steps at 100 Hz is 40,000 s of simulated flight, half of the 80,000 s the same budget gives at 50 Hz.
-Recommendation: run with `--timesteps 8000000` to keep the amount of simulated experience comparable to the
-vendored recipe's 4,000,000-at-50-Hz, which roughly doubles the wall-clock training cost on top of the
-per-step cost of the finer control loop -- worth re-checking against the 2-concurrent-session budget (section
-12) before launching.
+**Round 1 (seed 0 of each group), read without `ep_rew_mean`.** Both trained for about 65 minutes (the
+tensorboard event timestamps, not the `RunLogger` directory-name timestamp -- the two disagree by about 7
+hours in this environment, apparently a timezone mismatch between whatever clock `datetime.now()` reads at
+directory-naming time and the container's filesystem clock; harmless but worth knowing before reading a
+duration off a directory name again). Optimizer diagnostics look healthy: `train/value_loss` 27.6 -> 2.06,
+`train/explained_variance` -0.07 -> 0.96, `train/std` (action noise) 1.00 -> 0.148 for `robust_s0` -- the
+critic converges and the policy commits to a narrower behaviour, the ordinary shape of a PPO run that is
+doing something. Flown directly (5 study tracks + the level2 reference track, nominal, single lap each):
+`robust_s0` completes 0 of 6, `contrast_s0` completes 1 of 6 (track 25, 4.355 s), both with RMSE 0.15-0.26 m
+against the MPC family's nominal 0.06-0.10 m -- not enough precision for the 3.5-5 cm frame margins these
+tracks allow.
 
-**Independent per-episode draws (user decision, 2026-09-22).** Each channel is resampled from its own RNG
-stream at the same two points the vendored recipe already resamples force and Lighthouse noise -- full
-`reset()` (all envs) and, inside `step()`, only for envs whose episode just ended (`done_mask`), in this
-order (verified against `datt_env.py`):
+**Round 2 (seed 1 of each group), with `ep_rew_mean` available.** `rollout/ep_rew_mean` rose ~30 -> ~275 and
+`rollout/ep_len_mean` ~85-97 -> ~457-469 (of a 600-step max) for both -- a direct survival-time improvement,
+not only an optimizer-internal one. Flown on the SAME 6 tracks as round 1: `robust_s1` completes 1 of 6
+(track 504, up from 0/6), `contrast_s1` completes 2 of 6 (tracks 25 and 504, up from 1/6); gate counts rose
+on 4 of 6 tracks for `robust_s1` and 4 of 6 for `contrast_s1`; RMSE narrowed slightly to 0.17-0.22 m, still
+well above the MPC family's nominal range.
 
-```
-sim.reset(mask)          # restores default_data (mass reverts to nominal) for the done envs
-_set_states(mask)
-_sample_perturb(mask)    # force: self.rng (the env's own stream)
-_sample_mass(mask)       # NEW: its own rng, e.g. seed + 2 (mirrors the Lighthouse sensor's seed + 1)
-sensor.reset_rows(mask)  # Lighthouse: LighthouseSensorBatch's own rng (already seed + 1 in the vendored env)
-```
+**Reading rounds 1 and 2 together.** Seed 1 is a real, modest improvement over seed 0 for both groups -- not
+noise-level. But both seeds of both groups now show the SAME shape: a handful of gates cleared, occasional
+full completions on the easier tracks (25, 504), RMSE stuck around 0.17-0.26 m. With one seed that is
+plausibly bad luck (Lesson 7's `racing_s1` again); with two seeds of two independently-varying recipes
+showing the same pattern, it starts to look less like pure seed variance and more like 8,000,000 steps not
+being enough for a task substantially harder than the vendored recipe solved (wider domain randomization,
+freq=100 and the 0.8 s window landing together) -- not a bug: mechanics have checked out at every stage
+(loadable, correct shapes, correct routing, monotone improvement in both `ep_rew_mean` and flown gate
+counts). Not yet decisive with two of three seeds. If seed 2 (round 3) shows the same pattern, that is the
+point to stop before the study sweep and investigate -- more timesteps, a hyperparameter check, or a closer
+look at the reward -- rather than continuing on policies this far from the MPC family's precision.
 
-This already holds for force vs. Lighthouse in the unmodified vendored recipe (two separate RNGs, not
-merely sequential draws on one stream); the mass channel extends the same pattern rather than introducing
-a new one.
+**Hyperparameter fix, screening now (2026-09-23, user: "pay more attention to [PPO hyperparameters and the
+training reference distribution]").** `gamma` and `n_steps` are defined in units of steps, and neither was
+rescaled when `freq` doubled from the vendored 50 to this recipe's 100 -- "same PPO settings" was numerically
+true but not true in effect. `gamma=0.98`'s effective discount horizon is `1/(1-gamma)` steps = 50 steps;
+at freq=50 that is 1.0 s, at freq=100 (unchanged gamma) it is 0.5 s -- HALF the vendored recipe's effective
+foresight, and shorter than the 0.8 s observation window built for this recipe (section 5a): the policy can
+SEE 0.8 s ahead but was only credited for consequences up to about 0.5 s ahead. `n_steps=256` covered 5.12 s
+/ 85% of a 300-step (6 s @ 50 Hz) episode in the vendored recipe; unchanged at freq=100 it covers only 2.56 s
+/ 43% of the now-600-step episode, so GAE sees less of a typical episode's arc per update. Corrected
+defaults, added as CLI flags on both `train_robust.py` and `train_contrast.py` (not hardcoded, so the
+original setting stays reproducible): `--gamma 0.99` (restores ~1.0 s), `--n-steps 512` (restores ~5.12 s /
+85%), `--batch-size 2048` (scaled with `n_steps` to keep the same 4-minibatch-per-epoch structure). Rounds
+1-3 all used the uncorrected 0.98 / 256 / 1024.
 
-**What independence costs, and where.** Three independent channels each drawn from their own range means
-the joint event "several channels severe at once" is visited far less often than any one channel's own
-extreme. Illustrative arithmetic, not a measurement: if a channel is in its own top quartile a quarter of
-episodes, two channels both in their top quartile together happens in roughly 0.25 x 0.25 = 6 % of
-episodes, three channels together in under 2 %. This has **no effect on the five solo conditions**
-(`wind_const`, `payload`, `wind_gust`, `lighthouse`, `mass_mult`) -- each channel gets full-range exposure
-on its own regardless of what the others are doing that episode, which is exactly what a solo evaluation
-needs. It has a **real effect on `combined`**, which sets gust, payload and Lighthouse to the *same*
-lambda *simultaneously* at evaluation -- a single coupled point in the joint space that independent
-per-episode training visits with much lower density than any one channel's own severe region. `mass_mult`
-is excluded from `combined` (section 4), so this cost is confined to the force/Lighthouse pair and does not
-compound with mass.
+**The training reference distribution never asks for gate-threading (2026-09-23, the other half of the
+user's steer, not yet acted on).** Read `ChainedPolyTrajectory.random` directly: every reference the policy
+has ever trained on is built from knot positions drawn uniformly in an OPEN [-1, 1] m cube around the
+previous knot, independent random velocity and acceleration at each knot, joined by smooth quintics -- no
+pinch point anywhere, nothing narrower than the open cube itself. The policy has never practiced converging
+precisely onto a point-like target while moving fast then peeling away, which is exactly what a 0.4 m gate
+opening with 3.5-5 cm of margin demands. This is structural, not a parameter, and needs a design decision
+before any code changes it -- three options on the table, increasing in effort: (1) force a subset of knots
+per episode to be gate-like (narrow range, constrained heading), (2) mix in real TOGT-planned track
+references for some fraction of episodes instead of purely open-space curves, (3) leave it as a documented
+limitation. Deferred until the hyperparameter screen (below) reports back, since it isolates whether the
+frequency-scaling mismatch alone explains rounds 1-3's weak flown performance before committing to a
+bigger design.
 
-**Decision (user, 2026-09-22): keep the channels independent**, matching the vendored recipe's own
-unmodified structure (one variable added at a time, nothing else touched) and the correct choice for five
-of the six conditions. The cost is charged entirely to `combined`, and is recorded as limitation 13 below,
-not fixed by a coupled/correlated training scheme (which was considered and rejected: it would add a
-second, harder-to-describe training regime, and confound any `combined`-specific result between "the
-training was independent" and whatever else might explain it).
+**Screening plan.** One seed pair (seed 0, reused deliberately -- same environment/reference RNG stream as
+the existing `robust_s0`/`contrast_s0`, so the hyperparameter change is the ONLY thing that differs from a
+direct comparison) at the corrected defaults, before committing to redoing all 6. If it meaningfully closes
+the gap to the MPC family's nominal precision, the frequency-scaling mismatch was the dominant issue and all
+six seeds get redone at the corrected settings. If it barely moves the six-track screen numbers, that
+points at the reference-distribution question above as the more likely bottleneck, and one of its three
+options needs designing before more compute is spent. 4 new tests confirm the CLI wiring
+(`test_train_scripts_cli.py`): both scripts' `build_parser()` exposes `--gamma`/`--n-steps`/`--batch-size`
+with the corrected defaults, the round 1-3 override reproduces the original numbers exactly, and the
+4-minibatch structure holds in both settings.
+
+## 5b. The contrast-group## 5b. The contrast-group training recipe (`contrast_env.py`, `train_contrast.py` -- code written and
+mechanics-tested 2026-09-22, `test_contrast_env.py`, 5 tests; NOT yet run)
+
+**Why this group exists.** The robust recipe (section 5a) matches its domain-randomization ranges to the
+study's frozen ceilings precisely -- three channels, each at 0.8x the same numbers the study measures
+against. That precision raises a fair objection: a crossover near the training edge could reflect something
+about learned control, or it could just mean the policy was trained on the exam. Limitation 3 names this
+gap; this group is how the study answers it instead of only disclosing it (user request, 2026-09-22).
+
+**What is held equal, and why.** `ContrastTrackingEnv(RacingTrackingEnv)` keeps the SAME racing envelope
+(`_sample_traj`, unchanged), the SAME PPO settings, and the SAME preview-window and frequency fixes as the
+robust recipe (0.8 s / freq=100). Those three are held equal ON PURPOSE, not varied: they correct an
+asymmetry between the MPC and RL families that has nothing to do with disturbance-training matching
+(limitation 14), so leaving them at the vendored defaults here would confound the ONE comparison this group
+exists to make. `contrast_env.py`'s class body is two lines on top of `RacingTrackingEnv` for exactly this
+reason -- everything that should differ from the robust recipe is left untouched at the vendored default
+(`RacingTrackingEnv._sample_perturb` already delegates to `DATTTrackingEnv`'s +-3.5 m/s^2 box when
+`perturb=True`; `DATTTrackingEnv.__init__` already builds the vendored `LighthouseSensorBatch`, a per-episode
+noise SCALE in U(0, 1.5) uncoupled from the update rate, when `noisy_sensor` is set), and there is no mass
+channel at all -- the vendored recipe never had one, and this group does not gain one either.
+
+**Seeds: 3 (0, 1, 2), not 2.** The user's reasoning: 6 seeds total (3 robust + 3 contrast) split into 3
+concurrent-training pairs uses every slot under the 2-concurrent-session hardware limit (section 12); 5
+would waste one. It is also better science on its own terms -- Lesson 7's `racing_s1` showed a single bad
+seed is not a bad recipe, and a 3-vs-2 seed-count asymmetry between the robust and contrast groups would
+make that harder to read cleanly for whichever side had fewer.
+
+**Evaluation.** A contrast-trained model is evaluated through the SAME `robust_policy.RobustPolicyController`
+a robust model uses (`driver.py`'s `robust:<path>` spec) -- that wrapper's only job is the 0.8 s window at
+the harness's own frequency, correct for either group; nothing about it assumes matched disturbance
+training. `datt:<path>` (the vendored 0.6 s window) is wrong for both.
+
+**Chart treatment (agreed, not yet built -- phase 8).** Thin/muted lines, their own colour family, distinct
+from both the model-based and robust-RL lines; never folded into either group's mean. Used only to check
+whether the robust family's crossover location moves relative to this baseline, or stays where it is.
 
 ## 6. Trials and grid
 
@@ -308,8 +374,11 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
 
 1. Gate-only geometry with a fixed start, heights and gate order.
 2. The corrected MPC model is a fit to this same simulator; its "accurate model" favours MPC.
-3. The RL family is trained on this study's range (favours RL); with no contrast group, a crossover
-   cannot be attributed to the training edge versus something intrinsic.
+3. ~~The RL family is trained on this study's range, and with no contrast group a crossover cannot be
+   attributed to the training edge versus something intrinsic~~ -- addressed 2026-09-22: a 3-seed contrast
+   group (section 5b) trains the same recipe on the vendored, unmatched disturbance ranges, so the study
+   can check whether the robust family's crossover location moves relative to it. Not yet trained, so this
+   remains a designed answer, not a measured one, until Phase 6 actually runs.
 4. ~~No parametric mass mismatch~~ -- superseded 2026-09-22: `mass_mult` (section 4) and M1+mass (section 5)
    were added at the user's request, specifically because Lesson 8 section 5 found this, not an additive
    force, is what defeats MPC in the race. Training will include matched mass domain randomization
@@ -424,12 +493,23 @@ replaced by the measured 24 s.
    correlation < 0.07 over 500 worlds), each stays within its designed range and is visibly exercised near
    its edges (not just its centre), a per-env episode-end reset resamples mass and Lighthouse too (not only
    the vendored hook's original force channel), and the whole env resets and steps without error.
-   **Hardware note:** the user's machine handles at most 2 concurrent training runs (not 3), so the 3 seeds
-   run as one pair concurrently (bounded by the slower of the two) then the third alone. At freq=100,
-   matching the vendored recipe's simulated-experience budget needs `--timesteps 8000000` (double the
-   vendored 4,000,000; `train_robust.py`'s default), so each run is itself roughly twice the vendored
-   recipe's 25-50 minutes -- call it 50-100 minutes per seed, roughly 100-200 minutes wall time for all
-   three under the 2-concurrent-session limit.
-7. Study sweep -- not started (depends on phase 6)
+6b. Contrast-group training -- **code written 2026-09-22 (`contrast_env.py`, `train_contrast.py`); verified
+    by construction/reset/step only (`test_contrast_env.py`, 5 tests), never by `.learn()`. NO TRAINING HAS
+    BEEN LAUNCHED.** `ContrastTrackingEnv(RacingTrackingEnv)`: the same freq=100 / 0.8 s window fix as the
+    robust recipe, and NOTHING else changed -- the vendored +-3.5 m/s^2 force box and the vendored
+    noise-scale `LighthouseSensorBatch` (not `LambdaLighthouseSensorBatch`), no mass channel. Tests confirm
+    the window/frequency match `RobustTrackingEnv` exactly, the force box matches the vendored
+    `PERTURB_ACC_MAX` (not the study-matched range), the vendored sensor class is in use, and no mass
+    channel exists (`sim.data.params.mass` never diverges from `default_data`'s). Section 5b.
+    **Hardware note (6 seeds total, 3 concurrent-training pairs):** 3 robust + 3 contrast seeds, the user's
+    choice specifically so 6 seeds split into 3 pairs use every slot under the 2-concurrent-session limit (5
+    seeds would waste one). Each seed: `--timesteps 8000000` (double the vendored 4,000,000, compensating
+    for freq=100 halving simulated experience per env-step), roughly 50-100 minutes. 3 pairs (each bounded
+    by its slower member) x 50-100 minutes = roughly 150-300 minutes (2.5-5 hours) wall time for all 6 seeds.
+7. Study sweep -- not started (depends on phases 6 and 6b)
 8. Charts -- not started
-9. `lessons/09-*.md` -- not started
+9. `lessons/09-crossover-under-disturbance.md` -- started 2026-09-22: opening, the trackers table, and the
+   full training section (the two recipes, why the contrast group exists, the 3-round/6-seed schedule, the
+   exact commands) are written; sections on tracks/contacts/disturbances/calibration/results are pending
+   behind this file until their phases produce something to report. Indexed in `tasks/racing/README.md`'s
+   lesson table, marked in progress.
