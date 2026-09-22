@@ -1,0 +1,28 @@
+{
+ "scales": {
+  "wind_const": 1.5,
+  "payload": 2.0,
+  "wind_gust": 1.5,
+  "lighthouse": 1.0
+ },
+ "unreached": {},
+ "rule": "first grid level from which at most one MPC-family member completes >= 50 % of dev laps",
+ "dev_tracks": [
+  100023,
+  100082,
+  100095
+ ],
+ "grid_lam_eff": [
+  0.25,
+  0.5,
+  0.75,
+  1.0,
+  1.5,
+  2.0,
+  3.0,
+  4.0,
+  6.0,
+  8.0
+ ],
+ "status": "PROPOSED, not frozen"
+}

@@ -177,11 +177,23 @@ class RaceBridgeController(Controller):
         Returns:
             FreestyleTrajectory beginning at self.start_pos.
         """
-        raise NotImplementedError(
-            "Build your reference trajectory here — Lesson 3 §4. Hint: start "
-            "from lsy_level2_race(cruise=...) and prepend a takeoff leg from "
-            "self.start_pos."
+                g1, g2, g3, g4 = self.gates
+        cruise = 2.7
+        traj = FreestyleTrajectory(
+            start=self.start_pos,
+            ops=[
+                ("via", (-1, 0.3, 0.5), (0.0, 0.2 * cruise, 0.0)),
+                ("gate", g1, 1.8*cruise),
+                ("gate", g2, cruise),
+                ("gate", g3, cruise),
+                ("via", (-1,-1.2, 1.2), (0.2*cruise, 0.2 * cruise, 0.2* cruise)),
+                ("gate", g4, (0.8*cruise,0.8*cruise,0.0)),
+                ("hover", (1.0, -0.75, 1.2), 1.5)
+            ],
+            cruise=cruise,
+            min_seg_T=min(1.0, 1.2 / cruise),
         )
+        return traj
 
     # ---- the control loop ----------------------------------------------------
 

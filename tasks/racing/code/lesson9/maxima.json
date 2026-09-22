@@ -1,0 +1,29 @@
+{
+ "scales": {
+  "wind_const": 1.5,
+  "payload": 2.0,
+  "wind_gust": 1.5,
+  "lighthouse": 1.0
+ },
+ "status": "FROZEN 2026-09-22 (approved by the user)",
+ "meaning": "ceiling of each disturbance in units of Lesson 7's value; lam = 1 is the ceiling",
+ "rule": "first grid level from which at most one MPC-family member (M1, M1+ESO, M1+L1, mppi_l1) completes >= 50 % of the dev laps, at every higher level too; the robust RL seeds did not exist yet",
+ "dev_tracks": [
+  100023,
+  100082,
+  100095
+ ],
+ "grid_lam_eff": [
+  0.25,
+  0.5,
+  0.75,
+  1.0,
+  1.5,
+  2.0,
+  3.0,
+  4.0,
+  6.0,
+  8.0
+ ],
+ "calibration": "results/calib/ (1512 laps); report: calibrate.py report"
+}
