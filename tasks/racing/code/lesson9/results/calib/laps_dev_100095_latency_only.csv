@@ -1,9 +1,0 @@
-role,track,cond,lam,seed,member,completed,gates_passed,gates_clean,fail,t_impact,impact_gate,impact_box,race_time,t_gate1,rmse_3d,rmse_xy,max_dev,steps,wall_s,solve_ms_mean,solve_ms_max,ipopt_fail
-dev,100095,latency_only,0.0,0,M1,1,4,4,,,,,4.482,1.335,0.0616,0.0592,0.085,450,16.01,28.3,179.1,0
-dev,100095,latency_only,0.0,0,M1+ESO,0,2,2,contact,3.443,3,bottom,,1.336,0.0767,0.0647,0.224,346,11.88,29.8,78.8,0
-dev,100095,latency_only,0.0,0,M1+L1,1,4,4,,,,,4.486,1.339,0.0755,0.0709,0.145,450,14.58,27.9,64.3,0
-dev,100095,latency_only,0.0,0,mppi_l1,1,4,4,,,,,4.462,1.343,0.0982,0.0921,0.205,448,4.94,,,0
-dev,100095,latency_only,0.5,0,M1,1,4,4,,,,,4.471,1.322,0.0697,0.0654,0.102,449,15.0,28.8,48.3,0
-dev,100095,latency_only,0.5,0,M1+ESO,0,2,2,contact,3.44,3,bottom,,1.324,0.0811,0.0595,0.198,345,11.67,29.2,50.0,0
-dev,100095,latency_only,0.5,0,M1+L1,0,2,2,contact,3.478,3,bottom,,1.327,0.1072,0.0908,0.266,349,10.6,26.2,58.1,0
-dev,100095,latency_only,0.5,0,mppi_l1,0,2,2,contact,4.113,3,bottom,,1.307,0.5935,0.5141,1.482,413,4.06,,,0

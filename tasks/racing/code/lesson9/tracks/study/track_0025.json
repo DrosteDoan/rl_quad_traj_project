@@ -16,11 +16,11 @@
     0.15789473056793213,
     1.2000000476837158
    ],
-   "yaw": 1.5750047769964848
+   "yaw": 1.5750046084094649
   },
   {
    "pos": [
-    0.3589744567871094,
+    0.358974426984787,
     1.0,
     0.699999988079071
    ],
@@ -46,31 +46,31 @@
   1.2000000476837158
  ],
  "plan_csv": "tasks/racing/plans/lesson9/study_0025.csv",
- "stretch": 1.0374902125297571,
- "thrust_frac": 0.85,
+ "stretch": 1.0,
+ "thrust_frac": 0.8,
  "diag": {
   "reasons": [],
-  "plan_lap_s": 3.9052461491077812,
-  "plan_gate1_s": 1.1462814764341198,
-  "v_peak": 4.564956935130932,
-  "thrust_peak": 15.379117001960804,
+  "plan_lap_s": 4.124904613036653,
+  "plan_gate1_s": 1.213018020492819,
+  "v_peak": 4.388071065696178,
+  "thrust_peak": 14.662399034946496,
   "thrust_limit": 17.52066,
-  "max_angle_deg": 5.448254708268318,
+  "max_angle_deg": 5.383196911994264,
   "angles_deg": [
    5.4,
-   4.1,
-   1.2,
-   2.1
+   4.4,
+   1.7,
+   2.0
   ],
   "min_gate_gap": 1.2741599665692227,
-  "stretch": 1.0374902125297571,
-  "v_peak_stretched": 4.399955103345231,
-  "thrust_peak_stretched": 14.957728777048986,
-  "lap_stretched_s": 4.051654657218847,
+  "stretch": 1.0,
+  "v_peak_stretched": 4.388071065696178,
+  "thrust_peak_stretched": 14.662399034946496,
+  "lap_stretched_s": 4.124904613036653,
   "min_z": 0.05,
   "n_frame_crossings": 0,
   "frame_crossings": [],
-  "frame_margin_m": 0.041015625,
+  "frame_margin_m": 0.04072265625,
   "ref_contact": null
  },
  "generator": {

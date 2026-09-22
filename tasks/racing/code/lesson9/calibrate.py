@@ -31,7 +31,7 @@ sys.path.insert(0, str(HERE))
 import driver as dr  # noqa: E402
 import launcher  # noqa: E402
 
-DEV_TRACKS = [100023, 100082, 100095]
+DEV_TRACKS = [100023, 100082, 100092]      # regenerated 2026-09-22 at thrust-frac 0.80
 SCAN_MAX = 8.0
 GRID_EFF = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]      # lam_eff, units of Lesson 7's value
 CONDS = ("wind_const", "payload", "wind_gust", "lighthouse")

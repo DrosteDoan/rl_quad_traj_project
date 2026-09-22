@@ -20,7 +20,7 @@
   },
   {
    "pos": [
-    0.3589744567871094,
+    0.358974426984787,
     -0.6842105388641357,
     0.699999988079071
    ],
@@ -47,26 +47,26 @@
  ],
  "plan_csv": "tasks/racing/plans/lesson9/dev_100023.csv",
  "stretch": 1.0,
- "thrust_frac": 0.85,
+ "thrust_frac": 0.8,
  "diag": {
   "reasons": [],
-  "plan_lap_s": 3.754456063005903,
-  "plan_gate1_s": 0.9685009301306735,
-  "v_peak": 3.9932221137322172,
-  "thrust_peak": 15.61165928689196,
+  "plan_lap_s": 3.981814385670174,
+  "plan_gate1_s": 1.029123624036636,
+  "v_peak": 3.7431282978279006,
+  "thrust_peak": 14.687815369550368,
   "thrust_limit": 17.52066,
-  "max_angle_deg": 6.027658876256407,
+  "max_angle_deg": 5.865327756848474,
   "angles_deg": [
-   2.9,
-   6.0,
+   3.8,
+   5.9,
    4.0,
-   6.0
+   5.4
   ],
-  "min_gate_gap": 1.2486449488940803,
+  "min_gate_gap": 1.248644919518411,
   "stretch": 1.0,
-  "v_peak_stretched": 3.9932221137322172,
-  "thrust_peak_stretched": 15.61165928689196,
-  "lap_stretched_s": 3.754456063005903,
+  "v_peak_stretched": 3.7431282978279006,
+  "thrust_peak_stretched": 14.687815369550368,
+  "lap_stretched_s": 3.981814385670174,
   "min_z": 0.05,
   "n_frame_crossings": 0,
   "frame_crossings": [],

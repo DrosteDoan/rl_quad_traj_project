@@ -46,7 +46,7 @@ ARENA_HIGH = np.array([2.5, 1.5])
 ARENA_Z_MAX = 2.0
 
 # ---- planner and filter constants -----------------------------------------------------------------
-THRUST_FRAC = 0.85                     # user: the usual 0.85 x TWR
+THRUST_FRAC = 0.80                     # user, 2026-09-22 (revised from 0.85): more thrust headroom for disturbance
 TUBE_D = 0.6                           # entry / exit corridor distance along the gate normal (upstream tube)
 TUBE_MARGIN = 0.30                     # marginW/H of a tube corridor: window = 0.5 * (0.4 - 0.30) = +-0.05 m
 END_PAST = 1.0                         # the plan ends at rest this far past the last gate, on its axis

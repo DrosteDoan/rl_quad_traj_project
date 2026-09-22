@@ -37,7 +37,10 @@ thresholds for learned or model-based control.
   Varying: gate x, y and yaw. The generator's poles are ignored (TOGT does not model them). Layouts are
   generated up front and saved as JSON.
 - **Planner.** TOGT tube plans that start on the floor at z = 0.05 with a 0.2 s hold (Lesson 8
-  ground-start style), `--thrust-frac 0.85`. The track file is the tube corridors of upstream's
+  ground-start style), `--thrust-frac 0.80` (revised from 0.85, 2026-09-22 -- see limitation 12: the 0.85
+  plans left too little thrust headroom for disturbance, and the collapse of the MPC family under
+  calibration was partly an artifact of the plan, not the controllers). The track file is the tube corridors
+  of upstream's
   `lsy_level2_tube.yaml` generalised to any gate, started on the floor. It has NO pole vias (upstream's
   `--track ground` carries the pole-avoidance balls B1, B3, B4, which make no sense without poles). The
   hand-tuned gate pre-shifts of Lesson 8 (`b08`, `b08g3`) are not used: they are tuned to one tracker on
@@ -50,12 +53,14 @@ thresholds for learned or model-based control.
     must not touch a gate frame, and its **frame margin must be >= 3.0 cm** (user decision, 2026-09-22).
     Frame margin = how far the drone box may grow, per half-extent, before the path touches a frame;
     roughly how far a tracker may stray from the plan before lsy would end the race. The anchor is
-    Lesson 8's level-2 ground plan, which the corrected MPC flies at 18/20 at Level 0: 3.5 cm. Of the
-    15 tracks first accepted by the proxy alone, 3 touched a frame and 4 more had 0.9-1.6 cm;
-  - yield is about 1.2 % of random layouts (15 of 1,251; TOGT never fails; the rejects are frame
-    crossings and arena excursions of the time-optimal path, not a bug), so candidates are generated until
-    enough pass; dev tracks use seeds >= 100000, disjoint from the study range;
-  - speed stretch s = max(1, v_peak / 4.4 m/s) (thrust is already about 0.85 of the limit by
+    Lesson 8's level-2 ground plan (planned at 0.85, not this study's 0.80), which the corrected MPC flies
+    at 18/20 at Level 0: 3.5 cm. Of the 15 tracks first accepted by the proxy alone (at 0.85), 3 touched a
+    frame and 4 more had 0.9-1.6 cm;
+  - yield is about 1.1 % of random layouts (15 of 1,319 at thrust-frac 0.80; 15 of 1,251 at 0.85 -- almost
+    unchanged, because 90 % of rejects are arena excursions and frame crossings of the time-optimal PATH,
+    which a thrust-headroom change barely touches); TOGT never fails; candidates are generated until enough
+    pass; dev tracks use seeds >= 100000, disjoint from the study range;
+  - speed stretch s = max(1, v_peak / 4.4 m/s) (thrust is already about 0.80 of the limit by
     construction);
   - take the first 15 seeds that pass, in seed order, and log every reject with its reason.
 - **Baseline viability.** At lambda = 0 every member runs once on every track, as a report. A track is
@@ -70,16 +75,22 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 - **Ceiling rule (user).** The maximum is the level at which at most one controller still persists
   (>= 50 % completion), calibrated on the dev tracks and then frozen. Starting values were 2x Lesson 7's, so
   that lambda = 0.5 reproduces Lesson 7's conditions as a regression check.
-- **Frozen ceilings (2026-09-22, approved by the user; `maxima.json`).** Calibrated on the 3 dev tracks (seeds
-  100023, 100082, 100095; 1,512 laps; `calibrate.py`) with the four MPC-family members, because the robust RL
-  seeds train on these ceilings and did not exist yet. So the ceiling is, in effect, the level at which the
-  model-based family has collapsed to at most one survivor; the RL family will probably outlast it, and lambda = 1
-  is not "where RL fails". In units of Lesson 7's value: `wind_const` 1.5 (0.165 N, 3.8 m/s^2), `payload` 2.0
-  (20 g, 4.5 m/s^2), `wind_gust` 1.5 (mean 0.12 N, amplitude 0.12 N, turbulence sigma 0.06 N), `lighthouse` 1.0
-  (Lesson 7's model). Samples are small (3 laps per level for the deterministic conditions).
-- **Delay-only check (done).** The fixed 1-step latency alone, all error sizes zero, on the dev tracks: M1 3/3
-  (lambda = 0: 3/3), M1+ESO 2/3 (2/3), M1+L1 2/3 (3/3), mppi_l1 1/3 (2/3). No member breaks, two lose one lap;
-  the user kept the latency as decided.
+- **Frozen ceilings (recalibrated 2026-09-22 on the thrust-frac 0.80 dev tracks; `maxima.json`).** Calibrated on
+  the 3 dev tracks (seeds 100023, 100082, 100092; 1,512 laps; `calibrate.py`) with the four MPC-family members,
+  because the robust RL seeds train on these ceilings and did not exist yet. The ceiling is, in effect, the level
+  at which the model-based family has collapsed to at most one survivor; the RL family will probably outlast it,
+  and lambda = 1 is not "where RL fails". In units of Lesson 7's value: `wind_const` 1.5 (0.165 N, 3.8 m/s^2),
+  `payload` 2.0 (20 g, 4.5 m/s^2), `wind_gust` 1.5 (mean 0.12 N, amplitude 0.12 N, turbulence sigma 0.06 N),
+  `lighthouse` 1.0 (Lesson 7's model). **Identical to the first (thrust-frac 0.85) calibration** despite the
+  extra thrust headroom -- evidence that the 3.0 cm frame margin, not thrust, is the binding limit at these
+  levels; see limitation 12. Samples are small (3 laps per level for the deterministic conditions). At lambda = 0
+  (nominal): M1 2/3, M1+ESO 2/3, M1+L1 3/3, mppi_l1 2/3 (M1 now fails one dev track nominally; a geometry effect
+  of the new track 100092, not a regression).
+- **Delay-only check (re-run on the 0.80 dev tracks).** The fixed 1-step latency alone, all error sizes zero:
+  M1 2/3 (lambda = 0: 2/3, no loss), M1+ESO 3/3 (2/3, gains one -- noise), M1+L1 2/3 (3/3, loses one),
+  **mppi_l1 0/3 (2/3, loses both)**. mppi_l1's tight margins (Phase 4's diagnosis: effective sample size ~1)
+  make it sensitive to the delay alone; the user kept the latency as decided, so this is recorded, not acted on.
+
 - **Conditions.**
 
 | condition | what lambda scales |
@@ -181,23 +192,22 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
 8. The Lighthouse model was validated up to about 3 m/s and is applied at about 4.5 m/s.
 9. The MPC solves in about 32 ms per 10 ms step: not real-time.
 10. Three RL seeds and 15 tracks.
-11. **Track population.** The 15 study tracks are the layouts whose time-optimal tube plan is contact-free
-    with a reference frame margin >= 3.0 cm, stays in the arena and crosses gates within 25 deg: 15 of
-    1,251 candidates (1.2 %). This is selection on the plan, never on a controller outcome, so the
-    comparison between members is paired and unaffected; what is limited is how far "consistent across
-    geometries" reaches. The restriction is strong. Against all 1,251 candidates the accepted set sits at
-    the 8th-19th percentile in mean exit turn (76 vs 115 deg, 8th), mean turn at gates (85 vs 116 deg,
-    12th), path length (7.1 vs 8.5 m, 19th), mean gate gap (1.6 vs 2.1 m, 15th), peak speed (4.8 vs
-    5.5 m/s, 18th) and planned lap (3.9 vs 4.3 s, 11th): **compact layouts with gentle turns**. About three
-    quarters of that shift comes from requiring a contact-free reference (not optional: a reference that
-    touches a frame cannot be flown), the rest from the 3.0 cm margin (with margin >= 0 the pool of 20
-    sits at the 14th-30th percentile). The likely direction is to UNDERSTATE geometry dependence, because
-    hairpin-heavy and spread-out layouts are the ones removed; a first, looser sample had suggested a
-    milder shift (26th-47th percentile), and that reassurance no longer holds. Stratified selection was
-    considered and declined; it cannot restore a missing tail. After the sweep, plot the per-track
-    crossover lambda against exit turn and plan length: flat is mild evidence of robustness, a trend is a
-    warning about the untested layouts. State the scope of the claim accordingly: consistent across
-    compact, gentle-turn layouts.
+11. **Track population.** The 15 study tracks (thrust-frac 0.80) are the layouts whose time-optimal tube
+    plan is contact-free with a reference frame margin >= 3.0 cm, stays in the arena and crosses gates
+    within 25 deg: 15 of 1,319 candidates (1.1 %). This is selection on the plan, never on a controller
+    outcome, so the comparison between members is paired and unaffected; what is limited is how far
+    "consistent across geometries" reaches. The restriction is strong and essentially unchanged from the
+    0.85 track set: against all 1,319 candidates the accepted set sits at the 6th-19th percentile in mean
+    exit turn (71 vs 115 deg, 6th), mean turn at gates (78 vs 116 deg, 8th), path length (7.1 vs 8.5 m,
+    19th), mean gate gap (1.6 vs 2.1 m, 15th), peak speed (4.6 vs 5.3 m/s, 18th) and planned lap (4.1 vs
+    4.6 s, 11th): **compact layouts with gentle turns**. About three quarters of that shift comes from
+    requiring a contact-free reference (not optional: a reference that touches a frame cannot be flown),
+    the rest from the 3.0 cm margin. The likely direction is to UNDERSTATE geometry dependence, because
+    hairpin-heavy and spread-out layouts are the ones removed. Stratified selection was considered and
+    declined; it cannot restore a missing tail. After the sweep, plot the per-track crossover lambda
+    against exit turn and plan length: flat is mild evidence of robustness, a trend is a warning about the
+    untested layouts. State the scope of the claim accordingly: consistent across compact, gentle-turn
+    layouts.
     The dev tracks (calibration only) use seeds >= 100000, disjoint from the study range.
 
 12. **Plan aggressiveness sets where the model-based family collapses.** The plans are time-optimal at 0.85 of the
