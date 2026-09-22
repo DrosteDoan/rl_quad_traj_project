@@ -147,6 +147,31 @@ def test_latency_only_is_the_delay_and_nothing_else():
         np.testing.assert_allclose(out[10:13], 0.0, atol=1e-12)
 
 
+def test_mass_scale_is_one_except_mass_mult():
+    for cond in kb.CONDITIONS:
+        if cond == "mass_mult":
+            continue
+        assert kb.mass_scale(cond, 0.7) == 1.0, cond
+    assert kb.mass_scale("mass_mult", 0.0) == 1.0
+    sc = kb.scales()
+    a, b = kb.mass_scale("mass_mult", 0.4), kb.mass_scale("mass_mult", 0.8)
+    assert a > 1.0 and b > a                                              # heavier only, monotone in lam
+    np.testing.assert_allclose(a - 1.0, 0.4 * sc["mass_mult"] * kb.NOMINAL["mass_mult"]["frac_heavier"])
+    np.testing.assert_allclose(b - 1.0, 2.0 * (a - 1.0), atol=1e-12)      # linear in lam
+    for bad in (-0.1, 1.1):
+        try:
+            kb.mass_scale("mass_mult", bad)
+        except ValueError:
+            continue
+        raise AssertionError("a lam outside [0, 1] must be refused")
+
+
+def test_mass_mult_at_lesson8_value_is_the_level1_extreme():
+    mult = kb.mass_scale("mass_mult", 1.0, scale={"mass_mult": 1.0})
+    m = 0.04338
+    np.testing.assert_allclose((mult - 1.0) * m, 0.005, atol=1e-5)        # Level 1's +-0.005 kg heavy end
+
+
 def test_make_conditions_shapes_and_validation():
     d, s = kb.make_conditions("combined", 0.3, seed=1)
     sc = kb.scales()                                             # the frozen ceilings

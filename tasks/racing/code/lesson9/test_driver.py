@@ -32,6 +32,12 @@ def _zip() -> str | None:
     return str(zs[-1]) if zs else None
 
 
+def _lesson7_scale():
+    """Force the ORIGINAL Lesson-7-exact scale (2x) regardless of what calibrate.py has since frozen, so
+    lam = 0.5 reproduces Lesson 7's value exactly -- the property these regression tests check."""
+    kb.set_scales({"wind_const": 2.0, "payload": 2.0, "wind_gust": 2.0, "lighthouse": 2.0})
+
+
 def _reference(spec: str, traj, dist=None):
     """The vendored harness, exactly as race_eval.py flies it: a fresh Sim, `rollout`, no early stop."""
     ctrl, _, freq = make_race_controller(spec)
@@ -53,6 +59,7 @@ def test_driver_flies_the_vendored_path_at_lesson7_values():
     spec = f"datt:{z}"
     traj = dr.build_traj(TRACK)
     fl = dr.Flyer({"pol": spec})
+    _lesson7_scale()
     cases = [("wind_const", 0.5, ConstantWind()), ("payload", 0.5, Payload()), ("wind_gust", 0.5, GustWind(seed=0))]
     for cond, lam, ref_dist in [("wind_const", 0.0, None)] + cases:
         row = fl.fly("pol", traj, cond, lam, 0, keep_path=True)
@@ -64,6 +71,7 @@ def test_driver_flies_the_vendored_path_at_lesson7_values():
         if row["completed"] and all(g["passed"] for g in gm):
             assert abs(row["race_time"] - round(gm[-1]["t_cross"], 3)) < 2e-3
             assert abs(row["t_gate1"] - round(gm[0]["t_cross"], 3)) < 2e-3
+    kb.set_scales(None)
 
 
 def test_reused_sim_is_bit_identical_to_a_fresh_one():
@@ -86,6 +94,7 @@ def test_m1_matches_the_vendored_harness_on_the_level2_ground_plan():
     spec = dr.M1
     traj = dr.build_traj(TRACK)
     fl = dr.Flyer({"M1": spec})
+    _lesson7_scale()
     for cond, lam, ref_dist in (("wind_const", 0.0, None), ("wind_const", 0.5, ConstantWind()),
                                 ("wind_gust", 0.5, GustWind(seed=0))):
         row = fl.fly("M1", traj, cond, lam, 0, keep_path=True)
@@ -97,6 +106,7 @@ def test_m1_matches_the_vendored_harness_on_the_level2_ground_plan():
         assert dev < 1e-5, (cond, lam, dev)
         if lam == 0.0:
             assert row["completed"] == 1 and abs(row["race_time"] - round(gm[-1]["t_cross"], 3)) < 2e-3
+    kb.set_scales(None)
 
 
 def test_reused_m1_is_bit_identical_to_a_fresh_one():
@@ -109,6 +119,40 @@ def test_reused_m1_is_bit_identical_to_a_fresh_one():
     dev = float(np.abs(a["_path"]["pos"] - b["_path"]["pos"]).max()) if a["steps"] == b["steps"] else float("inf")
     print(f"  M1 fresh vs after a disturbed lap: steps {a['steps']}/{b['steps']}, max path deviation {dev:.2e} m")
     assert a["steps"] == b["steps"] and dev == 0.0
+
+
+def test_mass_mult_changes_the_flight_and_does_not_leak():
+    """A heavier drone sags/lags relative to the nominal reference (untouched, same model); the next lap at
+    lam = 0 must be bit-identical to a fresh one -- the mass override must not survive a reset."""
+    traj = dr.build_traj(TRACK)
+    fl = dr.Flyer({"M1": dr.M1})
+    nominal = fl.fly("M1", traj, "wind_const", 0.0, 0, keep_path=True)
+    heavy = fl.fly("M1", traj, "mass_mult", 1.0, 0, keep_path=True)
+    print(f"  M1 nominal vs +11.5% mass: mass_mult={heavy['mass_mult']} completed={heavy['completed']} "
+          f"fail={heavy['fail'] or '-'} rmse {nominal['rmse_3d']:.3f} -> {heavy['rmse_3d']:.3f}")
+    assert heavy["mass_mult"] > 1.0
+    n = min(len(nominal["_path"]["pos"]), len(heavy["_path"]["pos"]))
+    assert not np.allclose(nominal["_path"]["pos"][:n], heavy["_path"]["pos"][:n])
+    back = fl.fly("M1", traj, "wind_const", 0.0, 0, keep_path=True)      # a DIFFERENT condition: mass_mult only
+    assert back["steps"] == nominal["steps"] and np.array_equal(back["_path"]["pos"], nominal["_path"]["pos"])
+
+
+def test_m1_mass_adaptation_engages_under_mass_mult():
+    """M1+mass's thrust-scale estimate k should move away from 1.0 under a heavier drone and stay near 1.0
+    without it (default mass=0 on plain M1 has no k at all)."""
+    traj = dr.build_traj(TRACK)
+    fl = dr.Flyer({"M1+mass": dr.DEFAULT_MEMBERS["M1+mass"]})
+    fl.fly("M1+mass", traj, "wind_const", 0.0, 0)
+    ctrl = fl.ctrls["M1+mass"]
+    assert hasattr(ctrl, "_k") and ctrl.mass_adapt
+    k_nominal = ctrl._k
+    fl.fly("M1+mass", traj, "mass_mult", 1.0, 0)
+    k_heavy = fl.ctrls["M1+mass"]._k
+    print(f"  M1+mass thrust-scale k: nominal {k_nominal:.3f}, +11.5% mass {k_heavy:.3f}")
+    # k is a thrust-EFFECTIVENESS scale (predicted acc uses cmd_f_coef * k): a heavier real drone produces LESS
+    # acceleration per unit commanded thrust than the model's nominal mass assumes, so the estimator must drive
+    # k DOWN to match; the controller then commands proportionally more raw thrust for the same target acc.
+    assert k_heavy < k_nominal - 0.02
 
 
 def test_a_failing_lap_stops_early_and_says_why():

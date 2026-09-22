@@ -24,7 +24,7 @@ thresholds for learned or model-based control.
   reference to any controller. Three more (the dev tracks) are used only for calibration.
 - **Disturbances:** five conditions, each applied at a coefficient lambda in [0, 1], the fraction of
   that disturbance's own range.
-- **Members:** 4 model-based controllers and 3 robust RL policies, each plotted as its own line.
+- **Members:** 5 model-based controllers and 3 robust RL policies, each plotted as its own line.
 - **Trials:** 25 seeds for random disturbances, a repeat check for deterministic ones.
 - **Outcome:** completion (4 gates in order, no contact), plus lap time, RMSE and other per-lap measures.
 - **Deliverable:** per-track charts of completion against lambda, stored with one row per lap so any
@@ -88,9 +88,21 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
   of the new track 100092, not a regression).
 - **Delay-only check (re-run on the 0.80 dev tracks).** The fixed 1-step latency alone, all error sizes zero:
   M1 2/3 (lambda = 0: 2/3, no loss), M1+ESO 3/3 (2/3, gains one -- noise), M1+L1 2/3 (3/3, loses one),
-  **mppi_l1 0/3 (2/3, loses both)**. mppi_l1's tight margins (Phase 4's diagnosis: effective sample size ~1)
-  make it sensitive to the delay alone; the user kept the latency as decided, so this is recorded, not acted on.
-
+  **mppi_l1 0/3 (2/3, loses both)**, M1+mass 2/3. mppi_l1's tight margins (Phase 4's diagnosis: effective
+  sample size ~1) make it sensitive to the delay alone; the user kept the latency as decided, so this is
+  recorded, not acted on.
+- **`mass_mult` calibration (2026-09-22, added on the user's request to align the study with Lesson 8's own
+  finding).** `mass_mult` scales the drone's true mass (heavier only), deterministic, calibrated the same way
+  as the other four, on the same dev tracks, with a 5th model-based member added to the roster:
+  M1+mass = `mpcdev:att=sim,drag=0.495,fgain=1.0,mass=1`. **Frozen ceiling (approved by the user, 2026-09-22): 2.0x Lesson 8's
+  Level-1 extreme draw**, i.e. lambda = 1 is +23 % mass (the Level-1 extreme itself, +11.5 %, sits at
+  lambda = 0.5). Persisting members: 5/5 at lambda_eff <= 0.25, falling to 1/5 at 2.0 (only M1+mass, 67 %).
+  **Unexpected finding: M1+L1, not M1+mass, is the robust member across most of the range** (100 % completion
+  through lambda_eff = 1.5, only failing at 2.0), while M1+mass tracks plain M1 closely until the highest
+  level. A plausible reading: a heavier drone's extra sag looks, to first order, like the additive downward
+  force L1 already estimates well (it ties the deployment cell for `payload` too), while `mass=1`'s benefit
+  only shows up once the mismatch is severe. mppi_l1 is fragile from the lowest tested level (33 % already at
+  0.25), consistent with the thin margins Phase 4 diagnosed. 
 - **Conditions.**
 
 | condition | what lambda scales |
@@ -99,6 +111,7 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 | `payload` | downward force in z |
 | `wind_gust` | mean push, sinusoid amplitude and turbulence sigma together; frequency (0.7 Hz) and turbulence time constant (0.5 s) fixed |
 | `lighthouse` | size errors and update interval together; lambda = 0 refreshes every control step (a perfect sensor); the 1-step (10 ms) latency is fixed whenever Lighthouse is on, so there is a jump at 0+ |
+| `mass_mult` | the drone's TRUE flying mass, heavier only (multiplicative model error, Lesson 8 section 5's finding: this, not an additive force, is what defeats MPC in the race); calibrated separately (see below); NOT part of `combined` (user decision, 2026-09-22: a multiplicative model error is a different kind of thing from additive/sensing effects stacking) |
 | combined | gust + payload + Lighthouse at the same lambda (not `wind_const`, which stacks with the gust mean) |
 
 - **Seeding.** Random parts are unit-normal streams scaled by lambda: one seed is the same draw at every
@@ -120,13 +133,70 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 
 ## 5. Members
 
-- **Model-based (4), the Lesson 8 corrected-model family:** M1 = `mpcdev:att=sim,drag=0.495,fgain=1.0`;
-  M1+ESO (`dist=eso`); M1+L1 (`dist=l1`); `mppi_l1` unchanged.
-- **Learned (3), "robust RL":** the racing-envelope recipe, training seeds 0, 1, 2; perturbation box =
-  0.8 x the frozen maxima; sensor noise level per episode from lambda in U(0, 0.8). All three are used,
-  no re-rolling.
+- **Model-based (5), the Lesson 8 corrected-model family:** M1 = `mpcdev:att=sim,drag=0.495,fgain=1.0`;
+  M1+ESO (`dist=eso`); M1+L1 (`dist=l1`); M1+mass (`mass=1`, added 2026-09-22 alongside the `mass_mult`
+  condition); `mppi_l1` unchanged.
+- **Learned (3), "robust RL":** the racing-envelope recipe, training seeds 0, 1, 2, with a per-episode
+  domain-randomization box matched to the frozen ceilings (section 5a). All three are used, no re-rolling.
+  **Not yet trained** (2026-09-22): the design below is agreed; no training has been launched.
 - **Not in the study:** `v5_s0`, `racing_s0`, `racing_s1`, `racing_s2`. No family mean: every member is
   its own line.
+
+## 5a. The robust RL training recipe (design agreed 2026-09-22; not yet run)
+
+Same policy, same environment, same PPO settings as `train_racing.py` (Lesson 7 section 2) -- one change,
+the per-episode domain-randomization ranges, each set to 0.8 x its condition's frozen ceiling so the training
+box sits inside the study's own range with room to spare at the top.
+
+**Three channels, matching the study's five conditions minus `combined` (which is not separately trained --
+see below):**
+
+| channel | covers | training range | mechanism |
+|---|---|---|---|
+| force | `wind_const`, `payload`, `wind_gust` | x, y: +-4.4 m/s^2 (0.8 x 1.5 x Lesson 7's 2.54 m/s^2 `wind_const` value); z: -3.6 to +1.8 m/s^2 (0.8 x 2.0 x `payload`'s downward value, small upward margin) | `_sample_perturb`, unchanged: one constant force vector drawn per episode, `self.rng.uniform` |
+| Lighthouse | `lighthouse` | per-episode lambda in U(0, 0.8), scaling size errors and the update interval together, the same mapping as `knobs.ScaledLighthouse` | a new `LighthouseSensorBatch` variant (the vendored one draws a noise SCALE in U(0, 1.5), not a lambda with a coupled interval; needs its own subclass) |
+| mass | `mass_mult` | per-episode fraction in U(0, 0.8 x 2.0 x 0.1153) = U(0, 0.184), i.e. up to +18.4 % heavier, one-sided | new: `sim.data.params.mass` overridden after `sim.reset(mask)`, mirroring `driver.py`'s pattern (verified: `Sim.reset()` restores `default_data`, so the override must be re-applied every episode, exactly like the external force already is) |
+
+None of the three channels represents the gust's time-varying structure (0.7 Hz swing, OU turbulence) --
+the force channel is a single constant per episode, as in the vendored recipe; this is an existing
+limitation of the base recipe, not new here (see the limitations list).
+
+**Independent per-episode draws (user decision, 2026-09-22).** Each channel is resampled from its own RNG
+stream at the same two points the vendored recipe already resamples force and Lighthouse noise -- full
+`reset()` (all envs) and, inside `step()`, only for envs whose episode just ended (`done_mask`), in this
+order (verified against `datt_env.py`):
+
+```
+sim.reset(mask)          # restores default_data (mass reverts to nominal) for the done envs
+_set_states(mask)
+_sample_perturb(mask)    # force: self.rng (the env's own stream)
+_sample_mass(mask)       # NEW: its own rng, e.g. seed + 2 (mirrors the Lighthouse sensor's seed + 1)
+sensor.reset_rows(mask)  # Lighthouse: LighthouseSensorBatch's own rng (already seed + 1 in the vendored env)
+```
+
+This already holds for force vs. Lighthouse in the unmodified vendored recipe (two separate RNGs, not
+merely sequential draws on one stream); the mass channel extends the same pattern rather than introducing
+a new one.
+
+**What independence costs, and where.** Three independent channels each drawn from their own range means
+the joint event "several channels severe at once" is visited far less often than any one channel's own
+extreme. Illustrative arithmetic, not a measurement: if a channel is in its own top quartile a quarter of
+episodes, two channels both in their top quartile together happens in roughly 0.25 x 0.25 = 6 % of
+episodes, three channels together in under 2 %. This has **no effect on the five solo conditions**
+(`wind_const`, `payload`, `wind_gust`, `lighthouse`, `mass_mult`) -- each channel gets full-range exposure
+on its own regardless of what the others are doing that episode, which is exactly what a solo evaluation
+needs. It has a **real effect on `combined`**, which sets gust, payload and Lighthouse to the *same*
+lambda *simultaneously* at evaluation -- a single coupled point in the joint space that independent
+per-episode training visits with much lower density than any one channel's own severe region. `mass_mult`
+is excluded from `combined` (section 4), so this cost is confined to the force/Lighthouse pair and does not
+compound with mass.
+
+**Decision (user, 2026-09-22): keep the channels independent**, matching the vendored recipe's own
+unmodified structure (one variable added at a time, nothing else touched) and the correct choice for five
+of the six conditions. The cost is charged entirely to `combined`, and is recorded as limitation 13 below,
+not fixed by a coupled/correlated training scheme (which was considered and rejected: it would add a
+second, harder-to-describe training regime, and confound any `combined`-specific result between "the
+training was independent" and whatever else might explain it).
 
 ## 6. Trials and grid
 
@@ -165,9 +235,11 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 
 ## 9. Compute (measured 2026-09-22 with `driver.py`, one study track, M1 lap of 4.1 s, ground clock)
 
-One M1 lap takes 8-12 s (mean solve 19-24 ms), M1+ESO / M1+L1 the same, `mppi_l1` 2-5 s, a policy 2-3 s. That is
-about 35 s per (track, lambda, seed) cell over the 4 MPC-family members and 3 policies, less at high lambda
-where laps stop at the first contact. Coarse grid: about 150-250 core-hours, about a day on 8-9 workers.
+One M1 lap takes 8-12 s (mean solve 19-24 ms), M1+ESO / M1+L1 / M1+mass about the same, `mppi_l1` 2-5 s, a
+policy 2-3 s. That is about 40 s per (track, lambda, seed) cell over the 5 MPC-family members and 3 policies
+(measured with 4 members before M1+mass was added; a 5th ipopt-solving member adds roughly another 8-12 s per
+cell), less at high lambda where laps stop at the first contact. Coarse grid: about 175-290 core-hours, about
+a day on 8-9 workers.
 Two settings decide whether that holds, both measured:
   * `JAX_PLATFORMS=cpu` and single-thread limits (`OMP_NUM_THREADS=MKL_NUM_THREADS=OPENBLAS_NUM_THREADS=1`,
     `XLA_FLAGS="--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=1"`). With them, 4 concurrent
@@ -183,8 +255,10 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
 2. The corrected MPC model is a fit to this same simulator; its "accurate model" favours MPC.
 3. The RL family is trained on this study's range (favours RL); with no contrast group, a crossover
    cannot be attributed to the training edge versus something intrinsic.
-4. No parametric mass mismatch (Lesson 8 section 5 shows it is what defeats MPC in the race); out of
-   scope because the training environment does not randomise mass.
+4. ~~No parametric mass mismatch~~ -- superseded 2026-09-22: `mass_mult` (section 4) and M1+mass (section 5)
+   were added at the user's request, specifically because Lesson 8 section 5 found this, not an additive
+   force, is what defeats MPC in the race. Training will include matched mass domain randomization
+   (section 5a). What remains true: mass is the only condition excluded from `combined`.
 5. Gust time structure is not in training; training runs at 50 Hz, the harness at 100 Hz.
 6. Ceilings are outcome-calibrated on dev tracks.
 7. Disturbances enter through crazy_track's force model; contacts are checked after the fact from the
@@ -209,6 +283,21 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
     untested layouts. State the scope of the claim accordingly: consistent across compact, gentle-turn
     layouts.
     The dev tracks (calibration only) use seeds >= 100000, disjoint from the study range.
+12. **Plan aggressiveness sets where the model-based family collapses** -- see section 3's `thrust-frac 0.80`
+    revision and the recalibration note in section 4 (the ceilings came out identical to the first, 0.85,
+    calibration: evidence the 3.0 cm frame margin, not thrust headroom, is now the binding limit).
+13. **Independent per-episode training channels likely undertrain `combined`'s joint worst case** (section
+    5a). Force, Lighthouse and mass severity are drawn from three separate RNG streams each episode, which
+    is correct for the five solo conditions (each gets full-range exposure regardless of the others) but
+    means the co-occurrence of two or three channels being simultaneously severe -- exactly what `combined`
+    tests at evaluation, a single coupled point in the joint space -- is visited far less often in training
+    than any one channel's own extreme (illustrative arithmetic: two independent top-quartile channels
+    co-occur in about 6 % of episodes, not 25 %). This was a considered trade-off, not an oversight: a
+    coupled/correlated training scheme was rejected because it would confound any `combined`-specific
+    result between "training was coupled" and whatever else might explain it. Expect the RL family's
+    `combined` line to be a weaker test of its own architecture's robustness than its solo lines are, and
+    read any RL weakness specifically on `combined` with this in mind before attributing it to the
+    controller.
 
 12. **Plan aggressiveness sets where the model-based family collapses.** The plans are time-optimal at 0.85 of the
     thrust limit, so a constant force of about 4 m/s^2 (the dev plans' mean headroom is 3.8 m/s^2, from peak
@@ -241,12 +330,16 @@ replaced by the measured 24 s.
 
 ## 12. Build phases (each ends with a confirmation from the user)
 
-1. Track library (`gen_tracks.py`, `track_lib.py`)
-2. Contact check
-3. Lambda knobs
-4. Driver and storage
-5. Dev calibration (frozen maxima are approved before training)
-6. Robust RL training
-7. Study sweep
-8. Charts
-9. `lessons/09-*.md`
+1. Track library (`gen_tracks.py`, `track_lib.py`) -- done; restarted 2026-09-22 at thrust-frac 0.80
+2. Contact check (`contact.py`) -- done
+3. Lambda knobs (`knobs.py`) -- done; extended 2026-09-22 with `mass_mult` and `mass_scale`
+4. Driver and storage (`driver.py`) -- done; extended 2026-09-22 with the mass override and M1+mass
+5. Dev calibration (`calibrate.py`) -- done; all 5 ceilings frozen in `maxima.json`
+6. Robust RL training -- **design agreed 2026-09-22 (section 5a); NOT YET STARTED, no training launched.**
+   Hardware note: the user's machine handles at most 2 concurrent training runs (not 3), so the 3 seeds run
+   as one pair concurrently (~25-50 min, bounded by the slower of the two) then the third alone
+   (~25-50 min more) -- roughly 60-100 minutes wall time for all three, not the ~30-50 minutes three-way
+   concurrency would have given.
+7. Study sweep -- not started (depends on phase 6)
+8. Charts -- not started
+9. `lessons/09-*.md` -- not started

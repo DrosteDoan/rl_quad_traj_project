@@ -3,9 +3,10 @@
   "wind_const": 1.5,
   "payload": 2.0,
   "wind_gust": 1.5,
-  "lighthouse": 1.0
+  "lighthouse": 1.0,
+  "mass_mult": 2.0
  },
- "status": "FROZEN 2026-09-22 (recalibrated after thrust-frac 0.85 -> 0.80; identical to the first calibration)",
+ "status": "FROZEN 2026-09-22 (wind_const/payload/wind_gust/lighthouse: recalibrated after thrust-frac 0.85 -> 0.80, identical to the first calibration; mass_mult: added 2026-09-22 at the user's request, calibrated once with a 5th model-based member M1+mass)",
  "meaning": "ceiling of each disturbance in units of Lesson 7's value; lam = 1 is the ceiling",
  "rule": "first grid level from which at most one MPC-family member (M1, M1+ESO, M1+L1, mppi_l1) completes >= 50 % of the dev laps, at every higher level too; the robust RL seeds did not exist yet",
  "dev_tracks": [
@@ -26,5 +27,6 @@
   8.0
  ],
  "calibration": "results/calib/ (1512 laps, deduped from 1537 after a transient double-write, see build log); report: calibrate.py report",
- "note": "recalibration on the thrust-frac 0.80 dev tracks (100023, 100082, 100092; 100092 replaces the old 100095) reproduced the SAME four ceilings as the thrust-frac 0.85 calibration, suggesting the 3.0 cm frame margin, not thrust headroom, is now the binding limit at these levels (limitation 12)"
+ "note": "recalibration on the thrust-frac 0.80 dev tracks (100023, 100082, 100092; 100092 replaces the old 100095) reproduced the SAME four ceilings as the thrust-frac 0.85 calibration, suggesting the 3.0 cm frame margin, not thrust headroom, is now the binding limit at these levels (limitation 12)",
+ "mass_mult_note": "M1+L1, not M1+mass, was the most robust MPC-family member against mass_mult in calibration (100% through lam_eff=1.5); M1+mass only pulled ahead at the top of the range (2.0x)"
 }

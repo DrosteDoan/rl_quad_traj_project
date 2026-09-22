@@ -53,11 +53,12 @@ from crazy_track.trajectories.sampled import SampledRaceTrajectory  # noqa: E402
 FREQ = 100                                   # the vendored harness's attitude-mode control rate
 HOLD = 0.2                                   # s: the rotor spin-up hold of a ground-start plan (Lesson 8 section 2)
 M1 = "mpcdev:att=sim,drag=0.495,fgain=1.0"
-DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1", "mppi_l1": "mppi_l1"}
+DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1", "M1+mass": M1 + ",mass=1",
+                   "mppi_l1": "mppi_l1"}
 RESULTS = HERE / "results"
 COLUMNS = ["role", "track", "cond", "lam", "seed", "member", "completed", "gates_passed", "gates_clean", "fail",
            "t_impact", "impact_gate", "impact_box", "race_time", "t_gate1", "rmse_3d", "rmse_xy", "max_dev",
-           "steps", "wall_s", "solve_ms_mean", "solve_ms_max", "ipopt_fail"]
+           "steps", "wall_s", "solve_ms_mean", "solve_ms_max", "ipopt_fail", "mass_mult"]
 
 
 # ---- tracks ----------------------------------------------------------------------------------------------------
@@ -106,6 +107,11 @@ class Flyer:
         sim.reset()
         set_drone_state(sim, traj.pos(0.0))
         apply_force(sim, np.zeros(3))                               # nothing may leak in from the previous lap
+        mult = kb.mass_scale(cond, lam, seed)
+        if mult != 1.0:
+            # reset() restores the nominal mass, exactly like the force above; override it the same way, on
+            # the CURRENT (just-reset, nominal) params, so nothing accumulates across laps
+            sim.data = sim.data.replace(params=sim.data.params.replace(mass=sim.data.params.mass * mult))
         ctrl.reset(traj)
         if hasattr(ctrl, "opti"):
             # MPCDev sets no initial guess on the first step of a lap (`_prev is None`), so CasADi's Opti would
@@ -188,7 +194,8 @@ class Flyer:
                "rmse_xy": round(float(np.sqrt(np.mean(np.sum(err[:, :2] ** 2, axis=1)))), 4),
                "max_dev": round(float(np.linalg.norm(err, axis=1).max()), 3), "steps": len(t),
                "wall_s": round(wall, 2), "solve_ms_mean": round(float(ms.mean()), 1) if len(ms) else "",
-               "solve_ms_max": round(float(ms.max()), 1) if len(ms) else "", "ipopt_fail": int(getattr(ctrl, "n_fail", 0))}
+               "solve_ms_max": round(float(ms.max()), 1) if len(ms) else "", "ipopt_fail": int(getattr(ctrl, "n_fail", 0)),
+               "mass_mult": round(kb.mass_scale(cond, lam), 4)}
         if keep_path:
             row["_path"] = {"t": t, "pos": pos, "quat": quat, "gates": gm}
         return row

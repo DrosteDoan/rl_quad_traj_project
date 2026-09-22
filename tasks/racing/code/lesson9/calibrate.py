@@ -2,6 +2,7 @@
 
     python tasks/racing/code/lesson9/calibrate.py run --workers 8      # flies the scan (about 30-40 min)
     python tasks/racing/code/lesson9/calibrate.py report               # tables + a PROPOSED maxima.json
+    python tasks/racing/code/lesson9/calibrate.py run --new-only       # mass_mult only (the frozen 4 are not re-run)
 
 The rule (user): the ceiling of a disturbance is the level at which at most one controller still persists, where
 persisting means completing at least 50 % of the laps pooled over the dev tracks and seeds. Every disturbance is
@@ -34,15 +35,16 @@ import launcher  # noqa: E402
 DEV_TRACKS = [100023, 100082, 100092]      # regenerated 2026-09-22 at thrust-frac 0.80
 SCAN_MAX = 8.0
 GRID_EFF = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]      # lam_eff, units of Lesson 7's value
-CONDS = ("wind_const", "payload", "wind_gust", "lighthouse")
+CONDS = ("wind_const", "payload", "wind_gust", "lighthouse")           # already frozen; not re-run
+NEW_CONDS = ("mass_mult",)                                              # calibrated now, with M1+mass in the roster
 STOCHASTIC = ("wind_gust", "lighthouse")
 SEEDS = 5
 OUT = dr.RESULTS / "calib"
 
 
-def make_tasks() -> list[dict]:
+def make_tasks(conds=CONDS) -> list[dict]:
     tasks = []
-    for cond in CONDS:
+    for cond in conds:
         for tr in DEV_TRACKS:
             tasks.append({"role": "dev", "track": tr, "cond": cond, "seeds": SEEDS if cond in STOCHASTIC else 1,
                           "lams": [0.0] + [x / SCAN_MAX for x in GRID_EFF], "scales": {cond: SCAN_MAX},
@@ -61,7 +63,7 @@ def load() -> list[dict]:
     return rows
 
 
-def report() -> None:
+def report(conds=CONDS) -> None:
     rows = load()
     if not rows:
         sys.exit(f"no calibration laps in {OUT}")
@@ -87,14 +89,14 @@ def report() -> None:
               + "   (compare with the lam = 0 line above)\n")
 
     proposed, summary = {}, []
-    for cond in CONDS:
+    for cond in conds:
         cell = defaultdict(list)
         for r in rows:
             if r["cond"] == cond:
                 cell[(round(float(r["lam"]) * SCAN_MAX, 3), r["member"])].append(int(r["completed"]))
         levels = sorted({k[0] for k in cell})
         print(f"== {cond}  (completion, pooled over dev tracks{' and 5 seeds' if cond in STOCHASTIC else ''}; "
-              f"lam_eff = 1 is Lesson 7's condition)")
+              f"lam_eff = 1 is {dr.kb.NOMINAL_LABEL.get(cond, 'the reference value')})")
         print(f"{'lam_eff':>8s} " + " ".join(f"{m:>8s}" for m in members) + "   persisting")
         persist = {}
         for lv in levels:
@@ -112,7 +114,7 @@ def report() -> None:
                 break
         proposed[cond] = ceiling if ceiling is not None else f">{pos[-1]:g}"
         note = ("" if ceiling is None else " (already at the first grid level)" if ceiling == pos[0] else "")
-        print(f"-> proposed ceiling: {proposed[cond]}x Lesson 7's value{note}\n")
+        print(f"-> proposed ceiling: {proposed[cond]}x {dr.kb.NOMINAL_LABEL.get(cond, 'the reference value')}{note}\n")
 
     with open(OUT / "calibration_summary.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["cond", "lam_eff", "member", "completion", "laps"])
@@ -130,11 +132,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("what", choices=["run", "report"])
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--new-only", action="store_true", help="only mass_mult (the frozen 4 are not re-run)")
     args = ap.parse_args()
+    conds = NEW_CONDS if args.new_only else CONDS + NEW_CONDS
     if args.what == "run":
-        launcher.launch(make_tasks(), workers=args.workers)
+        launcher.launch(make_tasks(conds), workers=args.workers)
     else:
-        report()
+        report(conds)
 
 
 if __name__ == "__main__":

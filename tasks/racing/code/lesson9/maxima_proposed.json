@@ -1,9 +1,6 @@
 {
  "scales": {
-  "wind_const": 1.5,
-  "payload": 2.0,
-  "wind_gust": 1.5,
-  "lighthouse": 1.0
+  "mass_mult": 2.0
  },
  "unreached": {},
  "rule": "first grid level from which at most one MPC-family member completes >= 50 % of dev laps",

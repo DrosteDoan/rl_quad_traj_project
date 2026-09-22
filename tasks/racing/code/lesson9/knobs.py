@@ -43,14 +43,21 @@ G = 9.81
 NOMINAL = {
     "wind_const": {"force": (0.11, 0.0, 0.0)},
     "payload": {"extra_mass": 0.010},
+    # mass_mult: the drone flies HEAVIER than the model assumes (Lesson 8 section 5: the multiplicative thrust-map
+    # error, not an additive force, is what defeats MPC in the race). lam_eff = 1 reproduces Lesson 8's Level-1
+    # extreme draw (+-0.005 kg on 0.04338 kg -> +11.5 % at the heavy end); one-sided by design, like `payload`.
+    "mass_mult": {"frac_heavier": 0.1153},
     "wind_gust": {"mean": (0.08, 0.0, 0.0), "gust_amp": 0.08, "gust_dir": (1.0, 0.3, 0.0), "gust_hz": 0.7,
                   "ou_sigma": 0.04, "ou_tau": 0.5},
     "lighthouse": {"update_hz": 34.0, "update_hz_std": 18.0, "jitter_std": 0.0007, "bias_std": 0.015,
                    "vel_std": 0.03, "att_std_deg": 0.5, "gyro_std": 0.02, "latency_steps": 1},
 }
-CONDITIONS = ("wind_const", "payload", "wind_gust", "lighthouse", "combined")
+CONDITIONS = ("wind_const", "payload", "wind_gust", "lighthouse", "mass_mult", "combined")
 EXTRA_CONDITIONS = ("latency_only",)      # calibration only: the fixed 1-step Lighthouse delay and nothing else
-START_SCALES = {"wind_const": 2.0, "payload": 2.0, "wind_gust": 2.0, "lighthouse": 2.0}
+START_SCALES = {"wind_const": 2.0, "payload": 2.0, "wind_gust": 2.0, "lighthouse": 2.0, "mass_mult": 2.0}
+NOMINAL_LABEL = {"wind_const": "Lesson 7's condition", "payload": "Lesson 7's condition",
+                 "wind_gust": "Lesson 7's condition", "lighthouse": "Lesson 7's condition",
+                 "mass_mult": "Lesson 8's Level-1 extreme (+11.5 % mass)"}
 MAXIMA_FILE = HERE / "maxima.json"
 _scales_override: dict | None = None
 
@@ -119,6 +126,17 @@ class ScaledGust(Disturbance):
             raise IndexError(f"step {i} outside the {self.horizon}-step noise horizon")
         gust = self.amp * np.sin(2.0 * np.pi * self.hz * t) * self.dir
         return self.lam * (self.mean + gust + self.sigma * self._ou_unit[i])
+
+
+def mass_scale(cond: str, lam: float, seed: int = 0, scale: dict | None = None) -> float:
+    """Multiplicative flying-mass factor for `cond` at severity `lam`: 1.0 (nominal) for every condition but
+    `mass_mult`, where it is  1 + lam_eff * frac_heavier  (deterministic, one-sided, heavier only)."""
+    if cond != "mass_mult" or lam == 0.0:
+        return 1.0
+    if not 0.0 <= lam <= 1.0:
+        raise ValueError(f"lam must be in [0, 1], got {lam}")
+    sc = {**scales(), **(scale or {})}
+    return 1.0 + lam * sc["mass_mult"] * NOMINAL["mass_mult"]["frac_heavier"]
 
 
 class SumDisturbance(Disturbance):
@@ -201,9 +219,12 @@ class ScaledLighthouse:
 # ---- the entry point -------------------------------------------------------------------------------------------
 def make_conditions(cond: str, lam: float, seed: int = 0, control_freq: int = 100, horizon: int = 6000,
                     scale: dict | None = None):
-    """(disturbance, sensor) for `cond` at severity `lam` in [0, 1]. (None, None) at lam = 0."""
+    """(disturbance, sensor) for `cond` at severity `lam` in [0, 1]. (None, None) at lam = 0, and for
+    `mass_mult` at any lam (mass is not a force or a sensor error; see `mass_scale`, applied to the Sim itself)."""
     if cond not in CONDITIONS + EXTRA_CONDITIONS:
         raise ValueError(f"unknown condition {cond!r}; one of {CONDITIONS + EXTRA_CONDITIONS}")
+    if cond == "mass_mult":
+        return None, None
     if not 0.0 <= lam <= 1.0:
         raise ValueError(f"lam must be in [0, 1], got {lam}")
     if lam == 0.0:
@@ -230,6 +251,9 @@ def describe(cond: str, lam: float, scale: dict | None = None) -> dict:
     sc = {**scales(), **(scale or {})}
     out: dict = {}
     m = 0.04338
+    if cond == "mass_mult":
+        mult = mass_scale(cond, lam, scale=scale)
+        out["mass_mult"], out["mass_kg"], out["mass_extra_pct"] = mult, m * mult, 100 * (mult - 1)
     if cond in ("wind_const",):
         f = lam * sc["wind_const"] * NOMINAL["wind_const"]["force"][0]
         out["wind_force_N"], out["wind_acc_m_s2"] = f, f / m
