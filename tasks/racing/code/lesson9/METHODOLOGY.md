@@ -75,34 +75,51 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 - **Ceiling rule (user).** The maximum is the level at which at most one controller still persists
   (>= 50 % completion), calibrated on the dev tracks and then frozen. Starting values were 2x Lesson 7's, so
   that lambda = 0.5 reproduces Lesson 7's conditions as a regression check.
-- **Frozen ceilings (recalibrated 2026-09-22 on the thrust-frac 0.80 dev tracks; `maxima.json`).** Calibrated on
-  the 3 dev tracks (seeds 100023, 100082, 100092; 1,512 laps; `calibrate.py`) with the four MPC-family members,
-  because the robust RL seeds train on these ceilings and did not exist yet. The ceiling is, in effect, the level
-  at which the model-based family has collapsed to at most one survivor; the RL family will probably outlast it,
-  and lambda = 1 is not "where RL fails". In units of Lesson 7's value: `wind_const` 1.5 (0.165 N, 3.8 m/s^2),
-  `payload` 2.0 (20 g, 4.5 m/s^2), `wind_gust` 1.5 (mean 0.12 N, amplitude 0.12 N, turbulence sigma 0.06 N),
-  `lighthouse` 1.0 (Lesson 7's model). **Identical to the first (thrust-frac 0.85) calibration** despite the
-  extra thrust headroom -- evidence that the 3.0 cm frame margin, not thrust, is the binding limit at these
-  levels; see limitation 12. Samples are small (3 laps per level for the deterministic conditions). At lambda = 0
-  (nominal): M1 2/3, M1+ESO 2/3, M1+L1 3/3, mppi_l1 2/3 (M1 now fails one dev track nominally; a geometry effect
-  of the new track 100092, not a regression).
-- **Delay-only check (re-run on the 0.80 dev tracks).** The fixed 1-step latency alone, all error sizes zero:
-  M1 2/3 (lambda = 0: 2/3, no loss), M1+ESO 3/3 (2/3, gains one -- noise), M1+L1 2/3 (3/3, loses one),
-  **mppi_l1 0/3 (2/3, loses both)**, M1+mass 2/3. mppi_l1's tight margins (Phase 4's diagnosis: effective
-  sample size ~1) make it sensitive to the delay alone; the user kept the latency as decided, so this is
-  recorded, not acted on.
-- **`mass_mult` calibration (2026-09-22, added on the user's request to align the study with Lesson 8's own
-  finding).** `mass_mult` scales the drone's true mass (heavier only), deterministic, calibrated the same way
-  as the other four, on the same dev tracks, with a 5th model-based member added to the roster:
-  M1+mass = `mpcdev:att=sim,drag=0.495,fgain=1.0,mass=1`. **Frozen ceiling (approved by the user, 2026-09-22): 2.0x Lesson 8's
-  Level-1 extreme draw**, i.e. lambda = 1 is +23 % mass (the Level-1 extreme itself, +11.5 %, sits at
-  lambda = 0.5). Persisting members: 5/5 at lambda_eff <= 0.25, falling to 1/5 at 2.0 (only M1+mass, 67 %).
-  **Unexpected finding: M1+L1, not M1+mass, is the robust member across most of the range** (100 % completion
-  through lambda_eff = 1.5, only failing at 2.0), while M1+mass tracks plain M1 closely until the highest
-  level. A plausible reading: a heavier drone's extra sag looks, to first order, like the additive downward
-  force L1 already estimates well (it ties the deployment cell for `payload` too), while `mass=1`'s benefit
-  only shows up once the mismatch is severe. mppi_l1 is fragile from the lowest tested level (33 % already at
-  0.25), consistent with the thin margins Phase 4 diagnosed. 
+- **Frozen ceilings (`maxima.json`), current as of the third calibration pass (2026-09-22).** In units of the
+  condition's reference value (Lesson 7 for the first four, Lesson 8's Level-1 extreme for `mass_mult`):
+
+  | condition | ceiling | physical value at lambda = 1 |
+  |---|---|---|
+  | `wind_const` | 1.5x | 0.165 N, 3.8 m/s^2 |
+  | `payload` | 2.0x | 20 g, 4.5 m/s^2 |
+  | `wind_gust` | 1.5x | mean 0.12 N, amplitude 0.12 N, turbulence sigma 0.06 N |
+  | `lighthouse` | **1.5x** (moved from 1.0x -- see below) | Lesson 7's model x 1.5 |
+  | `mass_mult` | 2.0x | +23 % mass (Lesson 8's own Level-1 extreme, +11.5 %, sits at lambda = 0.5) |
+
+  Calibrated on the 3 dev tracks (seeds 100023, 100082, 100092; `calibrate.py`), with the MPC-family roster at
+  the time of each pass, because the robust RL seeds train on these ceilings and did not exist yet -- the
+  ceiling is, in effect, the level at which the MODEL-BASED family has collapsed to at most one survivor;
+  the RL family will probably outlast it, and lambda = 1 is not "where RL fails".
+
+  **Calibration history, kept for the record:**
+  1. *First pass* (thrust-frac 0.85 dev tracks; 4 members: M1, M1+ESO, M1+L1, mppi_l1 at its vendored 0.5 s
+     horizon): `wind_const` 1.5, `payload` 2.0, `wind_gust` 1.5, `lighthouse` 1.0.
+  2. *Second pass* (recalibrated after the thrust-frac restart to 0.80; same 4 members): identical numbers --
+     evidence the 3.0 cm frame margin, not thrust headroom, is the binding limit (limitation 12). `mass_mult`
+     added as a 5th condition with a 5th member, M1+mass (`mass=1`): ceiling 2.0x.
+  3. *Third pass* (2026-09-22, this one): mppi_l1 reconfigured to an 0.8 s preview horizon (`horizon=40,
+     dt_plan=0.02`, was `horizon=25, dt_plan=0.02` = 0.5 s -- user decision, section 5 note) to match the M1
+     family, which forced every condition's mppi_l1 rows to be re-flown; this pass ALSO backfilled M1+mass
+     for the four originally-frozen conditions, since it had never been flown there (only `mass_mult` and the
+     delay-only check included it before). **Four ceilings held; `lighthouse` moved from 1.0x to 1.5x.**
+     Traced to source: at lambda_eff = 1.0, M1+mass newly completes 60 % of lighthouse laps (second only to
+     M1's 67 %), pushing the "how many members persist" count from 1 to 2 -- mppi_l1's own lighthouse numbers
+     got WORSE under the longer horizon (33 % -> 20 % at lambda_eff = 1.0), which if anything argued for
+     LOWERING the ceiling, not raising it. So the shift is attributable to M1+mass entering the roster, not
+     to the mppi_l1 reconfiguration, even though both happened in the same recalibration pass. `wind_const`,
+     `payload`, `wind_gust` and `mass_mult` were unaffected: no other condition had two members newly cross
+     50 % at the same level.
+- **Delay-only check (current roster).** The fixed 1-step latency alone, all error sizes zero, vs. lambda = 0:
+  M1 2/3 (2/3, no loss), M1+ESO 3/3 (2/3, gains one -- noise), M1+L1 2/3 (3/3, loses one), M1+mass 2/3 (2/3, no
+  loss), mppi_l1 2/3 (2/3, no loss under the new 0.8 s horizon -- the vendored 0.5 s horizon lost both). mppi_l1's
+  general fragility (Phase 4's diagnosis: effective sample size ~1) is unrelated to this specific channel; the
+  user kept the latency as decided, so this stays recorded, not acted on.
+- **`mass_mult`-specific finding, still true under the current roster:** M1+L1, not M1+mass, is the most robust
+  member across most of the range (100 % completion through lambda_eff = 1.5), while M1+mass tracks plain M1
+  closely until the highest levels, where it pulls ahead (67 % at lambda_eff = 2.0 vs <= 33 % for everyone
+  else). A plausible reading: a heavier drone's extra sag looks, to first order, like the additive downward
+  force L1 already estimates well (it ties the deployment cell for `payload` too), while `mass=1`'s specific
+  benefit only shows up once the mismatch is severe.
 - **Conditions.**
 
 | condition | what lambda scales |
@@ -135,7 +152,12 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
 
 - **Model-based (5), the Lesson 8 corrected-model family:** M1 = `mpcdev:att=sim,drag=0.495,fgain=1.0`;
   M1+ESO (`dist=eso`); M1+L1 (`dist=l1`); M1+mass (`mass=1`, added 2026-09-22 alongside the `mass_mult`
-  condition); `mppi_l1` unchanged.
+  condition); `mppi_l1` **reconfigured 2026-09-22** to an 0.8 s preview horizon (`horizon=40, dt_plan=0.02`
+  in `driver.py`'s `make_race_controller`, bypassing the vendored spec table since it has no comma-syntax
+  override; the vendored default is `horizon=25, dt_plan=0.02` = 0.5 s). `dt_plan`, the class's own tuned
+  rollout-integration step (the docstring's 2026-07-22 sweep), is left untouched -- only how far it looks
+  changes, matching M1's 20 x 0.04 s = 0.8 s exactly in total horizon (mppi keeps its finer 0.02 s sampling,
+  40 points instead of M1's 20).
 - **Learned (3), "robust RL":** the racing-envelope recipe, training seeds 0, 1, 2, with a per-episode
   domain-randomization box matched to the frozen ceilings (section 5a). All three are used, no re-rolling.
   **Not yet trained** (2026-09-22): the design below is agreed; no training has been launched.
@@ -160,6 +182,39 @@ see below):**
 None of the three channels represents the gust's time-varying structure (0.7 Hz swing, OU turbulence) --
 the force channel is a single constant per episode, as in the vendored recipe; this is an existing
 limitation of the base recipe, not new here (see the limitations list).
+
+**Preview-window equalisation (user decision, 2026-09-22; PLANNED, not yet built).** Every MPC-family member
+now looks 0.8 s ahead (`mppi_l1` was reconfigured to match, section 5 above), but the vendored v5/DATT
+observation looks only 0.6 s ahead (`WINDOW = 10` points at `WINDOW_DT = 0.06` s, both module-level constants
+in `crazy_track/envs/datt_env.py`, imported directly by `crazy_track/controllers/datt.py` at inference). These
+constants are SHARED by every model this course has ever trained (`v5_s0`, `racing_s0/1/2`, ...); changing them
+would silently break every other lesson's already-trained policy the next time `DATTPolicyController` loads it,
+so they cannot be edited in place. The plan is a lesson9-local training env subclass that leaves `WINDOW = 10`
+alone (same point count, same observation dimensionality, so the network architecture and the vendored
+`DATTPolicyController`'s obs-dim auto-detection are untouched) and overrides the one instance attribute that
+actually sets the spacing, `self._t_offsets = WINDOW_DT * np.arange(1, WINDOW + 1)` (`datt_env.py` line 107,
+set once in `__init__`, used once in `_refs`), to `0.08 * np.arange(1, 11)` -- 10 points, 0.8 s total, coarser
+spacing (0.08 s vs 0.04 s for M1) but the same total lookahead. A matching lesson9-local inference controller
+(NOT a reuse of the vendored `DATTPolicyController`, which imports the shared `WINDOW_DT` and would silently
+feed the wrong window to a model trained with a different one) computes `_t_offsets` the same way. This is
+recorded as limitation 14 until it is built and verified.
+
+**Training frequency (user decision, 2026-09-22; PLANNED, not yet built).** Train at `freq = 100` (the
+harness's own rate) instead of the vendored default `freq = 50`. `DATTTrackingEnv.__init__` already threads
+`freq` through everything that needs it (`self.l1 = L1Estimator(..., dt=1.0/freq)`, the Lighthouse sensor's
+`control_freq=freq`, `self.n_substeps = self.sim.freq // freq` = 500 // 100 = 5, an exact divisor) -- so this
+is a constructor argument, not new plumbing, and it directly removes the mismatch behind limitation 14's
+second half: the deployed policy's own L1 estimator (`controllers/datt.py`, always active) currently
+integrates its adaptation law at `dt = 1/100` in the harness after being effectively shaped by `dt = 1/50`
+during training, changing its closed-loop bandwidth relative to what the policy learned to expect.
+**Consequence to plan around:** at a fixed `--timesteps` budget, doubling `freq` HALVES the simulated
+wall-clock experience the policy sees, because `max_steps = int(episode_time * freq)` doubles while
+`total_timesteps` (an ENV-STEP count, not a wall-clock count) stays whatever `--timesteps` says -- 4,000,000
+steps at 100 Hz is 40,000 s of simulated flight, half of the 80,000 s the same budget gives at 50 Hz.
+Recommendation: run with `--timesteps 8000000` to keep the amount of simulated experience comparable to the
+vendored recipe's 4,000,000-at-50-Hz, which roughly doubles the wall-clock training cost on top of the
+per-step cost of the finer control loop -- worth re-checking against the 2-concurrent-session budget (section
+12) before launching.
 
 **Independent per-episode draws (user decision, 2026-09-22).** Each channel is resampled from its own RNG
 stream at the same two points the vendored recipe already resamples force and Lighthouse noise -- full
@@ -259,7 +314,8 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
    were added at the user's request, specifically because Lesson 8 section 5 found this, not an additive
    force, is what defeats MPC in the race. Training will include matched mass domain randomization
    (section 5a). What remains true: mass is the only condition excluded from `combined`.
-5. Gust time structure is not in training; training runs at 50 Hz, the harness at 100 Hz.
+5. Gust time structure is not in training. The 50 Hz/100 Hz training/harness mismatch and its specific
+   consequences (the L1 estimator's bandwidth, the preview window) are detailed in limitation 14.
 6. Ceilings are outcome-calibrated on dev tracks.
 7. Disturbances enter through crazy_track's force model; contacts are checked after the fact from the
    flown path, not by the physics engine.
@@ -283,9 +339,18 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
     untested layouts. State the scope of the claim accordingly: consistent across compact, gentle-turn
     layouts.
     The dev tracks (calibration only) use seeds >= 100000, disjoint from the study range.
-12. **Plan aggressiveness sets where the model-based family collapses** -- see section 3's `thrust-frac 0.80`
-    revision and the recalibration note in section 4 (the ceilings came out identical to the first, 0.85,
-    calibration: evidence the 3.0 cm frame margin, not thrust headroom, is now the binding limit).
+12. **Plan aggressiveness sets where the model-based family collapses.** The plans are time-optimal at 0.85 of the
+    thrust limit, so a constant force of about 4 m/s^2 (the dev plans' mean headroom is 3.8 m/s^2, from peak
+    demands of 13.0-15.6 against 18.4) cannot be flown at the plan's fastest moments by any tracker, and the
+    tube leaves only 3.5-5 cm of frame margin, so 72 % of failed calibration laps are frame contacts (26 %
+    missed gates, 2 % divergence) and the median RMSE of completed laps (0.086 m) is only 3.5 cm below that of
+    contact laps (0.121 m). Measured on the dev tracks by flying the same paths slower (more headroom, the
+    frame margin unchanged): at 1.3x the payload collapse moved out from 3.4-4.5 to beyond 4.5 m/s^2 (all three
+    MPC variants 100 % at 4.5) and ESO/L1's wind collapse from 3.8-5.1 to 5.1; plain M1 under constant wind did
+    NOT improve (RMSE 0.22 -> 0.24), because a nominal MPC has no disturbance state and holds a steady offset.
+    The ceilings, and any crossover, are therefore properties of this plan family at this aggressiveness, not
+    of the controllers alone (revisited, unchanged, after the thrust-frac 0.85 -> 0.80 restart: section 4's
+    recalibration note). A lower thrust fraction would raise them.
 13. **Independent per-episode training channels likely undertrain `combined`'s joint worst case** (section
     5a). Force, Lighthouse and mass severity are drawn from three separate RNG streams each episode, which
     is correct for the five solo conditions (each gets full-range exposure regardless of the others) but
@@ -298,18 +363,19 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
     `combined` line to be a weaker test of its own architecture's robustness than its solo lines are, and
     read any RL weakness specifically on `combined` with this in mind before attributing it to the
     controller.
-
-12. **Plan aggressiveness sets where the model-based family collapses.** The plans are time-optimal at 0.85 of the
-    thrust limit, so a constant force of about 4 m/s^2 (the dev plans' mean headroom is 3.8 m/s^2, from peak
-    demands of 13.0-15.6 against 18.4) cannot be flown at the plan's fastest moments by any tracker, and the
-    tube leaves only 3.5-5 cm of frame margin, so 72 % of failed calibration laps are frame contacts (26 %
-    missed gates, 2 % divergence) and the median RMSE of completed laps (0.086 m) is only 3.5 cm below that of
-    contact laps (0.121 m). Measured on the dev tracks by flying the same paths slower (more headroom, the
-    frame margin unchanged): at 1.3x the payload collapse moved out from 3.4-4.5 to beyond 4.5 m/s^2 (all three
-    MPC variants 100 % at 4.5) and ESO/L1's wind collapse from 3.8-5.1 to 5.1; plain M1 under constant wind did
-    NOT improve (RMSE 0.22 -> 0.24), because a nominal MPC has no disturbance state and holds a steady offset.
-    The ceilings, and any crossover, are therefore properties of this plan family at this aggressiveness, not
-    of the controllers alone. A lower thrust fraction would raise them.
+14. **The MPC family and the RL family do not receive equal inputs, and the gap is now partly, but not fully,
+    closed.** Both legitimately see the exact future reference (not a leak: any tracker with the course map
+    would have this) but over different horizons: the M1 family and `mppi_l1` now both look 0.8 s ahead
+    (section 5's mppi_l1 reconfiguration), while the vendored RL observation looks only 0.6 s ahead
+    (`WINDOW=10` points at `WINDOW_DT=0.06` s) -- equalising this to 0.8 s is PLANNED (section 5a) but not yet
+    built, so it remains a live gap until Phase 6 delivers it. Separately, the deployed RL policy's own L1
+    estimator (always active) is shaped by training at 50 Hz but integrates its adaptation law at 100 Hz in
+    the harness, changing its effective bandwidth relative to what the policy learned to expect -- training at
+    `freq=100` (section 5a, PLANNED) removes this specific mismatch, at roughly double the wall-clock training
+    cost for the same simulated experience unless `--timesteps` is also doubled. Also worth stating plainly:
+    RL's L1 channel is architecturally always on, while the MPC family's estimator is a per-member choice
+    (M1 has none) -- not unfair given "every member its own line," but a reader comparing "RL vs plain M1"
+    and "RL vs M1+L1" is answering two different questions, not one.
 
 ## 11. How the initial input became this framework
 
@@ -333,13 +399,37 @@ replaced by the measured 24 s.
 1. Track library (`gen_tracks.py`, `track_lib.py`) -- done; restarted 2026-09-22 at thrust-frac 0.80
 2. Contact check (`contact.py`) -- done
 3. Lambda knobs (`knobs.py`) -- done; extended 2026-09-22 with `mass_mult` and `mass_scale`
-4. Driver and storage (`driver.py`) -- done; extended 2026-09-22 with the mass override and M1+mass
-5. Dev calibration (`calibrate.py`) -- done; all 5 ceilings frozen in `maxima.json`
-6. Robust RL training -- **design agreed 2026-09-22 (section 5a); NOT YET STARTED, no training launched.**
-   Hardware note: the user's machine handles at most 2 concurrent training runs (not 3), so the 3 seeds run
-   as one pair concurrently (~25-50 min, bounded by the slower of the two) then the third alone
-   (~25-50 min more) -- roughly 60-100 minutes wall time for all three, not the ~30-50 minutes three-way
-   concurrency would have given.
+4. Driver and storage (`driver.py`) -- done; extended 2026-09-22 with the mass override, M1+mass, and the
+   mppi_l1 0.8 s preview-horizon reconfiguration
+5. Dev calibration (`calibrate.py`) -- done; three passes (section 4's history), all 5 ceilings frozen in
+   `maxima.json`; `lighthouse` moved from 1.0x to 1.5x on the third pass (M1+mass entering the roster)
+6. Robust RL training -- **code written 2026-09-22 (`robust_env.py`, `lighthouse_batch.py`,
+   `robust_policy.py`, `train_robust.py`); verified by construction/reset/step only (`test_robust_env.py`,
+   9 tests), never by `.learn()`. NO TRAINING HAS BEEN LAUNCHED (user's explicit instruction).**
+   `RobustTrackingEnv(RacingTrackingEnv)`: freq fixed at 100, `_t_offsets` overridden to 0.08 s spacing
+   (WINDOW's point count, 10, and therefore the 56-number v5 observation shape, is UNCHANGED -- only the
+   vendored `datt_env.py`'s WINDOW_DT=0.06 module constant is bypassed, never edited, because it is shared
+   by every other lesson's trained policy); `_sample_perturb` overridden to the study-matched force box
+   (x,y +-4.4 m/s^2, z -3.6..+1.8) and piggybacked to also call a new `_sample_mass` (its own RNG stream,
+   `seed+2`, mirroring the Lighthouse sensor's `seed+1`); the vendored noise-scale `LighthouseSensorBatch` is
+   swapped for `lighthouse_batch.LambdaLighthouseSensorBatch`, which draws a per-episode lambda in U(0, 0.8)
+   coupling size errors and the update interval exactly as `knobs.ScaledLighthouse` does at evaluation
+   (cross-checked against it directly: vel-noise std 0.0225 vs 0.0224, refresh-event count 1051 vs 1080 over
+   4000 steps) -- with one deliberate deviation from the vendored *batch* class: the gyro channel is NOT
+   delayed, matching the evaluation-time sensor and `knobs.ScaledLighthouse`, not the vendored batch class's
+   own inconsistency between training and evaluation. `robust_policy.py`'s `RobustPolicyController` is a
+   separate class from the vendored `DATTPolicyController` (which imports the shared `WINDOW_DT` and would
+   silently feed a robust model the wrong window); `driver.py` routes a `robust:<path>` spec to it,
+   `datt:<path>` stays on the vendored one. Tests confirm: the three channels are independent (pairwise
+   correlation < 0.07 over 500 worlds), each stays within its designed range and is visibly exercised near
+   its edges (not just its centre), a per-env episode-end reset resamples mass and Lighthouse too (not only
+   the vendored hook's original force channel), and the whole env resets and steps without error.
+   **Hardware note:** the user's machine handles at most 2 concurrent training runs (not 3), so the 3 seeds
+   run as one pair concurrently (bounded by the slower of the two) then the third alone. At freq=100,
+   matching the vendored recipe's simulated-experience budget needs `--timesteps 8000000` (double the
+   vendored 4,000,000; `train_robust.py`'s default), so each run is itself roughly twice the vendored
+   recipe's 25-50 minutes -- call it 50-100 minutes per seed, roughly 100-200 minutes wall time for all
+   three under the 2-concurrent-session limit.
 7. Study sweep -- not started (depends on phase 6)
 8. Charts -- not started
 9. `lessons/09-*.md` -- not started

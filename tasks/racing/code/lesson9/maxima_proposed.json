@@ -1,5 +1,9 @@
 {
  "scales": {
+  "wind_const": 1.5,
+  "payload": 2.0,
+  "wind_gust": 1.5,
+  "lighthouse": 1.5,
   "mass_mult": 2.0
  },
  "unreached": {},

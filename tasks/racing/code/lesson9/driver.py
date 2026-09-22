@@ -42,7 +42,7 @@ sys.path.insert(0, str(HERE))
 import contact as ct  # noqa: E402
 import knobs as kb  # noqa: E402
 import track_lib as tl  # noqa: E402
-from race_eval import make_race_controller  # noqa: E402
+from race_eval import make_race_controller as _vendored_make_controller  # noqa: E402
 from race_refs import RACE_START, GroundStartTrajectory  # noqa: E402
 
 from crazy_track.envs.rollout import apply_force, get_state, make_sim, set_drone_state  # noqa: E402
@@ -53,8 +53,33 @@ from crazy_track.trajectories.sampled import SampledRaceTrajectory  # noqa: E402
 FREQ = 100                                   # the vendored harness's attitude-mode control rate
 HOLD = 0.2                                   # s: the rotor spin-up hold of a ground-start plan (Lesson 8 section 2)
 M1 = "mpcdev:att=sim,drag=0.495,fgain=1.0"
+# Preview-window equalisation (user, 2026-09-22): every member should look the SAME distance ahead. M1 family
+# already sits at H=20, dtp=0.04 -> 0.8 s. mppi_l1's own default is H=25, dtp=0.02 -> 0.5 s; there is no spec-
+# string way to override its horizon (unlike mpcdev's comma syntax), so it is constructed directly below with
+# horizon EXTENDED to 40 (40*0.02 = 0.8 s), keeping dt_plan=0.02 -- its own tuned rollout integration step (the
+# 2026-07-22 sweep the class's docstring cites) -- unchanged, so only how far it looks changes, not how finely
+# it integrates. "mppi_l1" therefore means this 0.8 s configuration from 2026-09-22 on, not the vendored default.
+MPPI_HORIZON, MPPI_DTP = 40, 0.02
 DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1", "M1+mass": M1 + ",mass=1",
                    "mppi_l1": "mppi_l1"}
+
+
+def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
+    """The vendored spec table, with `mppi_l1` reconfigured to an 0.8 s preview horizon (see MPPI_HORIZON above)
+    and a new `robust:<path>` spec for a RobustTrackingEnv-trained policy (0.8 s window, freq=100 -- NOT the
+    same as `datt:<path>`, which loads through the vendored DATTPolicyController and its 0.6 s window; using
+    `datt:` on a robust model would silently feed it the wrong reference window). Everything else is
+    unchanged -- delegated straight to race_eval.make_race_controller."""
+    if spec == "mppi_l1":
+        from crazy_track.controllers.mppi_l1 import MPPIL1Controller
+
+        return (MPPIL1Controller(horizon=MPPI_HORIZON, dt_plan=MPPI_DTP, control_freq=control_freq, seed=seed),
+                "attitude", control_freq)
+    if spec.startswith("robust:"):
+        from robust_policy import RobustPolicyController
+
+        return RobustPolicyController(spec.split(":", 1)[1], control_freq=control_freq), "attitude", control_freq
+    return _vendored_make_controller(spec, seed=seed)
 RESULTS = HERE / "results"
 COLUMNS = ["role", "track", "cond", "lam", "seed", "member", "completed", "gates_passed", "gates_clean", "fail",
            "t_impact", "impact_gate", "impact_box", "race_time", "t_gate1", "rmse_3d", "rmse_xy", "max_dev",
@@ -90,7 +115,7 @@ class Flyer:
 
     def controller(self, label: str):
         if label not in self.ctrls:
-            ctrl, mode, freq = make_race_controller(self.members[label], seed=0)
+            ctrl, mode, freq = make_race_controller(self.members[label], seed=0, control_freq=FREQ)
             assert (mode, freq) == ("attitude", FREQ), f"{label}: {self.members[label]} needs {mode}@{freq}"
             self.ctrls[label] = ctrl
         return self.ctrls[label]

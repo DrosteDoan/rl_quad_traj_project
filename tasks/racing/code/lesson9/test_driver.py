@@ -155,6 +155,13 @@ def test_m1_mass_adaptation_engages_under_mass_mult():
     assert k_heavy < k_nominal - 0.02
 
 
+def test_mppi_l1_uses_the_0point8s_preview_horizon():
+    ctrl, mode, freq = dr.make_race_controller("mppi_l1", seed=0, control_freq=dr.FREQ)
+    assert (ctrl.H, ctrl.dtp) == (dr.MPPI_HORIZON, dr.MPPI_DTP)
+    np.testing.assert_allclose(ctrl.H * ctrl.dtp, 0.8)
+    assert (mode, freq) == ("attitude", dr.FREQ)
+
+
 def test_a_failing_lap_stops_early_and_says_why():
     z = _zip()
     if z is None:
