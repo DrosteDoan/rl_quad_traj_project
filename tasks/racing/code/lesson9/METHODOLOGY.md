@@ -283,6 +283,104 @@ options needs designing before more compute is spent. 4 new tests confirm the CL
 with the corrected defaults, the round 1-3 override reproduces the original numbers exactly, and the
 4-minibatch structure holds in both settings.
 
+**Screen result (2026-09-23): mixed, does not meet the "meaningfully closes the gap" bar.** One pair at
+seed 0, corrected defaults, six-track screen: `robust_s0_screen` improved in survival (7/24 -> 10/24 gates,
+0 -> 1 completions) but got *slightly less precise* (mean RMSE 0.206 -> 0.216 m); `contrast_s0_screen`
+regressed (9 -> 8 gates, 1 -> 0 completions, RMSE 0.178 -> 0.214 m, ~20% worse). Neither direction is the
+clear win that would justify redoing all six seeds at the corrected settings before addressing the
+reference-distribution question below. The corrected defaults stay as the CLI default regardless (nothing
+about the frequency-scaling fix is wrong, it is simply not sufficient alone), but the standing conclusion is
+that the reference-distribution gap is the more likely dominant bottleneck, not the hyperparameter mismatch.
+
+**Path-generation error vs controller error (2026-09-23, the user's question: are RL failures actually
+TOGT/track-construction failures in disguise, the same way rejected candidate layouts crash into a frame
+they weren't aiming for?).** Directly checked, not inferred. First: this is a different failure mode from
+the frame-crossing rejects in section 3 -- those are candidate layouts TOGT itself never made it past the
+Phase 1/2 filter and the exact contact test (section 3), so they never reach evaluation; every track actually
+flown here has a reference proven contact-free at >=3.0 cm clearance everywhere, by construction. So the
+question narrows to: given a verified-safe reference, is the RL failure margin-driven (an aggressive but
+technically-clear path with too little room for any controller) or controller-driven (large tracking error
+regardless of the path)?
+
+Flew `robust_s0`/`contrast_s0` (round-1 checkpoints) and `M1` on the SAME three tracks (4, 93, 387;
+`frame_margin_m` 4.4/3.9/4.6 cm) at `wind_const` lambda=0, logging deviation from reference at the moment of
+contact and the max deviation before contact:
+
+```
+track    4  M1  COMPLETED  dev_max=8.9 cm   |  robust_s0  dev_at_impact=18.6 cm  |  contrast_s0  dev_at_impact=23.4 cm
+track   93  M1  COMPLETED  dev_max=9.0 cm   |  robust_s0  dev_at_impact=31.4 cm  |  contrast_s0  dev_at_impact=49.2 cm
+track  387  M1  COMPLETED  dev_max=9.3 cm   |  robust_s0  dev_at_impact=44.7 cm  |  contrast_s0  dev_at_impact=22.4 cm
+```
+
+Same path, same margin, same nominal conditions -- only the controller varies. M1 clears all three with
+margin to spare (max deviation 8.9-9.3 cm, itself larger than the nominal frame-margin number, which is a
+worst-case bound along the path, not a uniform corridor -- what matters is deviation specifically at the
+gate-crossing moments, which M1 controls tightly and the RL policies do not). Both RL groups crash on all
+three, deviating 3-10x more than M1's worst moment and 4-11x the track's actual margin at the point of
+impact -- not a marginal near-miss a slightly wider corridor would fix. **Conclusion: this is overwhelmingly
+a controller precision problem, not a path-generation problem.** The margin figure (3.5-5 cm, tuned
+implicitly to the MPC family's demonstrated precision) reflects a precision standard these RL checkpoints
+have not reached, which is a different claim from "the path is defective."
+
+**Ruling out a train/eval distribution mismatch as the explanation (2026-09-23, the user's hypothesis that
+this could instead be miscoded parameters).** Audited the eval-time observation pipeline directly against
+training: `robust_policy.py`'s `RobustPolicyController` imports `WINDOW_DT` from `robust_env.py` (single
+source, cannot silently drift) and its manually-reconstructed observation vector
+(`[ref-pos, vel, quat, rel_window, L1 sigma]`) matches the vendored env's `_base_obs()` part order and math
+exactly -- no coding bug found there. Did find two real, previously-unverified asymmetries: the force-
+perturbation channel is drawn unconditionally every training episode from a nonzero-width box (no "off"
+state; `--no-perturb` was never used in any of the six runs), and `LambdaLighthouseSensorBatch.measure()`
+imposes a fixed one-control-step delay even at lambda=0 -- so neither policy has ever trained on a literally
+undisturbed episode, while nominal eval (lambda=0) applies exactly zero force. Tested whether this explains
+the large nominal-condition deviations by flying the same round-1 checkpoints at lambda=0.3 and 0.6 (inside
+their own training range) on the same three tracks: no meaningful improvement. `robust_s0` stays in the same
+27-45 cm max-deviation band across lambda in {0, 0.3, 0.6}; `contrast_s0` gets *worse* as lambda increases
+(23 -> 90 -> 136 cm max deviation on track 93). If nominal eval were out-of-distribution in a way that
+mattered, moving into the trained range should have closed the gap; it does not. **This rules out a
+train/eval mismatch as the dominant explanation** and leaves the reference-distribution gap above (no
+gate-threading anywhere in `ChainedPolyTrajectory.random`) as the best-supported explanation, now backed by
+three independent lines of evidence: the reward-curve plateau, the same-path/same-margin M1 comparison, and
+this lambda-sweep showing the failure is flat-to-worsening regardless of disturbance level (i.e., not a
+robustness gap -- a baseline precision gap present with or without disturbance).
+
+**Cross-checked against Lesson 7's own pre-existing benchmark data (2026-09-23, user asked to verify against
+the original racing seeds before trusting new measurements).** `racing_s0/s1/s2` and `v5_s0` -- the original
+vendored-recipe RL seeds, evaluated through a completely different pipeline (`race_eval.py`/
+`compare_models.py`, not this lesson's `driver.py`) on entirely different tracks (closed-form/tube/pole-aware
+plans, not the Lesson 9 study tracks), written months before any Lesson 9 code existed -- show the identical
+signature. Lesson 7 section 2: at NOMINAL conditions, harness clock, "They are not more precise. Their max
+deviation (0.38-0.54 m) is the baseline's (0.39-0.52 m), not the plain and offset-free MPC's (0.10-0.35 m on
+the f0.95 rows)" -- the same RL-vs-MPC precision gap, present before any of this lesson's freq/window/DR
+changes were written. Lesson 7 section 4.2's replay table: `racing_s2` ended on the gate-3 frame at 0.53 m
+max deviation, `v5_s0` on the gate-1 frame at 0.33 m -- and Lesson 7's own stated conclusion (section 5,
+point 2) is "A 0.4-0.5 m deviation at 4-5 m/s is a frame," the same magnitude and the same mechanism reported
+above for `robust_s0`/`contrast_s0` (23.5-60 cm max deviation before impact). This rules out "something
+Lesson 9 specifically introduced" even more thoroughly than the code/observation-pipeline audit above: the
+pattern reproduces across two lessons, two harnesses, two independent sets of trained checkpoints, and two
+track geometries, so the root cause (training references that never demand narrow-passage precision)
+predates Lesson 9 entirely -- Lesson 9 measured it with an exact contact model and calibrated margins instead
+of a rule of thumb, but did not create it.
+
+**Actuator saturation and peak speed, sampled the same way Lessons 6-8 did (2026-09-23, user asked to check
+the same quantities).** Extended `driver.py`'s `Flyer.fly()` with an optional per-step action log (behind the
+existing `keep_path` flag, additive, all 6 pre-existing `test_driver.py` tests still pass) and flew
+`M1`/`robust_s0`/`contrast_s0` on the same three tracks, logging commanded thrust and roll/pitch against
+`THRUST_MIN`/`THRUST_MAX`/`RPY_MAX` (`crazy_track.controllers.utils`) and flown peak speed against each
+track's planned `v_peak`. Thrust: no controller runs into a chronic ceiling -- mean commanded thrust sits
+around 11-12 m/s^2 of an 18.44 m/s^2 limit for all three; RL hits the high-thrust ceiling more often than M1
+(5.8-16.1% of steps vs 0.7-1.9%), reading as "correcting harder," not "starved of thrust." Attitude: both RL
+policies hit EXACTLY 0.700 rad on max pitch on every track -- `robust_policy.py` caps physical roll/pitch at
+`RPY_MAX * 0.7`, a convention copied verbatim from the vendored `DATTPolicyController` (inherited from Lesson
+2/7, not introduced here), and both policies are pinned against that self-imposed ceiling 7.6-25.1% of the
+flight; M1, with the full `RPY_MAX=1.0` available, reaches it on two of three tracks (1.000, 0.960) but is
+not chronically pinned the way RL is against its 70% cap. Peak speed is confounded by episode length (RL
+crashes at 150-350 steps, before the faster later section of the lap M1 flies through at 400+) and is not
+read as an independent speed deficit. Net conclusion: this does not surface a new independent root cause --
+it adds texture to the established one. The RL policies are fighting larger tracking errors (more thrust,
+routinely maxing attitude authority to correct) rather than tracking with margin to spare the way M1 does;
+the 70% pitch cap is a real, previously-unmeasured, non-Lesson-9-specific constraint, best read as a symptom
+of chasing bigger errors rather than a separate cause.
+
 ## 5b. The contrast-group## 5b. The contrast-group training recipe (`contrast_env.py`, `train_contrast.py` -- code written and
 mechanics-tested 2026-09-22, `test_contrast_env.py`, 5 tests; NOT yet run)
 
@@ -445,6 +543,86 @@ Training the 3 robust seeds: 25-50 minutes each. A ground plan plans in 0.4 s; a
     RL's L1 channel is architecturally always on, while the MPC family's estimator is a per-member choice
     (M1 has none) -- not unfair given "every member its own line," but a reader comparing "RL vs plain M1"
     and "RL vs M1+L1" is answering two different questions, not one.
+
+    **Control authority is unequal too, and this was never examined until the user asked (2026-09-23).**
+    Every "equal inputs" item above is about what each controller can SEE; none is about what each is
+    ALLOWED TO DO. `datt_env.py`'s `_denorm_action` (line 301, used at TRAINING time, unchanged by this
+    lesson) clips physical roll/pitch to `RPY_MAX * 0.7` = 0.70 rad; `robust_policy.py` and the vendored
+    `DATTPolicyController` both copy this exact formula at eval time, so training and eval agree -- this is
+    not an eval-side throttle on a policy trained for more, the network has never been rewarded for wanting
+    beyond 0.70 rad. M1 (and the rest of the MPC family) clips at the FULL `RPY_MAX` = 1.0 rad
+    (`crazy_track/controllers/utils.py`). `git log` on `datt_env.py` shows the 0.7 factor present since the
+    very first commit that added the racing task (`4ae7de8`) -- a vendored, upstream design choice, present
+    since Lesson 1, with no stated rationale anywhere in the code or the lessons, and never revisited since.
+    Measured impact (the actuator-saturation check above): both RL groups pin at EXACTLY 0.700 rad on pitch
+    7.6-25.1% of the flight, on every one of 3 tracks checked, while M1 reaches its own (larger) ceiling on
+    2 of 3. This does not overturn the reference-distribution conclusion (a policy that never practiced
+    gate-threading would still fail with more authority), but it means the comparison is not purely
+    architecture-vs-architecture: one side has less control authority available by construction. Closing it
+    is not a config change -- the network was trained around the 0.7 scale, so it requires retraining with a
+    wider (candidate: matched to M1's 1.0 rad) cap, a new open decision, not yet made.
+
+    **Resolved into two tests, one already run (2026-09-23).** The user proposed two ways to close this gap:
+    equalise the MPC family DOWN to RL's 0.7 rad ceiling (cheap: `mpc_dev.py`'s `rp_max` is already a
+    spec-string-configurable hard OCP bound, default 1.0 -- `mpcdev:...,rp_max=0.7` needs no code change), or
+    give RL the MPC family's full authority via one experimental seed (expensive: requires retraining, since
+    training and eval apply the same 0.7 scale -- widening only eval would just feed a wider range to a
+    network that never learned to use it). Ran the cheap one first: M1 with `rp_max=0.7` on the same three
+    same-path tracks (section 5a's impact-deviation comparison) still completed all three -- precision
+    degraded (worst case, track 93: RMSE 0.053->0.109, max deviation 0.090->0.286 m, itself 7x the track's
+    own 3.9 cm margin, and it STILL threaded every gate) but nothing close to a crash. This rules out the
+    0.7 rad cap as SUFFICIENT on its own to explain the RL crashes -- if it were, capping M1 the same way
+    should have crashed it too. It does not rule out the cap costing something ON TOP of RL's existing
+    (much larger) tracking-precision gap, which only an actual RL run under full authority can show. Built
+    the mechanics for that second test (`full_authority_env.py`: `FullAuthorityTrackingEnv(RobustTrackingEnv)`,
+    overrides ONLY `_denorm_action`'s scale to `RPY_MAX*1.0`; `full_authority_policy.py`:
+    `FullAuthorityPolicyController`, the matching eval-time wrapper, deliberately not a `RobustPolicyController`
+    reuse for the same silent-mismatch reason `RobustPolicyController` itself exists; `train_full_authority.py`:
+    one seed only (0, locked, reusing `robust_s0`/`robust_s0_screen`'s RNG stream -- isolates authority as the
+    only new variable against the most current seed-0 baseline); `driver.py` routes a new `robust_full:<path>`
+    spec to the matching controller, `robust:<path>` on one of these models would silently apply the wrong
+    scale). 6 new tests (`test_full_authority.py`), all pass; full lesson9 suite re-run end to end (all 9
+    files) and confirmed at 55 tests, all passing.
+
+    **Result (2026-09-23): not a fix, closed out cleanly.** Trained one seed (0, corrected hyperparameters,
+    `rpy_scale=1.0`, 8M timesteps). The training curve itself already signalled this before evaluation: from
+    ~4M steps on, `ep_rew_mean`/`ep_len_mean` plateaued in the SAME band as `robust_s0_screen`'s own curve at
+    the same step counts (270-290 / 480-530) -- if widened authority were meaningfully helping, this curve
+    should have broken past that ceiling, and it did not. Flown evaluation on the same 6-track screen set
+    (level2 + study 4/25/93/387/504) confirmed it: `full_authority_s0` 8/24 gates, 0/6 completions, mean RMSE
+    0.2044 vs `robust_s0_screen`'s 10/24 gates, 1/6 completions, mean RMSE 0.2161 -- a wash per-track (better
+    on 2 tracks, worse on 3, and it lost the one track `robust_s0_screen` actually completed), not a clean
+    improvement in either direction. Combined with the earlier M1-capped-at-0.7 diagnostic (0.7 rad was
+    sufficient for M1 to complete all three same-path tracks), this rules control authority OUT as a
+    contributing explanation, cleanly rather than left open: it was checked, not assumed. Between this,
+    the lambda-sweep (rules out train/eval distribution mismatch), and the same-path M1 comparison (rules out
+    path-generation error), the reference-distribution gap is now the only substantial untested explanation
+    remaining -- nothing tried so far (more timesteps, corrected hyperparameters, more control authority) has
+    touched the specific skill of converging tightly on a narrow, oriented target.
+
+    **Locational finding (2026-09-23, user's follow-up): the RL error is not just comparable-and-unlucky, it
+    is specifically worse at the gates.** M1's own capped-authority result (0.7 rad, max deviation 0.286 m on
+    track 93, still completed) raised a sharp question: if the RL family's deviation magnitude is comparable,
+    does it also land where M1's does (between gates, harmless) or specifically AT the crossings (fatal)?
+    Checked directly: binned per-step deviation from the reference into "near a gate" (within 0.3 s of a
+    `gate_times` crossing) vs "between gates," on the same three tracks, for M1 at both authority levels and
+    `robust_s0`/`contrast_s0`. M1 shows NO gate-locality at either authority level -- near-gate and
+    between-gates deviation are statistically the same (e.g. track 4: 0.058/0.089 near vs 0.051/0.081 far;
+    track 387: 0.058/0.091 vs 0.057/0.093) -- it does not need a "gate mode" because it is precise everywhere.
+    Both RL groups show the OPPOSITE pattern, consistently, on every one of 3 tracks: mean deviation near a
+    gate is 34-148% HIGHER than between gates (robust_s0: track 4 +34%, track 93 +48%, track 387 +148%;
+    contrast_s0: +52%, +43%, +82%). The approach trend sharpens this further: fitting a linear slope to
+    deviation over the final 1 s before each failure, 5 of 6 RL cases are actively DIVERGING into the crash
+    (e.g. contrast_s0 track 93: +0.470 m/s, robust_s0 track 387: +0.323 m/s), while M1 is flat-to-slightly-
+    positive everywhere and, on its own hardest case (track 93 capped to 0.7 rad), actively CONVERGING
+    (-0.228 m/s) in the same window. Conclusion: this is not "RL fails by a generic amount that happens to
+    coincide with a gate" -- its error specifically GROWS worst exactly where the geometry punishes it most,
+    and is often still growing at the moment of impact rather than plateaued. This sharpens, not just
+    supports, the reference-distribution explanation: the reward (`exp(-2*err) - 0.02*||action||`, applied
+    uniformly every timestep in `datt_env.py`'s `step()`) gives no extra weight to error near a narrow
+    feature, and nothing in `ChainedPolyTrajectory.random` ever creates one to weight. Whichever of the three
+    reference-distribution options gets chosen, this finding argues it needs to specifically create moments
+    where being off-target has a sharp, LOCAL cost -- not just narrower open-space curves on average.
 
 ## 11. How the initial input became this framework
 

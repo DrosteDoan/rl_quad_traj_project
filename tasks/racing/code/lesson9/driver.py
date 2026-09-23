@@ -65,15 +65,22 @@ DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1
 
 
 def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
-    """The vendored spec table, with `mppi_l1` reconfigured to an 0.8 s preview horizon (see MPPI_HORIZON above)
-    and a new `robust:<path>` spec for a RobustTrackingEnv-trained policy (0.8 s window, freq=100 -- NOT the
-    same as `datt:<path>`, which loads through the vendored DATTPolicyController and its 0.6 s window; using
-    `datt:` on a robust model would silently feed it the wrong reference window). Everything else is
-    unchanged -- delegated straight to race_eval.make_race_controller."""
+    """The vendored spec table, with `mppi_l1` reconfigured to an 0.8 s preview horizon (see MPPI_HORIZON above),
+    a `robust:<path>` spec for a RobustTrackingEnv-trained policy (0.8 s window, freq=100 -- NOT the same as
+    `datt:<path>`, which loads through the vendored DATTPolicyController and its 0.6 s window; using `datt:`
+    on a robust model would silently feed it the wrong reference window), and a `robust_full:<path>` spec for
+    the control-authority screen (`full_authority_env.py`/`full_authority_policy.py`: same 0.8 s window, but
+    RPY_MAX*1.0 instead of *0.7 -- using `robust:` on one of these models would silently apply the wrong
+    scale). Everything else is unchanged -- delegated straight to race_eval.make_race_controller."""
     if spec == "mppi_l1":
         from crazy_track.controllers.mppi_l1 import MPPIL1Controller
 
         return (MPPIL1Controller(horizon=MPPI_HORIZON, dt_plan=MPPI_DTP, control_freq=control_freq, seed=seed),
+                "attitude", control_freq)
+    if spec.startswith("robust_full:"):
+        from full_authority_policy import FullAuthorityPolicyController
+
+        return (FullAuthorityPolicyController(spec.split(":", 1)[1], control_freq=control_freq),
                 "attitude", control_freq)
     if spec.startswith("robust:"):
         # recipe-agnostic: correct for ANY policy trained with the 0.8 s window / freq=100 fixes, whether it
@@ -155,7 +162,7 @@ class Flyer:
             sensor.reset()
 
         gt = [float(x) for x in traj.gate_times]
-        log_t, log_pos, log_q = [], [], []
+        log_t, log_pos, log_q, log_action = [], [], [], []
         hit, fail, gate_idx, t_cross_last = None, "", 0, None
         prev = None
         t0 = time.perf_counter()
@@ -195,13 +202,18 @@ class Flyer:
             prev = (pos.copy(), quat.copy())
             meas = sensor.measure(t, state) if sensor is not None else state
             action = np.asarray(ctrl.act(meas, t), dtype=np.float32)
+            if keep_path:
+                log_action.append(action.copy())
             if dist is not None:
                 apply_force(sim, dist.force(t, state))
             sim.attitude_control(action.reshape(1, 1, 4))
             sim.step(n_sub)
         wall = time.perf_counter() - t0
-        return self._row(traj, cond, lam, seed, label, np.array(log_t), np.array(log_pos), hit, fail, wall, ctrl,
+        row = self._row(traj, cond, lam, seed, label, np.array(log_t), np.array(log_pos), hit, fail, wall, ctrl,
                          keep_path, np.array(log_q))
+        if keep_path:
+            row["_path"]["action"] = np.array(log_action)   # (steps, 4): roll, pitch, yaw, thrust -- physical command
+        return row
 
     def _row(self, traj, cond, lam, seed, label, t, pos, hit, fail, wall, ctrl, keep_path, quat) -> dict:
         gm = gate_crossing_metrics(pos, t, traj) if len(t) > 2 else []

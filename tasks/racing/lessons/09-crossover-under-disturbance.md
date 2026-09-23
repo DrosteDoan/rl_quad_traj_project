@@ -154,6 +154,40 @@ open space (`ChainedPolyTrajectory.random`) — nothing in it ever asks the poli
 oriented opening, which is the literal skill a 0.4 m gate with 3.5–5 cm of margin demands. `METHODOLOGY.md`
 §5a has three design options for that, not yet decided.
 
+**Screen result: mixed, not a fix on its own.** `robust_s0_screen` improved in survival (7 → 10 of 24 gates,
+0 → 1 completions) but got slightly *less* precise (RMSE 0.206 → 0.216 m); `contrast_s0_screen` regressed
+(9 → 8 gates, 1 → 0 completions, RMSE 0.178 → 0.214 m). The hyperparameter mismatch was real but not the
+dominant bottleneck. Three follow-up checks, each isolating one variable, converge on the same explanation:
+(1) flying `robust_s0`/`contrast_s0` and M1 on the *same* tracks at the *same* margins showed M1 completing
+with under 9.3 cm of deviation while the RL policies crashed 4–11× over the available margin — a controller
+precision gap, not a path-generation one; (2) flying the same checkpoints inside their own training range
+(λ = 0.3, 0.6, not just the nominal λ = 0 they were measured at) showed no improvement, ruling out a
+train/eval distribution mismatch; (3) Lesson 7's own pre-existing benchmark data (`racing_s0`–`s2`, written
+months before this lesson existed) shows the identical signature — nominal max deviation 0.38–0.54 m against
+the MPC family's 0.10–0.35 m, and its own stated conclusion, "a 0.4–0.5 m deviation at 4–5 m/s is a frame."
+The reference-distribution gap is the best-supported explanation on the table; `METHODOLOGY.md` §5a has the
+full trace.
+
+**A second, related gap: control authority.** The MPC family plans with the full ±1.0 rad roll/pitch bound
+(`mpc_dev.py`'s `rp_max`); every RL policy in this course, robust and contrast alike, has trained under a
+±0.7 rad cap inherited unchanged from the vendored recipe since Lesson 1 — an asymmetry the "equal inputs"
+work of §5a's window/frequency fixes never touched, because it was never examined for the *action* side.
+Cheaply checked first: M1 flown with `rp_max=0.7` (matching RL's own ceiling, zero code changes needed since
+`rp_max` is already spec-configurable) still completed all three same-path tracks, just less precisely —
+ruling the cap out as *sufficient* on its own to explain the RL crashes, but leaving open whether it costs
+something on top of RL's larger existing tracking error. `full_authority_env.py`/`full_authority_policy.py`/
+`train_full_authority.py` isolate that: one seed (0, locked, same RNG stream as `robust_s0`), everything
+else held equal to `robust_s0_screen`, only the roll/pitch scale widened to match M1's:
+
+```bash
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_full_authority.py \
+  --reason "Lesson 9: control-authority screen, seed 0"'
+```
+
+Evaluated only through `robust_full:<path>` (`driver.py`) — `robust:<path>` would silently apply the wrong
+(0.7×) scale to a model trained expecting the full range.
+
 ## 2. Tracks, contacts, disturbances, calibration
 
 *(the rest of this lesson is written as each phase's results land; see `METHODOLOGY.md` for the finished
