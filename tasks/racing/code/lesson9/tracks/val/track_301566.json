@@ -1,0 +1,89 @@
+{
+ "role": "val",
+ "seed": 301566,
+ "gates": [
+  {
+   "pos": [
+    -0.4615383744239807,
+    -0.8947368860244751,
+    0.699999988079071
+   ],
+   "yaw": -0.7337258589227744
+  },
+  {
+   "pos": [
+    1.692307710647583,
+    1.0,
+    1.2000000476837158
+   ],
+   "yaw": -0.01734477612566465
+  },
+  {
+   "pos": [
+    1.2820513248443604,
+    0.05263160169124603,
+    0.699999988079071
+   ],
+   "yaw": -2.1642411312171213
+  },
+  {
+   "pos": [
+    -0.05128197744488716,
+    0.4736841917037964,
+    1.2000000476837158
+   ],
+   "yaw": 2.9532999916378317
+  }
+ ],
+ "start": [
+  -1.5,
+  0.75,
+  0.05
+ ],
+ "end": [
+  -1.0336072271102048,
+  0.6608661990388259,
+  1.2000000476837158
+ ],
+ "plan_csv": "tasks/racing/plans/lesson9/val_301566.csv",
+ "stretch": 1.0,
+ "thrust_frac": 0.8,
+ "diag": {
+  "reasons": [],
+  "plan_lap_s": 4.467999536417207,
+  "plan_gate1_s": 1.0380671861793935,
+  "v_peak": 3.668311765049421,
+  "thrust_peak": 14.654562892700007,
+  "thrust_limit": 17.52066,
+  "max_angle_deg": 6.3272826052208435,
+  "angles_deg": [
+   5.7,
+   6.3,
+   2.9,
+   4.8
+  ],
+  "min_gate_gap": 1.0323842231487348,
+  "stretch": 1.0,
+  "v_peak_stretched": 3.668311765049421,
+  "thrust_peak_stretched": 14.654562892700007,
+  "lap_stretched_s": 4.467999536417207,
+  "min_z": 0.05,
+  "n_frame_crossings": 0,
+  "frame_crossings": [],
+  "frame_margin_m": 0.03662109375,
+  "ref_contact": null
+ },
+ "generator": {
+  "fn": "lsy_drone_racing.envs.randomize.build_random_track_fn",
+  "key": "jax.random.PRNGKey(301566)",
+  "lsy_commit": "709dbc9"
+ },
+ "constants": {
+  "v_cap": 4.4,
+  "angle_cap_deg": 25.0,
+  "min_frame_margin": 0.03,
+  "arena_margin": 0.1,
+  "tube_d": 0.6,
+  "end_past": 1.0
+ }
+}

@@ -1,0 +1,7 @@
+role,track,cond,lam,seed,member,completed,gates_passed,gates_clean,fail,t_impact,impact_gate,impact_box,race_time,t_gate1,rmse_3d,rmse_xy,max_dev,steps,wall_s,solve_ms_mean,solve_ms_max,ipopt_fail,mass_mult
+val,301910,wind_const,0.0,0,ck2M,0,0,0,contact,1.245,1,right,,,0.1863,0.1789,0.411,126,1.45,,,0,1.0
+val,301910,wind_const,0.0,0,ck4M,0,2,2,contact,3.217,3,top,,1.201,0.2921,0.2703,0.601,323,0.8,,,0,1.0
+val,301910,wind_const,0.0,0,ck6M,0,2,2,contact,3.21,3,top,,1.196,0.2554,0.236,0.532,322,0.77,,,0,1.0
+val,301910,wind_const,0.0,0,ck8M,0,3,2,contact,3.257,3,top,,1.185,0.2521,0.2365,0.483,327,0.82,,,0,1.0
+val,301910,wind_const,0.0,0,ck10M,1,4,4,,,,,3.949,1.198,0.2108,0.1948,0.356,396,0.93,,,0,1.0
+val,301910,wind_const,0.0,0,ck12M,1,4,4,,,,,3.944,1.186,0.2111,0.1936,0.326,396,0.99,,,0,1.0

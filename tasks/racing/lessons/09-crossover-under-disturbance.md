@@ -188,6 +188,136 @@ docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu
 Evaluated only through `robust_full:<path>` (`driver.py`) — `robust:<path>` would silently apply the wrong
 (0.7×) scale to a model trained expecting the full range.
 
+**Control-authority result: not a fix, ruled out.** The training curve plateaued in the exact same band as
+`robust_s0_screen`'s own curve at the same step counts; the flown evaluation confirmed it — 8/24 gates, 0/6
+completions, mean RMSE 0.2044, a wash against `robust_s0_screen`'s 10/24 gates, 1/6 completions, RMSE 0.2161.
+Combined with a same-path M1 diagnostic (M1 capped to RL's own 0.7 rad ceiling still completed all three
+tracks checked), control authority is ruled out as a contributing explanation.
+
+**The locality finding.** Binning deviation from the reference into "near a gate" (within 0.3 s of a
+crossing) vs "between gates," on the same three tracks: M1 shows no gate-locality at either authority level
+(precise everywhere). Both RL groups show the opposite, consistently, on every track — mean deviation near a
+gate is 34–148% higher than between gates, and 4 of 6 RL failure cases are clearly *diverging* in the final second before impact (one is flat, one converging), while M1 is flat or actively converging in the same window. This is not "RL fails by a
+comparable amount that happens to land at a gate" — its error specifically grows worst exactly where the
+geometry punishes it most.
+
+**The viability screen.** Checking whether training even has a contact model surfaced a third gap: it
+doesn't — the only crash conditions are hitting the floor or drifting more than 2 m off the reference, with
+no gate geometry in the training scene at all. Rather than commit to the full reference-distribution redesign
+(and the overfitting question that comes with it) before knowing whether it's worth the budget, the smaller,
+prior question is whether the recipe can pass a viability gate at all: one seed, trained entirely on the 3
+real dev-track references with a genuine gate-contact consequence added to `step()` (`contact.py`'s exact box
+test, the same one the eval harness uses), evaluated on the existing 6-track screen at one number:
+completions at λ = 0.
+
+**Version 1: 0 of 6.** The first build re-origined each dev track so every episode started already airborne
+(these are ground-start plans, and training's floor crash, `pos[:, 2] < 0.05`, would trip on a literal ground
+start). It trained cleanly — reward 8 → 282, episode length 48 → 516 of 700, still climbing at 8M steps, with
+`explained_variance` at 0.85–0.95 and no sign of instability; a mid-run look at the curve did not support
+raising the learning rate — and then scored **0/6 completions, 0/24 gates, every failure a gate-1 contact at
+t = 1.2–1.7 s**, on all six tracks including `level2`. Failures that uniform are not generic imprecision or
+a too-small track pool, which would scatter across gates. The eval harness always flies a real ground start;
+v1 never trained on one.
+
+That is a train/eval gap, and it is a gap only a learned controller can have. M1 has no training distribution
+to be out of: it re-solves from an explicit dynamics model at every step, so a ground launch is another
+initial condition rather than a situation needing prior exposure — and it flies this exact launch on tracks
+4, 93 and 387 with under 9 cm of deviation, through the same `driver.py` code path v1 failed in.
+
+**Version 2** removes the gap at its source instead of routing around it. The references are
+`driver.build_traj(track)` — the same `GroundStartTrajectory` eval constructs (hold, climb-out, gate 1 at its
+normal lead-time) — and the training floor crash moves to `pos[:, 2] < -0.3`, which is `driver.py`'s own
+divergence check rather than a new number. The simulator was never the obstacle (every controller flies this
+launch in the harness); the obstacle was a crash rule written when nothing trained near the ground.
+`episode_time` is 8.0 s to cover the longest full ground-start duration (7.196 s). v1's two candidate causes —
+the missing launch, and gate 1's truncated lead-time — are removed together, so a v2 pass will not say which
+mattered; the question here is viability, not attribution.
+
+**Version 2 result: 0 of 6 again** (2/24 gates; `level2` and study 387 now clear gate 1 and hit gate 2, four
+tracks still hit gate 1). Training was healthy (reward 60 → 334, episode length 155 → 521 of 800). The
+informative check was flying it on its *own* three training tracks: it completes only one. On the other two it
+misses gate 1 with no contact, swerving 0.4–0.8 m sideways from about 0.2 s before the gate and recovering
+after it, while altitude tracks throughout and the launch is fine. Deterministic and stochastic actions give
+identical outcomes, so this is not an evaluation-mode artefact. The missing ground start was at most a minor
+factor.
+
+Training ended an episode on contact, gross divergence or the floor — never on a missed gate. That makes the
+two failures very unequal: contact forfeits the rest of the episode (on the order of 200 reward at gate 1, a
+rough estimate) on top of its penalty, while a 0.8 m swerve costs about 0.3 in total. A policy that cannot
+reliably hold a 3.5–5 cm margin is pushed to go around the gate instead of through it. (The tracking reward
+does pull toward the gate; it is soft and saturating, and it loses to a cliff that costs two orders of
+magnitude more.) This is inferred, not proven — "won't thread" and "can't hold the line" produce the same
+trace, and the fix below cannot tell them apart; it only removes the cheap way out.
+
+**Version 3** ends the episode on *any* missed gate, using `driver.py`'s own rule (a crossing counts inside
+`HALF_OPENING` and within ±1.0 s of the gate's clock; a miss is that clock + 1.0 s), so training and eval share
+one definition of failure. Replayed over six real flown paths it agrees with `driver.py` on every one — M1's
+completions never trigger a false miss, and the v2 policy's misses fire at exactly gate time + 1.0 s.
+Finishing all four gates does not end the episode (that would forfeit the reward for succeeding). Penalties are
+−3.5 for contact or a miss and the vendored −5.0 for the floor or gross divergence; the terminal constant is
+the smaller lever, since the forfeited return dominates it, so −3.5 is chosen for scale rather than expected to
+change behaviour on its own. A callback now writes `gate/*` scalars to tensorboard each rollout — how episodes
+ended, gates passed per episode, and `gate/full_lap_frac`, the training-time completion rate — so the next run
+can show whether the policy is threading, which v2's aggregate curves could not.
+
+```bash
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py \
+  --reason "Lesson 9: gate-aware viability screen v3 (missed-gate termination), seed 0"'
+```
+
+**v3 result: it learns its training tracks, and does not transfer.** 122 minutes; the new `gate/*` scalars showed
+gates passed per episode rising 0 → 2.9, misses falling 0.49 → 0.00, and a pooled training full-lap rate of 0.535
+(142 episodes). Flown, it completes 2 of its own 3 training tracks but only 1 of 6 on the selection set — level
+with the open-space baseline (1/6, 10 vs 11 gates). Misses vanishing while contacts remain says the cheap way out
+is closed and what is left is failing to hold the line (inferred from the two fractions, not from a trace).
+
+**Version 4** tackles the two suspects together: a larger pool and longer training. `gen_pool.py` generated 111
+training tracks and 22 validation tracks from fixed seed windows (about 0.25 s per candidate per worker, about 4 minutes on 8 workers),
+with the same generator and filters as the study tracks; the training pool is the 3 dev tracks plus those 111, and
+the validation pool is never trained on. From here RL decisions are judged on validation, not study tracks. Before
+v4 existed, the validation baselines at λ = 0 were: M1 22/22 completions (RMSE 0.0525, no re-tuning), open-space RL
+2/22, v3 3/22. The bar for v4 is written down in advance in `METHODOLOGY.md`: 11 or more of 22 is viable, 7–10 is
+promising, 6 or fewer means neither the pool nor the steps fixed transfer. It trains 16M steps (estimated at ~4.3 hours; it took 5.7) and saves a checkpoint every 2M so one run also shows whether longer training helps transfer or only
+fits the pool better.
+
+```bash
+python tasks/racing/code/lesson9/gen_pool.py   # already run: 111 train + 22 val tracks (skip)
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py \
+  --reason "Lesson 9: gate-aware v4 (114-track pool, 16M steps), seed 0"'
+```
+
+Evaluate each checkpoint on validation with
+`eval_pool.py --role val --member label=robust:<path> --m1` (inside the container).
+
+**v4 result: it passes the viability bar, and only that.** The final (16M) checkpoint completes **13 of 22**
+validation tracks at λ = 0 (68/88 gates, RMSE 0.187), against the pre-registered line of 11: viable. For scale, M1
+completes 22/22 (RMSE 0.0525), open-space RL 2/22, and v3 3/22. At matched 8M steps the 114-track pool completed
+11/22 against the 3-track pool's 3/22, so the pool moved transfer; steps mattered too (4M = 3/22, 6M = 10/22).
+The curve then plateaued in a 10–16 band (12M 14, 14M 16, 16M 13); the 14M checkpoint scored higher but the bar
+named the final one, so 13 is the number. Viable means roughly 60% of M1, not competitive: it threads gates from
+a path about 3.5× looser (RMSE 0.187 vs 0.0525, median max deviation 0.365 m vs 0.085 m). One seed, λ = 0 only.
+
+**The λ > 0 preview, and why the contrast group is next.** On the 22 validation tracks, v4 against M1 and M1+L1
+at λ = 0.25–1.0 shows a condition-specific ordering: v4 overtakes M1 in `wind_const`, `payload`, `lighthouse` and
+`combined` at some λ, never in `wind_gust`, and M1+L1 (the strongest MPC member) beats it in every steady-force
+condition. But v4 was trained on ranges matched to 0.8× the very ceilings the study measures against, so that
+robustness cannot be told apart from "trained on the exam". The gate-aware contrast group — the same recipe on the
+vendored, unmatched disturbance ranges — is what can. The v4 recipe is saved (`saved/gate_aware_v4/`) while that
+is built; the way the comparison will be read is written into `METHODOLOGY.md` before any result exists.
+
+```bash
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py --group contrast --seed 0 \
+  --reason "Lesson 9: gate-aware contrast seed 0"'
+```
+
+Expect about 5.7 hours (v4's measured time; the earlier 4.3 h estimate was low).
+
+Evaluated through `robust:<path>` (`driver.py`) — authority is unchanged from `RobustTrackingEnv` (0.7 rad),
+so no new controller wrapper is needed for this one, unlike the control-authority screen.
+
 ## 2. Tracks, contacts, disturbances, calibration
 
 *(the rest of this lesson is written as each phase's results land; see `METHODOLOGY.md` for the finished

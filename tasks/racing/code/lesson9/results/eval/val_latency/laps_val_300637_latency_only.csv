@@ -1,0 +1,3 @@
+role,track,cond,lam,seed,member,completed,gates_passed,gates_clean,fail,t_impact,impact_gate,impact_box,race_time,t_gate1,rmse_3d,rmse_xy,max_dev,steps,wall_s,solve_ms_mean,solve_ms_max,ipopt_fail,mass_mult
+val,300637,latency_only,1.0,0,M1,1,4,4,,,,,5.364,1.532,0.0578,0.0551,0.091,538,17.14,25.1,129.0,0,1.0
+val,300637,latency_only,1.0,0,v4,0,1,1,contact,3.217,2,left,,1.569,0.1784,0.1648,0.369,323,1.01,,,0,1.0

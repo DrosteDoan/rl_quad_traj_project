@@ -1,0 +1,31 @@
+{
+ "scales": {
+  "wind_const": 1.5,
+  "payload": 2.0,
+  "wind_gust": 1.5,
+  "lighthouse": 1.5,
+  "mass_mult": 2.0
+ },
+ "status": "FROZEN 2026-09-22 (recalibration after mppi_l1 reconfigured to an 0.8 s preview horizon [horizon=40, dt_plan=0.02, was horizon=25/dt_plan=0.02=0.5s] and M1+mass entering the roster for the 4 originally-frozen conditions for the first time). wind_const, payload, wind_gust, mass_mult: UNCHANGED. lighthouse: CHANGED 1.0x -> 1.5x -- caused by M1+mass (67% completion at lam_eff 0.75-1.0), not by mppi_l1 (whose own lighthouse completion got WORSE under the longer horizon, 33%->20%, which if anything pushed the other way). See METHODOLOGY.md section 4.",
+ "meaning": "ceiling of each disturbance in units of its reference value (Lesson 7 for the first four, Lesson 8's Level-1 extreme for mass_mult); lam = 1 is the ceiling",
+ "rule": "first grid level from which at most one MPC-family member (M1, M1+ESO, M1+L1, M1+mass, mppi_l1) completes >= 50 % of the dev laps, at every higher level too",
+ "dev_tracks": [
+  100023,
+  100082,
+  100092
+ ],
+ "grid_lam_eff": [
+  0.25,
+  0.5,
+  0.75,
+  1.0,
+  1.5,
+  2.0,
+  3.0,
+  4.0,
+  6.0,
+  8.0
+ ],
+ "calibration": "results/calib/ (2055 laps, deduped/normalized; report: calibrate.py report)",
+ "mppi_l1_config": "horizon=40, dt_plan=0.02 (0.8 s preview, matching M1 family); vendored default was horizon=25, dt_plan=0.02 (0.5 s) -- reconfigured 2026-09-22 to equalise preview windows across the roster (user decision)"
+}
