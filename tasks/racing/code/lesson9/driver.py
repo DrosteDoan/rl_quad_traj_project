@@ -286,7 +286,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--role", choices=["study", "dev", "level2", "train", "val"], default="study")
     ap.add_argument("--track", type=int, default=0, help="track seed (see tracks/<role>/)")
-    ap.add_argument("--cond", choices=kb.CONDITIONS + kb.EXTRA_CONDITIONS, required=True)
+    ap.add_argument("--cond", choices=kb.CONDITIONS + kb.EXTRA_CONDITIONS + kb.HELD_OUT, required=True)
     ap.add_argument("--lams", default="0,0.5,1.0", help="comma-separated lambda values")
     ap.add_argument("--seeds", type=int, default=1, help="number of noise seeds (0..N-1) for lam > 0")
     ap.add_argument("--member", action="append", default=[], metavar="LABEL=SPEC",

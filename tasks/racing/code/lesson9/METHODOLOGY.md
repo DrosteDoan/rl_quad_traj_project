@@ -3,7 +3,8 @@
 Status (audited and updated 2026-09-25): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
 driver and calibration are built and frozen. The RL recipe was rebuilt after the first open-space training rounds; the
 gate-aware recipe (section 5c) passed its pre-registered viability bar on validation tracks (robust group, seed 0,
-saved), the gate-aware contrast group is built but not trained, and the study sweep has not started. This file is the
+saved), the control (contrast) group was dropped as infeasible on 2026-09-25, held-out-condition tests are flown (section 5c), and the
+study sweep has not started. This file is the
 reference for `tasks/racing/lessons/09-*.md`; when the two disagree, fix whichever is wrong and say why.
 
 ## 0. Where the study stands (2026-09-25; read this first)
@@ -23,10 +24,21 @@ the combined condition dominates, and RL tracks looser but does not degrade with
 
 **Not done.** (1) The sweep itself, on the 10 study tracks no RL decision touched (limitation 15). (2) More than one RL seed (the
 design says three). (3) The confound that RL was trained on ranges matched to the study's own ceilings, so an RL advantage may be
-"trained on the exam" rather than learned control. The contrast group was meant to separate that; the fully vendored version did not learn (0 of 22 validation tracks after 16M steps), so the confound is UNANSWERED, not answered "no".
+"trained on the exam" rather than learned control. The contrast group meant to separate it was DROPPED on 2026-09-25 as infeasible (the fully vendored version did not learn: 0 of 22
+validation tracks after 16M steps), so the confound stays: it is stated as a limitation, the RL line is labelled "trained on the
+study's own ceilings", and it is probed from the test side by held-out conditions (section 5c).
 
-**Side threads (parked; not needed for the sweep):** the force-only ablation, held-out-condition and held-out-geometry tests
-(section 5c), and any further contrast variants. They exist only to help interpret the RL line.
+**Held-out conditions, flown (section 5c):** by the pre-registered rule the verdict is GENERALISES (2 overfit / 5 generalises / 1 mixed of 8
+cells), but with two clear exceptions, upward force beyond v4's training edge and a lighter drone at lambda = 1, and the verdict falls to
+"mixed" at a 15-point threshold; only those two cells are resolved by a (post hoc) bootstrap at n = 22. Read: RL robustness is bounded by
+its training range, not shown to be exam-specific elsewhere.
+
+**Three seeds (2026-09-26):** lambda-0 viability 13/22, 13/22, 6/22 (two of three pass the bar). Held-out verdicts: GENERALISES, GENERALISES,
+MIXED (seed 2: 4 overfit cells). The lighter drone at lambda = 1 is an overfit cell in all three seeds. RL results in the sweep are reported
+per seed; the spread is itself a finding (section 5c).
+
+**Side threads:** held-out geometry is
+parked; the contrast group and its variants (force-only ablation, range-scaled control) are dropped.
 
 **Where things are:** design sections 1-4; members 5; RL history 5a-5c (long, chronological); protocol 6-9; limitations 10;
 errata 13.
@@ -55,9 +67,7 @@ thresholds for learned or model-based control.
   the 10 study tracks no RL decision touched (limitation 15).
 - **Disturbances:** six conditions (`wind_const`, `payload`, `wind_gust`, `lighthouse`, `mass_mult`, and `combined`),
   each applied at a coefficient lambda in [0, 1], the fraction of that disturbance's own range.
-- **Members:** 5 model-based controllers and 3 robust RL policies, each plotted as its own line, plus a
-  3-seed contrast group (section 5b) shown thin/muted on the same charts, isolating whether matched
-  disturbance-training buys anything beyond generic robustness training.
+- **Members:** 5 model-based controllers and 3 robust RL policies, each plotted as its own line, (a 3-seed contrast group, section 5b, was planned to isolate whether matched disturbance-training buys anything; dropped 2026-09-25).
 - **Trials:** 25 seeds for random disturbances, a repeat check for deterministic ones.
 - **Outcome:** completion (4 gates in order, no contact), plus lap time, RMSE and other per-lap measures.
 - **Deliverable:** per-track charts of completion against lambda, stored with one row per lap so any
@@ -202,7 +212,7 @@ lambda = 0 is exactly nominal. lambda = 1 is the ceiling.
   **State (2026-09-25):** trained in three rounds on the open-space recipe (section 5a; 0-2 of 6 screen tracks completed), then
   rebuilt as the gate-aware recipe (section 5c). Gate-aware robust seed 0 is trained and saved (`saved/gate_aware_v4/`);
   seeds 1 and 2 are not trained.
-- **Contrast group (3), "contrast RL"** (added 2026-09-22, user request): the SAME racing envelope, PPO
+- **Contrast group (was 3), "contrast RL" -- DROPPED 2026-09-25** (user decision, infeasible: the fully vendored gate-aware version did not learn, 0/22 on validation) (added 2026-09-22, user request): the SAME racing envelope, PPO
   settings, preview window and frequency as the robust group, but the VENDORED, unmatched disturbance
   training (section 5b) -- isolates whether matching the domain-randomization ranges to the study's frozen
   ceilings buys anything beyond generic robustness training. Training seeds 0, 1, 2 (matching the robust
@@ -444,6 +454,10 @@ of chasing bigger errors rather than a separate cause.
 ## 5b. The contrast-group training recipe (`contrast_env.py`, `train_contrast.py` -- code written and
 mechanics-tested 2026-09-22, `test_contrast_env.py`, 5 tests; trained in the three open-space rounds; the gate-aware
 contrast environment of section 5c is built but not trained)
+
+**STATUS: DROPPED 2026-09-25 (user decision).** The open-space version was trained in the three rounds of section 5a (and is superseded);
+the gate-aware version did not learn the task in 16M steps (0/22 on validation, section 5c), and every rescue considered either changed its
+curriculum or answered a narrower question. The text below is kept as the record of what the group was for.
 
 **Why this group exists.** The robust recipe (section 5a) matches its domain-randomization ranges to the
 study's frozen ceilings precisely -- three channels, each at 0.8x the same numbers the study measures
@@ -1039,9 +1053,83 @@ half-range curve falls away beyond ~0.4 where v4's does not, robustness is tied 
 training-edge artifact. One seed each is a screen. It costs one run of about 5.7 h. It does NOT address task overfitting in general
 (same tracks family, same objective); held-out conditions and geometry (above) are the tests for that.
 
+**Decision (2026-09-25): the control (contrast) group is DROPPED; held-out conditions are the test instead.** User: "drop the control
+group. it feels infeasible" and "let's start testing the held-out conditions, since that might be a better way to deduce overfitting."
+The fully vendored contrast did not learn (0/22); the rescues proposed either changed its curriculum (a coupled sensor) or answered a
+narrower question (the force-only ablation; the range-scaled dose-response at ~5.7 h a run); none is the control the question needs at a
+cost worth paying. The reading rules and predictions written above for the contrast comparison were never applied. Consequences: the
+"trained on the study's own ceilings" confound (limitation 3) stays, the RL line is labelled accordingly, and it is probed from the
+TEST side, which needs no training and is symmetric for both families because neither was developed against the held-out conditions.
 
+**Held-out conditions: definitions and the reading, written before any flight.** `knobs.HELD_OUT`, each with a nearest in-distribution
+analogue (same ceilings as the analogue, mirrored where noted): `lift` (constant UPWARD force, the payload ceiling mirrored, ~4.5 m/s^2
+at lambda = 1; v4's z training range stops at +1.8 m/s^2, i.e. lambda ~ 0.40) vs `payload`; `light` (mass x (1 - lambda x 23 %), the
+mass_mult ceiling mirrored; v4 trained heavier-only) vs `mass_mult`; `step_wind` (the wind_const force switched on at t = 2.0 s, same
+magnitude; training draws one constant force per episode) vs `wind_const`; `blackout` (position stream frozen for lambda x 0.4 s from
+t = 2.0 s, perfect sensor otherwise; trained holds are <= ~0.125 s) vs `lighthouse`. Flown on the 22 `val` tracks at lambda in
+{0.25, 0.5, 0.75, 1.0}, one seed (all four are deterministic), v4 (final checkpoint) against M1 and M1+L1 -- the members of the lambda
+preview. Measure: RETENTION (over the tracks each member completed at lambda = 0, so v4's lambda-0 gap does not contaminate it) for the
+held-out condition and its analogue, and the difference-in-differences DiD(v4 vs X) = (v4_held - v4_analogue) - (X_held - X_analogue)
+at the same lambda, for X in {M1, M1+L1}: how much MORE v4 loses than an MPC member when the condition moves from the trained one to its
+unseen analogue. Rule: at lambda in {0.5, 1.0}, an analogue pair shows the OVERFIT SIGNATURE if DiD <= -20 points against BOTH MPC
+members, and GENERALISES if |DiD| < 20 against both. The verdict counts the 4 pairs x 2 lambdas = 8 cells: overfit signature in >= 5 ->
+"the RL advantage in the study conditions is substantially specific to those conditions"; generalises in >= 5 -> "no evidence the
+advantage is specific to them"; otherwise "mixed", reported per pair. 20 points is about 1.4 sd of a difference of two rates at n = 22,
+so single cells are weak and the count carries the verdict. Secondary, `lift` only: v4 is trained to +1.8 m/s^2 (lambda 0.40) upward but
+to -3.6 (lambda 0.80) downward, so if its robustness is bounded by its training range, lift retention should fall between lambda 0.25
+and 0.75 by >= 25 points more than payload's does. My expectations, recorded so they can be wrong: an overfit signature on `lift` beyond
+lambda 0.4 and probably on `light`; generalisation on `step_wind` (v4 has the L1 estimate in its observation and trained forces up to
+4.4 m/s^2); `blackout` collapses for every member by lambda 0.5 (0.2 s at 4 m/s is 0.8 m blind), so it discriminates little. Caveats: the
+analogues are not identical conditions (a mirrored payload is not a payload); one v4 seed; retention at n = 22 is +-10 points; a held-out
+condition can also be harder or easier for the MPC family, which is what the DiD is for; and "held-out" means unseen in TRAINING and
+CALIBRATION, not that the conditions are natural.
 
+**Held-out conditions: RESULT (flown 2026-09-25/26, 22 val tracks x 4 conditions x 4 lambdas x 3 members, 1,056/1,056 laps;
+`heldout_conditions.py`, `results/eval/val_heldout/summary.txt`).** Tracks completed at lambda = 0: v4 13, M1 22, M1+L1 22.
+Per-cell DiD (v4 minus MPC, retention points), against M1 / M1+L1: lift 0.5 +16/-25 (mixed); lift 1.0 -57/-39 (OVERFIT); light 0.5
+-3/-17; light 1.0 -43/-43 (OVERFIT); step_wind 0.5 -12/-8; step_wind 1.0 -15/-11; blackout 0.5 +3/-15; blackout 1.0 -9/-1 (the last six
+generalise). Tally {overfit 2, generalises 5, mixed 1}: by the pre-registered rule (>= 5 generalising cells) the verdict is
+GENERALISES, "no evidence the advantage is specific to the study conditions". Secondary lift-edge test: v4's retention fell 85 points
+from lambda 0.25 to 0.75 under lift against 15 under payload (excess +69, bar +25): the edge signature is present.
 
+What this does and does not say (my reading, stated with its limits):
+- The verdict is a statement about the DiD count, not about v4 being robust. v4 is at or below M1+L1 in raw completions in every held-out
+  cell but two at high lambda; step_wind lambda 1.0 raw is v4 4/22 vs M1+L1 17/22. Generalising means "loses no more than the MPC
+  members do when the condition changes", which is the pre-registered question and only that.
+- Two clear exceptions, both consistent with a training-range bound: (a) upward force: v4 collapses to 8 % by lambda 0.75 while its
+  payload analogue holds 85 %, and its z training range stops at lambda ~0.40 (M1 also collapses under lift, so the DiD vs M1 at lambda
+  0.5 is +16, and the DiD vs M1 at 1.0 partly reflects M1's own collapse to 0 % from a lower analogue base); (b) a lighter drone at
+  lambda = 1: v4 69 % (vs 85 % on mass_mult) while both MPC members stay >= 86 %; v4 trained heavier-only.
+- POST HOC, not pre-registered (added after I had seen the point estimates; report as exploratory): a paired bootstrap over the 22
+  tracks (4,000 resamples, retention recomputed per resample) and a threshold sweep. The bootstrap resolves only the two OVERFIT cells
+  (lift 1.0: [-86,-23] vs M1, [-65,-10] vs M1+L1; light 1.0: [-87,-3] and [-86,-1]); the other six 95 % intervals all include zero,
+  and three of them (step_wind 0.5/1.0 vs M1, and step_wind 0.5 vs M1+L1) touch it at the upper end. So "5 generalise" means "not
+  distinguishable from no change", at n = 22 it cannot mean "equal". The tally is threshold-sensitive: 5/2/1 at 20 points, but
+  3 generalises / 2 overfit / 3 mixed at 15, which would fall below the 5-cell bar (verdict "mixed"). The 20-point threshold was fixed
+  beforehand and is the reported verdict; the 15-point row is disclosed because the conclusion is not robust to it.
+- Honest summary: the result does NOT show the RL advantage is an exam artefact everywhere (step_wind, blackout, light at moderate
+  lambda transfer), and it DOES show v4's robustness is bounded by what it was trained on (force direction, mass direction). The
+  binding limits are one v4 seed, imperfect analogues, and n = 22.
+
+**Seeds 1 and 2 (trained 2026-09-25 with the identical recipe, `--seed 1/2`, 16M steps each; flown 2026-09-26).** Validation, lambda = 0,
+final checkpoints, deterministic: seed 0 (v4) 13/22 (68/88 gates), seed 1 13/22 (67/88), seed 2 6/22 (55/88). Against the
+pre-registered bar (>= 11/22): seeds 0 and 1 pass, seed 2 is in the "no change" band (<= 6). Completed-track overlap: 11 shared by seeds 0 and 1,
+4 by seeds 0 and 2, 4 by seeds 1 and 2, 3 by all three, 16 of 22 by at least one; mean RMSE is similar (0.19-0.22 m), so the spread is in
+gate completion. The seed spread (6 to 13 of 22) is well beyond binomial noise: one seed does not characterise the recipe (Lesson 7's
+`racing_s1` warning). Decision (user, 2026-09-26): report all three seeds as the RL family; no seed is dropped on the strength of validation
+results (dropping seed 2 would be selection on the validation pool). Lambda preview (`results/eval/val_lambda_seeds/`) and held-out flights
+(`val_heldout_s1/`, `val_heldout_s2/`) were run for both seeds in the same way as for seed 0. Retention at lambda = 1.0, in-distribution
+(s0 not repeated): s1 wind_const 38 % (M1 9 %), payload 54 % (27 %), mass_mult 77 % (64 %), lighthouse 28 % (8 %), combined 0 % (0 %);
+s2 (base only 6 tracks, so +-20 points) wind_const 17 %, payload 67 %, mass_mult 100 %, lighthouse 11 %, combined 0 %.
+Held-out tallies by the pre-registered rule: seed 0 GENERALISES (2/5/1), seed 1 GENERALISES (1 overfit / 5 generalises / 2 mixed; overfit cell:
+`light` lambda 1.0, -58 vs both MPC members, bootstrap resolved), seed 2 MIXED (4 overfit / 3 generalises / 1 mixed; overfit cells lift 0.5 and 1.0,
+light 0.5 and 1.0). The lift-edge signature is present for seeds 0 (+69) and 1 (+46) and absent for seed 2 (+0, but seed 2's payload
+analogue already falls by 33 points, so it degrades on both). Common to all three seeds: `step_wind` and `blackout` transfer, `light` at
+lambda 1.0 is an overfit cell (bootstrap-resolved in every seed; seed 2's -127 exceeds 100 because the two members' retention bases differ
+in size and the MPC base moved). Caveat that limits seed 2 especially: its retention base is 6 tracks, so its DiD cells are noisy; read it
+as directionally weaker, not as a precise size. Across seeds the finding is therefore: 2 of 3 seeds pass the generalisation rule; the failure
+that appears in all 3 is the lighter drone at high lambda (a training-range edge, since training only made the drone heavier); the seed that
+was worst at lambda 0 is also the least robust to unseen conditions. Threshold sensitivity is also in each summary.
 
 
 ## 6. Trials and grid
@@ -1101,6 +1189,17 @@ about 1.3 s in the first single-process measurement and about 0.25 s per candida
 candidates in about 4 minutes on 8 workers; container log times 18:07-18:11). Evaluation: `eval_pool.py` (M1 plus two RL
 members on the 22 val tracks) took 1-2 minutes on 8 workers; the lambda preview (3,234 laps, 3 members) took 61 minutes
 on 8 workers (first to last lap write).
+Housekeeping (2026-09-25). Training runs (`tasks/racing/crazy_track/results/`, checkpoints and tensorboard logs) are git-IGNORED, so
+outside `saved/gate_aware_v4/` they exist only on this disk. They were backed up to
+`~/backups/rl_quad_traj/lesson9_runs_2026-09-25.tar.gz` (16.6 MB; 14 Lesson 9 run directories plus the 151 plan CSVs the accepted
+tracks reference, 209 files; a per-file sha256 in `MANIFEST_lesson9_runs_2026-09-25.txt`, archive checksum in the `.sha256` file);
+verified by gzip integrity, checksum, `tar --compare` against the live files (0 differences) and a test restore (the v4 final
+checkpoint hash matches). Restore with `tar xzf <archive> -C <repo root>`. The same day, 9,261 plan CSVs in
+`tasks/racing/plans/lesson9/` (998 MB -> 16 MB on disk) were deleted: exactly the ones no accepted track's `plan_csv` references
+(plans of rejected candidates: train 5,889, val 1,978, study 1,304, dev 90). They are git-ignored and regenerable from the seeds
+(`gen_tracks.py` for study/dev, `gen_pool.py` for train/val); every candidate's verdict and reason is in the tracked manifests. After
+the prune all 151 remaining plans load (151 trajectories built), `test_track_lib` (3) and `test_gate_aware` (32) pass. The backup
+is a second copy on the same disk, not off-site.
 
 ## 10. Limitations to state in Lesson 9
 
@@ -1109,7 +1208,8 @@ on 8 workers (first to last lap write).
 3. ~~The RL family is trained on this study's range, and with no contrast group a crossover cannot be
    attributed to the training edge versus something intrinsic~~ -- addressed 2026-09-22: a 3-seed contrast
    group (section 5b) trains the same recipe on the vendored, unmatched disturbance ranges, so the study
-   can check whether the robust family's crossover location moves relative to it. The open-space contrast seeds were trained but that recipe is superseded; the gate-aware contrast group is built and not yet trained (section 5c), so this is still a designed answer, not a measured one.
+   can check whether the robust family's crossover location moves relative to it. The open-space contrast seeds were trained but that recipe is superseded; the gate-aware contrast group is built and not yet trained (section 5c), so this is still a designed answer, not a measured one. **Reopened 2026-09-25:** the contrast group was dropped as infeasible, so this
+    limitation stands: the RL line is labelled "trained on the study's own ceilings" and is probed with held-out conditions (section 5c).
 4. ~~No parametric mass mismatch~~ -- superseded 2026-09-22: `mass_mult` (section 4) and M1+mass (section 5)
    were added at the user's request, specifically because Lesson 8 section 5 found this, not an additive
    force, is what defeats MPC in the race. The robust group's training includes matched mass domain randomization (section 5a). What remains true: mass is the only condition excluded from `combined`.
@@ -1120,7 +1220,7 @@ on 8 workers (first to last lap write).
    flown path, not by the physics engine.
 8. The Lighthouse model was validated up to about 3 m/s and is applied at about 4.5 m/s.
 9. The MPC solves in about 32 ms per 10 ms step: not real-time.
-10. Three RL seeds per group (only seed 0 of the gate-aware robust group exists so far) and 15 study tracks, of which the
+10. Three RL seeds planned for the gate-aware robust group (only seed 0 exists so far; there is no contrast group) and 15 study tracks, of which the
     RL-vs-MPC headline uses only the 10 that no RL decision touched (limitation 15); the MPC family alone can use all 15.
 11. **Track population.** The 15 study tracks (thrust-frac 0.80) are the layouts whose time-optimal tube
     plan is contact-free with a reference frame margin >= 3.0 cm, stays in the arena and crosses gates
@@ -1234,7 +1334,7 @@ on 8 workers (first to last lap write).
 | random gates, then TOGT with tube | lsy generator saved as a track library, then ground-start tube plans |
 | poles kept (sphere-clearance idea) | poles removed; completion is box-contact-free by lsy's own box model |
 | RMSE, completion, lap time | same, RMSE over the racing segment only |
-| Lesson 7's controllers | Lesson 8 corrected MPC family vs the gate-aware RL groups (robust and contrast, 3 seeds each planned) |
+| Lesson 7's controllers | Lesson 8 corrected MPC family vs the gate-aware RL policy (robust group, 3 seeds planned, one exists; the contrast group was dropped) |
 | family means / pairwise crossover | every member its own line; statistic deferred |
 
 Corrections along the way: the thrust-headroom "ceiling" claim was retracted (Lesson 7's policies
@@ -1288,8 +1388,8 @@ replaced by the measured 24 s.
 6c. Gate-aware RL recipe (section 5c) -- `gate_aware_env.py` (`GateAwareMixin`, `GateAwareTrackingEnv`, `GateAwareContrastEnv`),
     `train_gate_aware.py` (`--group`, seeds 0-2), `gen_pool.py` (train/val pools), `eval_pool.py`, `preview_lambda.py`, the
     snapshot `saved/gate_aware_v4/`. Robust seed 0 (v4) trained and saved: 13/22 on val at lambda = 0 against a bar of 11.
-    Robust seeds 1-2 and contrast seeds 0-2: not trained. 30 tests in `test_gate_aware.py`; full suite 85 across 10 files.
-7. Study sweep -- not started (depends on 6c: robust seeds 1-2 and contrast seeds 0-2; the RL-vs-MPC headline uses the 10
+    Robust seeds 1-2: not trained. The contrast group was dropped 2026-09-25. 30 tests in `test_gate_aware.py`; full suite 85 across 10 files.
+7. Study sweep -- not started (depends on 6c: robust seeds 1-2, optional as one seed exists; the RL-vs-MPC headline uses the 10
    untouched study tracks, limitation 15)
 8. Charts -- not started
 9. `lessons/09-crossover-under-disturbance.md` -- started 2026-09-22: opening, the trackers table, and the

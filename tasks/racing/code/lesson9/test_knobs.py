@@ -189,6 +189,74 @@ def test_make_conditions_shapes_and_validation():
     assert abs(kb.describe("payload", 0.5)["payload_force_N"] - 0.0981) < 1e-6           # Lesson 7's 10 g
 
 
+# ---- HELD-OUT conditions (2026-09-25) ----------------------------------------------------------------------------
+def test_held_out_conditions_are_separate_from_the_study_conditions():
+    assert set(kb.HELD_OUT) == {"lift", "light", "step_wind", "blackout"}
+    assert not set(kb.HELD_OUT) & set(kb.CONDITIONS + kb.EXTRA_CONDITIONS)
+    for c in kb.HELD_OUT:
+        assert kb.make_conditions(c, 0.0) == (None, None), c                         # lam = 0 is no object
+    for bad in (-0.1, 1.1):
+        for c in kb.HELD_OUT:
+            try:
+                kb.make_conditions(c, bad)
+            except ValueError:
+                continue
+            raise AssertionError(f"{c}: a lam outside [0, 1] must be refused")
+
+
+def test_lift_is_the_payload_mirrored_upward():
+    sc = kb.scales()
+    d, s = kb.make_conditions("lift", 0.5)
+    p, _ = kb.make_conditions("payload", 0.5)
+    assert s is None
+    np.testing.assert_allclose(d.force(1.0, None), -p.force(1.0, None))            # same size, opposite sign
+    assert d.force(1.0, None)[2] > 0 and d.force(1.0, None)[0] == 0 == d.force(1.0, None)[1]
+    acc = kb.describe("lift", 1.0)["lift_acc_m_s2"]
+    np.testing.assert_allclose(acc, sc["payload"] * kb.NOMINAL["payload"]["extra_mass"] * kb.G / 0.04338)
+    assert 4.4 < acc < 4.6, acc                                                     # lam = 1 is ~4.5 m/s^2 upward
+    assert abs(1.8 / acc - 0.40) < 0.01, "v4's +1.8 m/s^2 training limit sits at lam ~ 0.40"
+
+
+def test_light_is_mass_mult_mirrored_lighter():
+    for lam in (0.25, 0.5, 1.0):
+        heavy, light = kb.mass_scale("mass_mult", lam), kb.mass_scale("light", lam)
+        np.testing.assert_allclose(heavy - 1.0, 1.0 - light, atol=1e-12)
+        assert light < 1.0
+    assert kb.mass_scale("light", 0.0) == 1.0 and kb.make_conditions("light", 0.5) == (None, None)
+    assert abs(kb.describe("light", 1.0)["mass_extra_pct"] + 23.06) < 0.05
+
+
+def test_step_wind_is_zero_before_the_step_and_wind_const_after():
+    d, s = kb.make_conditions("step_wind", 0.6)
+    w, _ = kb.make_conditions("wind_const", 0.6)
+    assert s is None
+    np.testing.assert_array_equal(d.force(kb.T_STEP - 0.01, None), np.zeros(3))
+    np.testing.assert_allclose(d.force(kb.T_STEP, None), w.force(0.0, None))
+    np.testing.assert_allclose(d.force(kb.T_STEP + 3.0, None), w.force(0.0, None))
+
+
+def test_blackout_freezes_only_the_position_for_lam_times_the_maximum():
+    d, s = kb.make_conditions("blackout", 0.5)
+    assert d is None
+    assert abs(s.duration - 0.5 * kb.BLACKOUT_MAX_S) < 1e-12
+    s.reset()
+    live = lambda i: _state(int(round(i * DT / DT)))
+    i0 = int(round(kb.BLACKOUT_T0 / DT))
+    seen = {}
+    for i in range(0, i0 + 60):
+        st = np.array([i * DT, 0.3 * i * DT, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.1, 0.0, 0.0])
+        seen[i] = s.measure(i * DT, st), st
+    assert all(np.array_equal(seen[i][0], seen[i][1]) for i in range(0, i0))               # live before
+    frozen = seen[i0][1][:3]
+    n = int(round(s.duration / DT))
+    for i in range(i0, i0 + n):
+        np.testing.assert_array_equal(seen[i][0][:3], frozen)                               # position frozen
+        np.testing.assert_array_equal(seen[i][0][3:], seen[i][1][3:])                       # everything else live
+    assert np.array_equal(seen[i0 + n][0], seen[i0 + n][1]), "position must resume right after the window"
+    s.reset()
+    assert np.array_equal(s.measure(kb.BLACKOUT_T0, seen[i0 + 5][1])[:3], seen[i0 + 5][1][:3]), "reset() clears the latch"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in list(globals().items()):

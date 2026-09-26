@@ -1,7 +1,7 @@
 # Lesson 9 — Where the crossover is: learned vs model-based racing under graded disturbance
 
 **Status: in progress.** Tracks, contacts, the disturbance knobs, the driver, and calibration are built and
-tested; the robust and contrast RL recipes are built and tested; nothing has been trained yet. This lesson
+tested; the RL recipe was rebuilt after the first training rounds (the gate-aware recipe, below) and its contrast group dropped; nothing has been swept yet. This lesson
 grows as each phase lands. The living design document, updated before this lesson text catches up to it, is
 `tasks/racing/code/lesson9/METHODOLOGY.md` — read it first if a claim here and there disagree.
 
@@ -30,7 +30,7 @@ Five model-based, the Lesson 8 corrected family, plus two learned groups of thre
 | `M1+mass` | M1 + thrust-scale (mass) adaptation | `...,mass=1` |
 | `mppi_l1` | sampling-based MPC + L1, reconfigured to an 0.8 s preview horizon | `mppi_l1` |
 | `robust_s0/1/2` | trained with domain randomization matched to this lesson's own disturbance ceilings | `robust:<path>` |
-| `contrast_s0/1/2` | the same recipe, but with the *vendored*, unmatched disturbance ranges | `robust:<path>` |
+| ~~`contrast_s0/1/2`~~ | ~~the same recipe, but with the *vendored*, unmatched disturbance ranges~~ — **dropped 2026-09-25** (§1) | — |
 
 The contrast group exists to answer one question honestly rather than just disclose it: does matching the
 RL training ranges to the disturbance ceilings this lesson measures against buy anything beyond generic
@@ -299,24 +299,43 @@ The curve then plateaued in a 10–16 band (12M 14, 14M 16, 16M 13); the 14M che
 named the final one, so 13 is the number. Viable means roughly 60% of M1, not competitive: it threads gates from
 a path about 3.5× looser (RMSE 0.187 vs 0.0525, median max deviation 0.365 m vs 0.085 m). One seed, λ = 0 only.
 
-**The λ > 0 preview, and why the contrast group is next.** On the 22 validation tracks, v4 against M1 and M1+L1
+**The λ > 0 preview, and what happened to the contrast group.** On the 22 validation tracks, v4 against M1 and M1+L1
 at λ = 0.25–1.0 shows a condition-specific ordering: v4 overtakes M1 in `wind_const`, `payload`, `lighthouse` and
 `combined` at some λ, never in `wind_gust`, and M1+L1 (the strongest MPC member) beats it in every steady-force
-condition. But v4 was trained on ranges matched to 0.8× the very ceilings the study measures against, so that
-robustness cannot be told apart from "trained on the exam". The gate-aware contrast group — the same recipe on the
-vendored, unmatched disturbance ranges — is what can. The v4 recipe is saved (`saved/gate_aware_v4/`) while that
-is built; the way the comparison will be read is written into `METHODOLOGY.md` before any result exists.
+condition. On tracking error it is worse than M1 everywhere, but flat in λ where M1's grows: the completion crossovers
+come from v4 not degrading, not from it tracking better. v4 was trained on ranges matched to 0.8× the very ceilings the
+study measures against, so its robustness cannot be told apart from "trained on the exam". The contrast group — the same
+recipe on the vendored, unmatched ranges — was meant to separate that. It did not learn the gate-aware task (0 of 22
+validation tracks after 16M steps, most likely because its vendored sensor never gives an easy episode to learn from), and
+every rescue either changed its curriculum or answered a narrower question, so **the control group was dropped on
+2026-09-25** as infeasible. The confound stays and is stated: the RL line is "trained on the study's own ceilings".
+
+**Held-out conditions instead.** The test moves to the other side: fly v4 and the MPC family on disturbances neither was
+developed against — an upward force beyond v4's training limit (`lift`, the payload mirrored), a lighter drone (`light`),
+a wind that steps on mid-lap (`step_wind`), and a frozen position stream (`blackout`) — and ask whether v4's standing
+survives against each condition's nearest in-distribution analogue. The design, the difference-in-differences measure and
+the decision rule are written into `METHODOLOGY.md` section 5c before any flight; `heldout_conditions.py` computes them.
 
 ```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py --group contrast --seed 0 \
-  --reason "Lesson 9: gate-aware contrast seed 0"'
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && /opt/venvs/main/bin/python \
+  tasks/racing/code/lesson9/heldout_conditions.py \
+  --member v4=robust:/workspace/tasks/racing/code/lesson9/saved/gate_aware_v4/ckpt/datt_ppo_final.zip'
 ```
 
-Expect about 5.7 hours (v4's measured time; the earlier 4.3 h estimate was low).
+No training is involved; it takes roughly 20 minutes on 8 workers.
 
-Evaluated through `robust:<path>` (`driver.py`) — authority is unchanged from `RobustTrackingEnv` (0.7 rad),
-so no new controller wrapper is needed for this one, unlike the control-authority screen.
+**Result (2026-09-26).** By the pre-registered rule the verdict is *generalises* (2 overfit / 5 generalises / 1 mixed of 8
+cells): moving from the trained condition to the unseen one, v4 mostly loses no more than the MPC members do. Two cells are
+clear exceptions — upward force (v4 collapses to 8% by λ=0.75, right past its training limit, while payload holds 85%) and a
+lighter drone at λ=1 (v4 69% against ≥86% for both MPC members). A post-hoc bootstrap over the 22 tracks resolves only those
+two cells, and the count drops to "mixed" if the threshold were 15 points instead of the pre-registered 20. So: v4's
+robustness is bounded by its training range, and is not shown to be exam-specific elsewhere — with one seed and n=22.
+Absolute standing is unchanged: M1+L1 still beats v4 in raw completions under steady and stepped wind at high λ.
+
+**Three seeds.** The same recipe trained with seeds 1 and 2 completes 13/22 and 6/22 validation tracks at λ=0 (seed 0: 13/22), so the
+RL result is a spread, not a single line, and is reported per seed. Held-out verdicts: seeds 0 and 1 generalise by the pre-registered
+rule, seed 2 is mixed (4 of 8 cells show the overfit signature). The lighter drone at λ=1 is an overfit cell in all three seeds; step wind
+and blackout transfer in all three. Seed 2 has only 6 viable tracks, so its numbers are noisy.
 
 ## 2. Tracks, contacts, disturbances, calibration
 

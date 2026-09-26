@@ -14,7 +14,15 @@ What lam scales (METHODOLOGY.md section 4), with lam_eff = lam * scale, so lam_e
     wind_gust    mean push, sinusoid amplitude and turbulence sigma together (0.7 Hz and tau = 0.5 s stay fixed)
     lighthouse   the size errors (jitter, per-run bias, velocity, attitude, gyro) AND the position update
                  interval together; the 1-step (10 ms) latency is fixed whenever it is on (a jump at 0+)
-    combined     gust + payload + Lighthouse, each at the same lam (never wind_const: it stacks with the gust mean)
+        combined     gust + payload + Lighthouse, each at the same lam (never wind_const: it stacks with the gust mean)
+
+HELD-OUT conditions (2026-09-25; `HELD_OUT`), for asking whether the RL policy is overfitted to the study's own
+conditions. Not part of the study, not calibrated, never trained on; each has a nearest in-distribution analogue:
+    lift         a constant UPWARD force, the mirror of payload (analogue: payload); v4 trained z forces only up to +1.8 m/s^2
+    light        a LIGHTER drone, the mirror of mass_mult (analogue: mass_mult); v4 trained heavier-only
+    step_wind    the wind_const force switched ON at T_STEP (analogue: wind_const); training draws one force per episode
+    blackout     the position stream frozen for lam * BLACKOUT_MAX_S from BLACKOUT_T0 (analogue: lighthouse); trained holds are <= ~0.125 s
+
 
 Common random numbers: every random quantity is a stream of unit normals fixed by (seed, channel), only scaled
 by lam. One seed is the same draw at every lam and for every member, so curves are paired. At lam_eff = 1 the
@@ -54,6 +62,9 @@ NOMINAL = {
 }
 CONDITIONS = ("wind_const", "payload", "wind_gust", "lighthouse", "mass_mult", "combined")
 EXTRA_CONDITIONS = ("latency_only",)      # calibration only: the fixed 1-step Lighthouse delay and nothing else
+HELD_OUT = ("lift", "light", "step_wind", "blackout")      # never trained on, never calibrated (see the docstring)
+T_STEP = 2.0                  # s, lap clock: when `step_wind` switches on (between gates 1 and 2 on most tracks)
+BLACKOUT_T0, BLACKOUT_MAX_S = 2.0, 0.4    # s: when the position stream freezes, and how long at lam = 1
 START_SCALES = {"wind_const": 2.0, "payload": 2.0, "wind_gust": 2.0, "lighthouse": 2.0, "mass_mult": 2.0}
 NOMINAL_LABEL = {"wind_const": "Lesson 7's condition", "payload": "Lesson 7's condition",
                  "wind_gust": "Lesson 7's condition", "lighthouse": "Lesson 7's condition",
@@ -128,15 +139,43 @@ class ScaledGust(Disturbance):
         return self.lam * (self.mean + gust + self.sigma * self._ou_unit[i])
 
 
+class ScaledLift(Disturbance):
+    """HELD-OUT. A constant UPWARD force, the mirror of `ScaledPayload` (same magnitude at the same lam_eff)."""
+
+    name = "lift"
+
+    def __init__(self, lam_eff: float):
+        self.f = np.array([0.0, 0.0, +float(lam_eff) * NOMINAL["payload"]["extra_mass"] * G])
+
+    def force(self, t, state):
+        return self.f
+
+
+class StepWind(Disturbance):
+    """HELD-OUT. `ScaledWind`'s force, zero until `t_on` and constant after: the steady state of `wind_const`, reached
+    by a step instead of being there from t = 0 (training draws one constant force per episode and never changes it)."""
+
+    name = "step_wind"
+
+    def __init__(self, lam_eff: float, t_on: float = T_STEP):
+        self.f = float(lam_eff) * np.asarray(NOMINAL["wind_const"]["force"], dtype=np.float64)
+        self.t_on = float(t_on)
+
+    def force(self, t, state):
+        return self.f if t >= self.t_on - 1e-9 else np.zeros(3)
+
+
 def mass_scale(cond: str, lam: float, seed: int = 0, scale: dict | None = None) -> float:
     """Multiplicative flying-mass factor for `cond` at severity `lam`: 1.0 (nominal) for every condition but
-    `mass_mult`, where it is  1 + lam_eff * frac_heavier  (deterministic, one-sided, heavier only)."""
-    if cond != "mass_mult" or lam == 0.0:
+    `mass_mult`, where it is  1 + lam_eff * frac_heavier  (deterministic, one-sided, heavier only), and the HELD-OUT
+    `light`, its mirror  1 - lam_eff * frac_heavier."""
+    if cond not in ("mass_mult", "light") or lam == 0.0:
         return 1.0
     if not 0.0 <= lam <= 1.0:
         raise ValueError(f"lam must be in [0, 1], got {lam}")
     sc = {**scales(), **(scale or {})}
-    return 1.0 + lam * sc["mass_mult"] * NOMINAL["mass_mult"]["frac_heavier"]
+    frac = lam * sc["mass_mult"] * NOMINAL["mass_mult"]["frac_heavier"]
+    return 1.0 + frac if cond == "mass_mult" else 1.0 - frac
 
 
 class SumDisturbance(Disturbance):
@@ -216,14 +255,37 @@ class ScaledLighthouse:
         return out
 
 
+class BlackoutSensor:
+    """HELD-OUT. A perfect sensor (no noise, no latency) whose POSITION stream freezes at its value at `t0` for
+    `duration` seconds, then resumes; velocity, attitude and gyro stay live. What the controller sees during the
+    window is the same stale position for both families. Trained sensor holds are at most ~0.125 s (8 Hz floor)."""
+
+    def __init__(self, duration: float, t0: float = BLACKOUT_T0):
+        self.duration, self.t0 = float(duration), float(t0)
+        self.reset()
+
+    def reset(self) -> None:
+        self.held: np.ndarray | None = None
+
+    def measure(self, t: float, true_state: np.ndarray) -> np.ndarray:
+        out = np.array(true_state, dtype=np.float64)
+        if self.t0 - 1e-9 <= t < self.t0 + self.duration - 1e-9:
+            if self.held is None:
+                self.held = out[:3].copy()
+            out[:3] = self.held
+        return out
+
+
 # ---- the entry point -------------------------------------------------------------------------------------------
 def make_conditions(cond: str, lam: float, seed: int = 0, control_freq: int = 100, horizon: int = 6000,
                     scale: dict | None = None):
     """(disturbance, sensor) for `cond` at severity `lam` in [0, 1]. (None, None) at lam = 0, and for
     `mass_mult` at any lam (mass is not a force or a sensor error; see `mass_scale`, applied to the Sim itself)."""
-    if cond not in CONDITIONS + EXTRA_CONDITIONS:
-        raise ValueError(f"unknown condition {cond!r}; one of {CONDITIONS + EXTRA_CONDITIONS}")
-    if cond == "mass_mult":
+    if cond not in CONDITIONS + EXTRA_CONDITIONS + HELD_OUT:
+        raise ValueError(f"unknown condition {cond!r}; one of {CONDITIONS + EXTRA_CONDITIONS + HELD_OUT}")
+    if cond in ("mass_mult", "light"):
+        if not 0.0 <= lam <= 1.0:
+            raise ValueError(f"lam must be in [0, 1], got {lam}")
         return None, None
     if not 0.0 <= lam <= 1.0:
         raise ValueError(f"lam must be in [0, 1], got {lam}")
@@ -233,6 +295,12 @@ def make_conditions(cond: str, lam: float, seed: int = 0, control_freq: int = 10
         return None, ScaledLighthouse(0.0, seed, control_freq, horizon)
     sc = {**scales(), **(scale or {})}
     dt = 1.0 / control_freq
+    if cond == "lift":                               # HELD-OUT: the payload ceiling, mirrored upward
+        return ScaledLift(lam * sc["payload"]), None
+    if cond == "step_wind":                          # HELD-OUT: wind_const's ceiling, switched on at T_STEP
+        return StepWind(lam * sc["wind_const"]), None
+    if cond == "blackout":                           # HELD-OUT: position frozen for lam * BLACKOUT_MAX_S
+        return None, BlackoutSensor(lam * BLACKOUT_MAX_S)
     if cond == "wind_const":
         return ScaledWind(lam * sc["wind_const"]), None
     if cond == "payload":
@@ -254,7 +322,15 @@ def describe(cond: str, lam: float, scale: dict | None = None) -> dict:
     if cond == "mass_mult":
         mult = mass_scale(cond, lam, scale=scale)
         out["mass_mult"], out["mass_kg"], out["mass_extra_pct"] = mult, m * mult, 100 * (mult - 1)
-    if cond in ("wind_const",):
+    if cond == "light":
+        mult = mass_scale(cond, lam, scale=scale)
+        out["mass_mult"], out["mass_kg"], out["mass_extra_pct"] = mult, m * mult, 100 * (mult - 1)
+    if cond == "lift":
+        f = lam * sc["payload"] * NOMINAL["payload"]["extra_mass"] * G
+        out["lift_force_N"], out["lift_acc_m_s2"] = f, f / m
+    if cond == "blackout":
+        out["blackout_s"], out["blackout_t0_s"] = lam * BLACKOUT_MAX_S, BLACKOUT_T0
+    if cond in ("wind_const", "step_wind"):
         f = lam * sc["wind_const"] * NOMINAL["wind_const"]["force"][0]
         out["wind_force_N"], out["wind_acc_m_s2"] = f, f / m
     if cond in ("payload", "combined"):

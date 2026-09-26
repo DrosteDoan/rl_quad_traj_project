@@ -1,0 +1,85 @@
+base (tracks completed at lambda = 0, of the val pool): s2 6, M1 22, M1+L1 22
+
+== held-out conditions, raw: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        s2         3/22   14%   0/22    0%   0/22    0%   0/22    0%
+lift        M1        19/22   86%  10/22   45%   0/22    0%   0/22    0%
+lift        M1+L1     21/22   95%  17/22   77%  10/22   45%   2/22    9%
+
+light       s2         4/22   18%   2/22    9%   1/22    5%   0/22    0%
+light       M1        20/22   91%  20/22   91%  20/22   91%  20/22   91%
+light       M1+L1     20/22   91%  21/22   95%  22/22  100%  19/22   86%
+
+step_wind   s2         6/22   27%   4/22   18%   6/22   27%   5/22   23%
+step_wind   M1        22/22  100%   9/22   41%   4/22   18%   2/22    9%
+step_wind   M1+L1     22/22  100%  22/22  100%  22/22  100%  17/22   77%
+
+blackout    s2         6/22   27%   3/22   14%   4/22   18%   3/22   14%
+blackout    M1        20/22   91%  14/22   64%   9/22   41%   7/22   32%
+blackout    M1+L1     20/22   91%  12/22   55%   9/22   41%   7/22   32%
+
+
+== held-out conditions, retention: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        s2         2/6    33%   0/6     0%   0/6     0%   0/6     0%
+lift        M1        19/22   86%  10/22   45%   0/22    0%   0/22    0%
+lift        M1+L1     21/22   95%  17/22   77%  10/22   45%   2/22    9%
+
+light       s2         4/6    67%   2/6    33%   1/6    17%   0/6     0%
+light       M1        20/22   91%  20/22   91%  20/22   91%  20/22   91%
+light       M1+L1     20/22   91%  21/22   95%  22/22  100%  19/22   86%
+
+step_wind   s2         4/6    67%   2/6    33%   3/6    50%   1/6    17%
+step_wind   M1        22/22  100%   9/22   41%   4/22   18%   2/22    9%
+step_wind   M1+L1     22/22  100%  22/22  100%  22/22  100%  17/22   77%
+
+blackout    s2         6/6   100%   3/6    50%   3/6    50%   2/6    33%
+blackout    M1        20/22   91%  14/22   64%   9/22   41%   7/22   32%
+blackout    M1+L1     20/22   91%  12/22   55%   9/22   41%   7/22   32%
+
+== retention (%): analogue (in-distribution, lambda preview) -> held-out, same lambda ==
+held-out  analogue   member         lam=0.25        lam=0.5       lam=0.75        lam=1.0
+lift      payload    s2            83 ->  33      83 ->   0      50 ->   0      67 ->   0
+lift      payload    M1           100 ->  86     100 ->  45      64 ->   0      27 ->   0
+lift      payload    M1+L1        100 ->  95      91 ->  77      95 ->  45      55 ->   9
+
+light     mass_mult  s2            83 ->  67      83 ->  33     100 ->  17     100 ->   0
+light     mass_mult  M1            95 ->  91      95 ->  91      82 ->  91      64 ->  91
+light     mass_mult  M1+L1        100 ->  91      86 ->  95      73 -> 100      59 ->  86
+
+step_wind wind_const s2            67 ->  67      33 ->  33      17 ->  50      17 ->  17
+step_wind wind_const M1            95 -> 100      36 ->  41       9 ->  18       9 ->   9
+step_wind wind_const M1+L1         95 -> 100     100 -> 100     100 -> 100      82 ->  77
+
+blackout  lighthouse s2            50 -> 100      28 ->  50      50 ->  50      11 ->  33
+blackout  lighthouse M1            97 ->  91      77 ->  64      35 ->  41       8 ->  32
+blackout  lighthouse M1+L1         86 ->  91      50 ->  55      18 ->  41      15 ->  32
+
+== difference-in-differences: how many MORE points s2 loses than an MPC member when the condition goes from its analogue to the held-out one ==
+held-out    lam       DiD vs M1    DiD vs M1+L1   cell
+lift        0.5             -29             -70   OVERFIT SIGNATURE
+lift        1.0             -39             -21   OVERFIT SIGNATURE
+light       0.5             -45             -59   OVERFIT SIGNATURE
+light       1.0            -127            -127   OVERFIT SIGNATURE
+step_wind   0.5              -5              +0   generalises
+step_wind   1.0              +0              +5   generalises
+blackout    0.5             +36             +18   mixed
+blackout    1.0              -2              +6   generalises
+
+tally over the 8 cells: {'overfit': 4, 'generalises': 3, 'mixed': 1}  ->  MIXED: reported per pair
+  threshold sensitivity: at 15 points -> {'overfit': 4, 'generalises': 3, 'mixed': 1}
+  threshold sensitivity: at 20 points -> {'overfit': 4, 'generalises': 3, 'mixed': 1}
+  threshold sensitivity: at 25 points -> {'overfit': 3, 'generalises': 3, 'mixed': 2}
+
+== difference-in-differences with a paired bootstrap over the 22 tracks (4,000 resamples): point [95% interval] ==
+held-out    lam                     vs M1                  vs M1+L1   reading
+lift        0.5         -29 [  -64,  +18]         -70 [ -105,  -21]   unresolved / v4 loses more
+lift        1.0         -39 [  -86,  +16]         -21 [  -64,  +30]   unresolved / unresolved
+light       0.5         -45 [  -95,   +5]         -59 [ -109,  -14]   unresolved / v4 loses more
+light       1.0        -127 [ -145, -109]        -127 [ -150, -105]   v4 loses more / v4 loses more
+step_wind   0.5          -5 [  -18,   +9]          +0 [   +0,   +0]   unresolved / unresolved
+step_wind   1.0          +0 [   +0,   +0]          +5 [  -18,  +27]   unresolved / unresolved
+blackout    0.5         +36 [   +4,  +77]         +18 [  -15,  +60]   v4 loses less / unresolved
+blackout    1.0          -2 [  -36,  +42]          +6 [  -30,  +54]   unresolved / unresolved
+
+secondary (lift edge): s2 retention fell +33 points from lambda 0.25 to 0.75 under lift, vs +33 under payload; pre-registered edge signature needs lift's drop to exceed payload's by >= 25 (here +0)
