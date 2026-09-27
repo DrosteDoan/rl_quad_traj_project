@@ -1,5 +1,127 @@
 # Lesson 9 methodology: learned vs model-based racing under graded disturbance
 
+## SWEEP PROTOCOL -- the pending experiment (frozen 2026-09-27; read this first if you are about to run it)
+
+This is the full, current protocol for the one experiment in this file that has not run yet: the study
+sweep. It consolidates sections 2, 6, 7 and 8 below into one place; those sections are the detailed,
+cross-referenced source, so if this summary and one of them ever disagree, fix whichever is wrong and
+say why (the file's own standing rule).
+
+**S1. Tracks.** The 10 study tracks no RL decision has touched. CORRECTION (this line was wrong until
+2026-09-27): the excluded 5 are the "selection set" (study track seeds `4, 25, 93, 387, 504` -- the ones
+RL's own v1-v4 development screened on), not the separate 3-track dev pool (seeds `100023`/`100082`/
+`100092`, used only for MPC calibration and folded into RL's `train` pool -- not one of the 15 study
+tracks at all, and not part of this arithmetic). 15 study tracks minus the 5-track selection set leaves
+the **10 untouched seeds: `747, 757, 834, 837, 965, 989, 1089, 1145, 1250, 1318`** (`tracks/study/`).
+*(section 2, 3, limitation 15)*
+
+**S2. Members -- 8 on the main comparison chart:**
+
+| # | Member | Family |
+|---|---|---|
+| 1 | `M1` | MPC |
+| 2 | `M1+ESO` | MPC |
+| 3 | `M1+L1` | MPC |
+| 4 | `M1+mass` | MPC |
+| 5 | `mppi_l1` | MPC |
+| 6 | `fa0` | RL, full authority, seed 0 (the reported line) |
+| 7 | `fa1` | RL, full authority, seed 1 |
+| 8 | `fa2` | RL, full authority, seed 2 |
+
+The 0.7-authority recipe's 3 seeds (`s0`/`s1`/`s2`, 16M steps -- the sensitivity line) get their OWN,
+separate chart, same spec as below, never mixed with the 8 above. *(section 4/5c, section 8)*
+
+**S3. Conditions and the lambda grid.** Six conditions -- `wind_const`, `payload`, `wind_gust`,
+`lighthouse`, `mass_mult`, `combined` -- each graded by lambda in [0, 1] of its own frozen ceiling.
+Grid: lambda 0.0 to 1.0 in steps of 0.1, plus 0.05 midpoints wherever a member's pooled completion
+changes by >= 0.2 across an interval. *(section 4, 6)*
+
+**S4. Trials per cell.** Stochastic conditions (`wind_gust`, `lighthouse`, `combined`): 25 seeds per
+(track, lambda). Deterministic conditions (`wind_const`, `payload`, `mass_mult`): 1 run, except first
+repeat one cell to check determinism -- a member whose repeat differs (expected: `mppi_l1`) escalates
+to 3 seeds, everyone else stays at 1. *(section 6)*
+
+**S5. Completion -- the primary outcome.** All 4 gates passed in order, with no contact at any time
+(the swept drone-box-vs-gate-frame test used throughout this file) -- NOT a partial gates-passed
+fraction, which stays a stored, secondary field. RMSE is secondary, censored on failed laps. Every lap
+is stored as one row regardless of what gets plotted, so any other statistic can be computed later
+without re-flying anything. *(section 7)*
+
+**S6. Charts.** One folder per track, six charts (one per condition). LAYOUT (user decision 2026-09-27):
+`results/eval/study_sweep/track_<seed>/<condition>/`, one mini-folder per condition inside each track's
+folder, holding that (track, condition) cell's raw per-lap CSV(s) (S5's stored rows, every member and
+seed) and its rendered chart together. Rendering: matplotlib, `MPLBACKEND=Agg` (the existing convention,
+`gen_tracks.py`, `launcher.py`), so it runs headless inside the container the same way every other batch
+job in this file does. Axes: **x = the measurement statistic (e.g. completion rate, in percent), y =
+lambda intensity** (this order is deliberate, not the more usual reverse). The main comparison chart
+carries the 8 members of S2; the sensitivity chart carries the 0.7-authority seeds, alone -- both live in
+the same condition mini-folder. A line's value at a given lambda is the MEAN over that cell's trials
+(S4). A CONTINUOUS statistic's line (RMSE, lap time, max deviation) also carries a shaded band, the raw
+min/max of those same trials. COMPLETION gets NO band -- it is binary, so a literal min/max of 25
+pass/fail outcomes would be 0%/100% almost every time there is any mix at all, and would not be
+informative. Cells with only 1 trial are a single point regardless of statistic. *(section 8)*
+
+**S6a. Completeness (user decision 2026-09-27): a chart is GLOBAL, not INDIVIDUAL.** Every member assigned to
+a chart (S2) is drawn on it, in full -- a chart shows its whole designated roster, never an individually
+curated subset. Worst case: a member that completes 0% of trials at every lambda in a (track, condition)
+cell (e.g. a seed that never finishes anything) is still drawn, as an explicit flat line at 0% completion
+across the whole lambda range, never dropped for being uninteresting or degenerate.
+
+**S7. The crossover statistic -- partially frozen 2026-09-27 (refines the deferral below).** The
+FAMILY-LEVEL AGGREGATION is decided ahead of the sweep; the downstream scalar crossover-location rule is
+still deferred.
+
+- **PRIMARY: best member per family**, at each (track, condition, lambda) cell -- MPC's value is the
+  maximum completion rate over its 5 members; RL's value is the maximum completion rate over the 3
+  full-authority seeds (`fa0`/`fa1`/`fa2`). Chosen because this is what the research question actually
+  asks (which family, at its best, wins here) and what the MPC side structurally requires: its 5 members
+  are 5 permanently distinct designs, not repeated draws of one recipe, so "best of" is the only sensible
+  way to represent "the MPC family's edge."
+- **STATED ASYMMETRY, recorded plainly alongside the primary statistic, not hidden:** MPC's best-of-5 is
+  the best of five different designs; RL's best-of-3 is the best of three seeds of the identical recipe.
+  That is a structurally easier bar for RL to clear -- cherry-picking a lucky seed, not a genuinely
+  different strategy -- and it favours RL wherever the primary statistic shows a crossover.
+- **SENSITIVITY: median of seeds for RL** (the median completion rate over `fa0`/`fa1`/`fa2`) against the
+  same MPC best-of-5, computed and reported alongside the primary. This shows how much of any crossover
+  the primary statistic finds survives once RL's seed-selection advantage is removed.
+- **Still deferred (the rest of this section, as originally decided, stands):** how a single crossover
+  LOCATION -- a margin/threshold, and a rule for a leader that flips more than once across lambda -- gets
+  read off these two family-level lines is not decided yet. These are two more lines to record and look
+  at once the real sweep data exists, not a commitment to a scalar summary formula. "Leading family" (the
+  margin-and-share idea) remains illustrative only for that downstream step.
+*(section 8)*
+
+**Running it.** `study_sweep.py` implements S1-S7 exactly. Four phases (`determinism`, `coarse`, `midpoints`,
+`charts`), each resumable on its own CSVs; every (track, condition) cell is independent, so it is meant to be
+driven ONE TRACK AND ONE CONDITION AT A TIME (`--track`, `--condition`), not as one 10x6 call. The `charts`
+phase renders all three S5/S6 statistics (completion, RMSE, lap time) for both the primary and sensitivity
+comparators -- 12 PNGs per cell. Every phase after the first needs the same six `--member`/`--sensitivity-member`
+flags, repeated identically (later phases find earlier phases' data by these labels):
+
+```bash
+M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-44_racing-gate-aware-fa-ext25-s0/datt_ppo_final.zip \
+   --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-49_racing-gate-aware-fa-ext25-s1/datt_ppo_final.zip \
+   --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/datt_ppo_final.zip \
+   --sensitivity-member s0=robust:/workspace/tasks/racing/crazy_track/results/2026-09-24_18-26-35_racing-gate-aware-train/datt_ppo_final.zip \
+   --sensitivity-member s1=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-31-56_racing-gate-aware-train-s1/datt_ppo_final.zip \
+   --sensitivity-member s2=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-32-00_racing-gate-aware-train-s2/datt_ppo_final.zip'
+
+docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --phase determinism $M"
+
+docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --phase coarse $M \
+  --track 747 --condition wind_const --workers 8"
+# repeat the coarse/midpoints/charts trio for each of the other 9 tracks and 5 conditions
+```
+
+Determinism is checked once (ignores `--track`; respects `--condition` if it narrows to deterministic ones,
+and accumulates rather than overwrites across restricted runs). Sizing (measured elsewhere in this file,
+section 9): the coarse phase alone is roughly 86,500 laps across all 10 tracks x 6 conditions at this study's
+trial counts, an estimated ~27 hours on 8 workers before midpoints -- a real multi-day job, not a single sitting.
+
+---
+
 Status (audited and updated 2026-09-27): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
 driver and calibration are built and frozen. The RL recipe was rebuilt after the first open-space training rounds; the
 gate-aware recipe (section 5c) passed its pre-registered viability bar on validation tracks (robust group, seed 0,
@@ -1272,12 +1394,33 @@ was worst at lambda 0 is also the least robust to unseen conditions. Threshold s
 
 ## 8. Outputs and what is deferred
 
-- **Now:** one folder per track, six charts (one per condition, including `combined`): completion against lambda, one line
-  per member, warm colours for MPC and cool for RL, a marker at lambda = 0.8.
-- **Deferred:** the crossover statistic. Pairwise was rejected. Candidate: "leading family" (best member
-  per family per track and lambda, margin 0.2, shown as the share of tracks led by each family against
-  lambda). **Freeze the statistic before the study sweep** (Lesson 4 section 1 pre-registration), not
-  after seeing study data.
+- **Now, chart spec (user decision 2026-09-27, refining "Now" above; full spec, not just axes):** one folder per track, six
+  charts (one per condition, including `combined`), one line per member on each, all members overlaid for comparison.
+  MEMBERS ON THE MAIN CHART (user decision 2026-09-27): the primary 8 -- the 5-member MPC family plus the 3 full-authority
+  RL seeds (fa0/fa1/fa2, the reported line, section 4/5c). The 0.7-authority recipe's 3 seeds (the sensitivity line) are
+  NOT on this chart; they get their own separate chart, same axes and spec, so the two authority conventions are never
+  mixed on one comparison. AXES,
+  as specified (not the more usual reverse): **x = the measurement statistic (e.g. completion rate, in percent), y = lambda
+  intensity.** Completion means the strict per-lap outcome already used everywhere in this file -- all 4 gates passed in
+  order, no contact at any point -- NOT a partial gates-passed fraction; "gates passed" stays a stored, secondary field
+  (section 7), never the plotted completion statistic. A line's value at a given lambda is the MEAN over however many
+  trials that (track, condition, lambda, member) cell has: 25 for the three stochastic conditions (`wind_gust`,
+  `lighthouse`, `combined`), 1 (or 3, only for a member whose repeat proved non-deterministic) for the other three. A
+  CONTINUOUS statistic's line (RMSE, lap time, max deviation) also carries a shaded band, the raw minimum and maximum of
+  those same trials. COMPLETION gets NO band (user decision 2026-09-27: "if it's binary, don't give it a band") -- a mean
+  line only, since a min/max of 25 binary pass/fail outcomes is 0%/100% almost every time there is any mix at all and
+  would not be informative. Cells with only 1 trial are a single point regardless of statistic.
+- Every lap is stored as one row (section 7's "stored, not plotted" fields included), so any statistic (this chart or
+  another) can be computed later without re-flying anything.
+- **DEVIATION from Lesson 4's usual pre-registration convention (user decision, restated 2026-09-27): the crossover
+  statistic is deliberately NOT frozen before the sweep.** The earlier plan here was to pre-register "leading family"
+  (best member per family per track and lambda, margin 0.2, share of tracks led by each family against lambda) before
+  any study data existed. The user's standing instruction instead is: run the sweep, keep the raw per-lap rows and the
+  six-chart-per-track output, and decide what summary statistic to compute once the real study data is in hand. This is
+  stated as a deliberate exception, not an oversight -- everything else pre-registered in this file (the v4 viability bar,
+  section 5c; the held-out DiD rule, section 5c; the full-authority rule, section 5c) stays decided in advance as before.
+  "Leading family" remains the only candidate written down; it is illustrative of the kind of statistic in scope, not a
+  commitment to use it.
 
 ## 9. Compute (measured 2026-09-22 with `driver.py`, one study track, M1 lap of 4.1 s, ground clock)
 

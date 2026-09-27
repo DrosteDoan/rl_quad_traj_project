@@ -278,6 +278,29 @@ controller family.
    and screening, deliberately kept separate from the 15 study tracks so that no RL design decision
    could leak into the tracks the real sweep reports on. The six-condition × λ-grid sweep, on the ten
    study tracks no RL decision has touched, is the next step and is still open.
+
+   **Running it.** `study_sweep.py` implements the frozen protocol (METHODOLOGY.md's "SWEEP PROTOCOL"
+   block, S1–S7) — four phases (`determinism`, `coarse`, `midpoints`, `charts`), one track and one
+   condition at a time, each resumable on its own CSVs:
+
+   ```bash
+   M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-44_racing-gate-aware-fa-ext25-s0/datt_ppo_final.zip \
+      --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-49_racing-gate-aware-fa-ext25-s1/datt_ppo_final.zip \
+      --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/datt_ppo_final.zip \
+      --sensitivity-member s0=robust:/workspace/tasks/racing/crazy_track/results/2026-09-24_18-26-35_racing-gate-aware-train/datt_ppo_final.zip \
+      --sensitivity-member s1=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-31-56_racing-gate-aware-train-s1/datt_ppo_final.zip \
+      --sensitivity-member s2=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-32-00_racing-gate-aware-train-s2/datt_ppo_final.zip'
+
+   docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+     /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --phase determinism $M"
+   docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+     /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --phase coarse $M \
+     --track 747 --condition wind_const --workers 8"
+   # repeat coarse/midpoints/charts for each of the other 9 tracks and 5 conditions
+   ```
+
+   This is a multi-day job, not a single sitting — the coarse phase alone is an estimated ~86,500 laps
+   across the full grid, roughly 27 hours on 8 workers before `midpoints` adds more.
 6. **The gate-displacement finding is a first pass**, on the validation pool only, against the capped
    MPC comparators, not yet against the study tracks or the full authority/uncapped pairing.
 
