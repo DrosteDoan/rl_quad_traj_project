@@ -1,11 +1,12 @@
-"""Checks for the control-authority screen (main venv, in the container):
+"""Checks for `full_authority_env.py` (main venv, in the container):
 
     python tasks/racing/code/lesson9/test_full_authority.py        # no pytest needed
 
-MECHANICS ONLY, like test_robust_env.py/test_contrast_env.py. Never `.learn()` -- no training happens here or
-anywhere in Lesson 9 yet (train_full_authority.py has not been run). Also checks driver.py's new
-`robust_full:` spec routing and train_full_authority.py's CLI, without constructing a PPO model for either
-(no trained checkpoint exists yet).
+MECHANICS ONLY, like test_robust_env.py/test_contrast_env.py. Never `.learn()`. Also checks driver.py's
+`robust_full:` spec routing, without constructing a PPO model. `train_full_authority.py` (the pre-gate-aware
+standalone trainer this file used to also check) was deleted 2026-09-27 as unrepresentative of the study --
+every reported full-authority checkpoint came from `train_gate_aware.py --group robust_full` instead, whose
+CLI is tested in `test_gate_aware.py` and `test_train_scripts_cli.py`.
 """
 
 from __future__ import annotations
@@ -76,18 +77,6 @@ def test_driver_routes_robust_full_spec_to_the_right_controller_class():
     src = inspect.getsource(drv.make_race_controller)
     assert 'spec.startswith("robust_full:")' in src
     assert "FullAuthorityPolicyController" in src
-
-
-def test_train_full_authority_cli_seed_locked_to_0():
-    import train_full_authority as tfa
-
-    args = tfa.build_parser().parse_args(["--reason", "test"])
-    assert args.seed == 0 and args.gamma == 0.99 and args.n_steps == 512 and args.batch_size == 2048
-    try:
-        tfa.build_parser().parse_args(["--reason", "test", "--seed", "1"])
-        raise AssertionError("seed=1 should be rejected -- this is a one-seed screen")
-    except SystemExit:
-        pass
 
 
 if __name__ == "__main__":

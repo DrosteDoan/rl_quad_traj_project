@@ -20,7 +20,7 @@ contrast group's vendored ranges) -- this screen is about ONE robust-recipe seed
 new variable, evaluated against the existing `robust_s0_screen` checkpoint (corrected hyperparameters, same
 seed 0 RNG stream), not a new group in the study roster.
 
-NOT yet used to train anything -- see `train_full_authority.py`'s module docstring.
+Trained via `train_gate_aware.py --group robust_full` (through `GateAwareFullAuthorityEnv`, `gate_aware_env.py`).
 """
 
 from __future__ import annotations

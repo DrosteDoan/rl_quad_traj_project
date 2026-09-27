@@ -1,0 +1,13 @@
+role,track,cond,lam,seed,member,completed,gates_passed,gates_clean,fail,t_impact,impact_gate,impact_box,race_time,t_gate1,rmse_3d,rmse_xy,max_dev,steps,wall_s,solve_ms_mean,solve_ms_max,ipopt_fail,mass_mult
+val,301236,blackout,0.25,0,M1,0,2,2,contact,2.62,4,left,,1.207,0.0829,0.0635,0.275,263,10.52,30.7,202.0,0,1.0
+val,301236,blackout,0.25,0,M1+L1,0,2,2,contact,2.533,4,left,,1.206,0.0794,0.0732,0.295,255,8.93,31.1,59.0,0,1.0
+val,301236,blackout,0.25,0,fa0,0,2,2,contact,3.23,3,left,,1.275,0.1919,0.1802,0.343,324,1.32,,,0,1.0
+val,301236,blackout,0.5,0,M1,0,2,1,contact,2.29,2,top,,1.207,0.0549,0.0465,0.138,230,7.68,29.7,51.8,0,1.0
+val,301236,blackout,0.5,0,M1+L1,0,2,2,contact,2.56,4,left,,1.206,0.0774,0.0685,0.255,257,9.2,31.5,66.9,0,1.0
+val,301236,blackout,0.5,0,fa0,0,2,2,contact,2.73,4,bottom,,1.275,0.1636,0.1538,0.283,274,1.03,,,0,1.0
+val,301236,blackout,0.75,0,M1,0,2,1,contact,2.288,2,top,,1.207,0.055,0.0465,0.139,230,7.73,29.8,63.1,0,1.0
+val,301236,blackout,0.75,0,M1+L1,0,2,2,contact,2.525,4,left,,1.206,0.0781,0.0683,0.288,254,8.93,31.1,94.2,0,1.0
+val,301236,blackout,0.75,0,fa0,0,2,2,contact,2.663,4,bottom,,1.275,0.1712,0.1635,0.449,268,1.0,,,0,1.0
+val,301236,blackout,1.0,0,M1,0,2,1,contact,2.288,2,top,,1.207,0.055,0.0465,0.139,230,7.85,30.3,56.0,0,1.0
+val,301236,blackout,1.0,0,M1+L1,0,2,2,contact,2.52,4,left,,1.206,0.0778,0.0679,0.297,253,8.88,31.0,63.9,0,1.0
+val,301236,blackout,1.0,0,fa0,0,2,2,contact,2.667,4,bottom,,1.275,0.1791,0.1717,0.552,268,1.01,,,0,1.0

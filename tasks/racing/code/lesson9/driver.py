@@ -62,6 +62,13 @@ M1 = "mpcdev:att=sim,drag=0.495,fgain=1.0"
 MPPI_HORIZON, MPPI_DTP = 40, 0.02
 DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1", "M1+mass": M1 + ",mass=1",
                    "mppi_l1": "mppi_l1"}
+# Roll/pitch-authority equalisation (user, 2026-09-26): the RL policies cap roll/pitch at 0.7 x RPY_MAX (vendored
+# convention, robust_policy.py) while M1 optimises under rp_max = 1.0. These are ADDITIVE, opt-in twins of the MPC
+# members (`--only M1@0.7,M1+L1@0.7`; kept out of DEFAULT_MEMBERS so default runs are unchanged), with the rp_max cap in the label so no result can be mistaken for the
+# uncapped member; the original labels and every result already flown are unchanged. mppi_l1 has no spec-string
+# rp_max and is not twinned.
+RP_MAX_EQ = 0.7
+RP_MAX_MEMBERS = {f"{k}@{RP_MAX_EQ}": f"{v},rp_max={RP_MAX_EQ}" for k, v in DEFAULT_MEMBERS.items() if v.startswith("mpcdev:")}
 
 
 def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
@@ -84,8 +91,8 @@ def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
                 "attitude", control_freq)
     if spec.startswith("robust:"):
         # recipe-agnostic: correct for ANY policy trained with the 0.8 s window / freq=100 fixes, whether it
-        # was trained with the study-matched disturbance ranges (train_robust.py) or the contrast group's
-        # vendored ones (train_contrast.py) -- the inference wrapper only depends on the window and the
+        # was trained with the study-matched disturbance ranges (`--group robust`/`robust_full`) or the contrast
+        # group's vendored ones (`--group contrast`) -- the inference wrapper only depends on the window and the
         # frequency, not on what the model was trained to be robust TO. "robust:" names the window/freq
         # convention, not a specific training recipe.
         from robust_policy import RobustPolicyController
@@ -117,6 +124,16 @@ def build_traj(track: dict, hold: float = HOLD) -> GroundStartTrajectory:
 
 
 # ---- one lap ---------------------------------------------------------------------------------------------------
+class _TrueGates:
+    """`traj` with its gates swapped for the true (possibly displaced) ones, for scoring only; everything else delegates."""
+
+    def __init__(self, traj, gates):
+        self._traj, self.gates = traj, gates
+
+    def __getattr__(self, name):
+        return getattr(self._traj, name)
+
+
 class Flyer:
     """One Sim and one controller per member, kept across laps."""
 
@@ -137,7 +154,9 @@ class Flyer:
         ctrl, sim = self.controller(label), self.sim
         if hasattr(ctrl, "rng"):                                    # MPPI samples: one seeded stream per lap
             ctrl.rng = np.random.default_rng(int(seed))
-        dt, gates = 1.0 / FREQ, traj.gates
+        dt = 1.0 / FREQ
+        gates = kb.displace_gates(traj.gates, cond, lam, seed)   # the TRUE gates (== traj.gates unless gate_shift);
+        metric_traj = _TrueGates(traj, gates)                    # the controller keeps the nominal ones (ctrl.reset(traj))
         n_steps, n_sub = int(traj.duration * FREQ), sim.freq // FREQ
         dist, sensor = kb.make_conditions(cond, lam, seed, control_freq=FREQ, horizon=n_steps + 5)
 
@@ -209,7 +228,7 @@ class Flyer:
             sim.attitude_control(action.reshape(1, 1, 4))
             sim.step(n_sub)
         wall = time.perf_counter() - t0
-        row = self._row(traj, cond, lam, seed, label, np.array(log_t), np.array(log_pos), hit, fail, wall, ctrl,
+        row = self._row(metric_traj, cond, lam, seed, label, np.array(log_t), np.array(log_pos), hit, fail, wall, ctrl,
                          keep_path, np.array(log_q))
         if keep_path:
             row["_path"]["action"] = np.array(log_action)   # (steps, 4): roll, pitch, yaw, thrust -- physical command
@@ -286,7 +305,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--role", choices=["study", "dev", "level2", "train", "val"], default="study")
     ap.add_argument("--track", type=int, default=0, help="track seed (see tracks/<role>/)")
-    ap.add_argument("--cond", choices=kb.CONDITIONS + kb.EXTRA_CONDITIONS + kb.HELD_OUT, required=True)
+    ap.add_argument("--cond", choices=kb.CONDITIONS + kb.EXTRA_CONDITIONS + kb.HELD_OUT + kb.GATE_CONDITIONS, required=True)
     ap.add_argument("--lams", default="0,0.5,1.0", help="comma-separated lambda values")
     ap.add_argument("--seeds", type=int, default=1, help="number of noise seeds (0..N-1) for lam > 0")
     ap.add_argument("--member", action="append", default=[], metavar="LABEL=SPEC",
@@ -306,6 +325,7 @@ def main() -> None:
         label, spec = m.split("=", 1)
         members[label] = spec
     if args.only:
+        members = {**members, **RP_MAX_MEMBERS}   # the capped twins are reachable ONLY by naming them in --only
         members = {k: v for k, v in members.items() if k in args.only.split(",")}
     out = run_task(args.role, args.track, args.cond, [float(x) for x in args.lams.split(",")],
                    list(range(args.seeds)), members, args.out, stretch_mult=args.stretch_mult)

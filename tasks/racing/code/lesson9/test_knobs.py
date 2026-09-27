@@ -257,6 +257,27 @@ def test_blackout_freezes_only_the_position_for_lam_times_the_maximum():
     assert np.array_equal(s.measure(kb.BLACKOUT_T0, seen[i0 + 5][1])[:3], seen[i0 + 5][1][:3]), "reset() clears the latch"
 
 
+def test_gate_shift_moves_only_the_true_gates_and_is_paired_across_lam():
+    from crazy_track.trajectories.freestyle import RaceGate
+    gates = [RaceGate((1.0 * k, 0.5 * k, 1.0), yaw=0.1 * k) for k in range(4)]
+    assert "gate_shift" not in kb.HELD_OUT and "gate_shift" in kb.GATE_CONDITIONS
+    assert kb.make_conditions("gate_shift", 1.0) == (None, None)
+    for cond, lam in (("wind_const", 1.0), ("gate_shift", 0.0)):                # every other case: the gates themselves
+        assert [(g.pos, g.yaw) for g in kb.displace_gates(gates, cond, lam, 3)] == [(g.pos, g.yaw) for g in gates]
+    m = kb.GATE_SHIFT_MAX
+    d1 = kb.displace_gates(gates, "gate_shift", 1.0, 3)
+    d5 = kb.displace_gates(gates, "gate_shift", 0.5, 3)
+    for g, a, b in zip(gates, d1, d5):
+        s1, s5 = np.array(a.pos) - g.pos, np.array(b.pos) - g.pos
+        assert abs(s1[0]) <= m["xy"] and abs(s1[1]) <= m["xy"] and abs(s1[2]) <= m["z"] and abs(a.yaw - g.yaw) <= m["yaw"]
+        np.testing.assert_allclose(s5, 0.5 * s1, atol=1e-12)                       # same draw, scaled: paired curves
+        assert abs((b.yaw - g.yaw) - 0.5 * (a.yaw - g.yaw)) < 1e-12
+    assert any(np.abs(np.array(a.pos) - g.pos).max() > 0.01 for g, a in zip(gates, d1))        # it does move something
+    other = kb.displace_gates(gates, "gate_shift", 1.0, 4)
+    assert any(a.pos != b.pos for a, b in zip(d1, other)), "a different seed is a different draw"
+    assert [g.pos for g in gates][0] == (0.0, 0.0, 1.0), "the nominal gates are never mutated"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in list(globals().items()):

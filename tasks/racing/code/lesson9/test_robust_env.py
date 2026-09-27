@@ -3,7 +3,7 @@
     python tasks/racing/code/lesson9/test_robust_env.py        # no pytest needed
 
 MECHANICS ONLY. Every test constructs `RobustTrackingEnv`, resets it, and steps it a handful of times --
-never `.learn()`. No training happens here or anywhere in Lesson 9 yet (train_robust.py has not been run).
+never `.learn()`. No training happens here. `RobustTrackingEnv` is trained via `train_gate_aware.py --group robust`.
 """
 
 from __future__ import annotations

@@ -1,0 +1,213 @@
+132 tasks (22 tracks x 6 conditions), members ['fa0', 'fa1', 'fa2', 'M1', 'M1+L1']
+[1/132] laps_val_300037_combined: rc=0 in 6.0 min
+[2/132] laps_val_300162_combined: rc=0 in 6.4 min
+[3/132] laps_val_300037_lighthouse: rc=0 in 7.4 min
+[4/132] laps_val_300229_lighthouse: rc=0 in 7.6 min
+[5/132] laps_val_300229_wind_gust: rc=0 in 7.8 min
+[6/132] laps_val_300037_wind_gust: rc=0 in 7.8 min
+[7/132] laps_val_300162_wind_gust: rc=0 in 9.0 min
+[8/132] laps_val_300162_lighthouse: rc=0 in 9.1 min
+[9/132] laps_val_300229_combined: rc=0 in 6.3 min
+[10/132] laps_val_300253_combined: rc=0 in 5.4 min
+[11/132] laps_val_300267_combined: rc=0 in 5.3 min
+[12/132] laps_val_300253_wind_gust: rc=0 in 7.8 min
+[13/132] laps_val_300267_lighthouse: rc=0 in 6.6 min
+[14/132] laps_val_300267_wind_gust: rc=0 in 6.9 min
+[15/132] laps_val_300253_lighthouse: rc=0 in 7.6 min
+[16/132] laps_val_300389_wind_gust: rc=0 in 9.0 min
+[17/132] laps_val_300522_combined: rc=0 in 3.9 min
+[18/132] laps_val_300522_lighthouse: rc=0 in 5.1 min
+[19/132] laps_val_300389_combined: rc=0 in 6.9 min
+[20/132] laps_val_300522_wind_gust: rc=0 in 6.1 min
+[21/132] laps_val_300389_lighthouse: rc=0 in 9.5 min
+[22/132] laps_val_300565_wind_gust: rc=0 in 5.2 min
+[23/132] laps_val_300553_lighthouse: rc=0 in 9.1 min
+[24/132] laps_val_300553_wind_gust: rc=0 in 10.4 min
+[25/132] laps_val_300565_combined: rc=0 in 5.7 min
+[26/132] laps_val_300565_lighthouse: rc=0 in 6.3 min
+[27/132] laps_val_300553_combined: rc=0 in 7.9 min
+[28/132] laps_val_300624_wind_gust: rc=0 in 7.6 min
+[29/132] laps_val_300624_lighthouse: rc=0 in 7.4 min
+[30/132] laps_val_300624_combined: rc=0 in 6.0 min
+[31/132] laps_val_300637_combined: rc=0 in 6.1 min
+[32/132] laps_val_300637_wind_gust: rc=0 in 7.6 min
+[33/132] laps_val_300704_wind_gust: rc=0 in 6.5 min
+[34/132] laps_val_300637_lighthouse: rc=0 in 7.4 min
+[35/132] laps_val_300704_combined: rc=0 in 5.7 min
+[36/132] laps_val_300704_lighthouse: rc=0 in 7.9 min
+[37/132] laps_val_300808_lighthouse: rc=0 in 5.9 min
+[38/132] laps_val_300808_wind_gust: rc=0 in 7.1 min
+[39/132] laps_val_300808_combined: rc=0 in 5.0 min
+[40/132] laps_val_301152_combined: rc=0 in 5.4 min
+[41/132] laps_val_301152_wind_gust: rc=0 in 7.1 min
+[42/132] laps_val_301152_lighthouse: rc=0 in 7.1 min
+[43/132] laps_val_301236_lighthouse: rc=0 in 6.3 min
+[44/132] laps_val_301236_combined: rc=0 in 5.6 min
+[45/132] laps_val_301236_wind_gust: rc=0 in 7.9 min
+[46/132] laps_val_301284_combined: rc=0 in 6.6 min
+[47/132] laps_val_301284_wind_gust: rc=0 in 8.7 min
+[48/132] laps_val_301381_combined: rc=0 in 5.4 min
+[49/132] laps_val_301284_lighthouse: rc=0 in 8.8 min
+[50/132] laps_val_301381_wind_gust: rc=0 in 7.0 min
+[51/132] laps_val_301381_lighthouse: rc=0 in 7.2 min
+[52/132] laps_val_301524_wind_gust: rc=0 in 8.9 min
+[53/132] laps_val_301524_combined: rc=0 in 6.9 min
+[54/132] laps_val_301566_combined: rc=0 in 5.9 min
+[55/132] laps_val_301524_lighthouse: rc=0 in 9.9 min
+[56/132] laps_val_301566_lighthouse: rc=0 in 6.7 min
+[57/132] laps_val_301566_wind_gust: rc=0 in 8.0 min
+[58/132] laps_val_301688_wind_gust: rc=0 in 8.1 min
+[59/132] laps_val_301688_lighthouse: rc=0 in 8.3 min
+[60/132] laps_val_301688_combined: rc=0 in 6.3 min
+[61/132] laps_val_301702_combined: rc=0 in 5.2 min
+[62/132] laps_val_300037_wind_const: rc=0 in 3.0 min
+[63/132] laps_val_301702_wind_gust: rc=0 in 6.5 min
+[64/132] laps_val_301702_lighthouse: rc=0 in 6.6 min
+[65/132] laps_val_301910_combined: rc=0 in 4.4 min
+[66/132] laps_val_301910_wind_gust: rc=0 in 6.2 min
+[67/132] laps_val_301910_lighthouse: rc=0 in 5.8 min
+[68/132] laps_val_300162_wind_const: rc=0 in 3.2 min
+[69/132] laps_val_300229_wind_const: rc=0 in 3.1 min
+[70/132] laps_val_300267_wind_const: rc=0 in 2.2 min
+[71/132] laps_val_300522_wind_const: rc=0 in 2.4 min
+[72/132] laps_val_300253_wind_const: rc=0 in 2.9 min
+[73/132] laps_val_300565_wind_const: rc=0 in 2.2 min
+[74/132] laps_val_300389_wind_const: rc=0 in 3.1 min
+[75/132] laps_val_300624_wind_const: rc=0 in 2.4 min
+[76/132] laps_val_300637_wind_const: rc=0 in 2.7 min
+[77/132] laps_val_300553_wind_const: rc=0 in 4.2 min
+[78/132] laps_val_300704_wind_const: rc=0 in 2.8 min
+[79/132] laps_val_300808_wind_const: rc=0 in 2.5 min
+[80/132] laps_val_301152_wind_const: rc=0 in 2.9 min
+[81/132] laps_val_301236_wind_const: rc=0 in 2.8 min
+[82/132] laps_val_301381_wind_const: rc=0 in 2.6 min
+[83/132] laps_val_301284_wind_const: rc=0 in 3.5 min
+[84/132] laps_val_301566_wind_const: rc=0 in 2.9 min
+[85/132] laps_val_301524_wind_const: rc=0 in 3.1 min
+[86/132] laps_val_301702_wind_const: rc=0 in 2.7 min
+[87/132] laps_val_300037_payload: rc=0 in 2.3 min
+[88/132] laps_val_301688_wind_const: rc=0 in 3.1 min
+[89/132] laps_val_301910_wind_const: rc=0 in 2.6 min
+[90/132] laps_val_300037_mass_mult: rc=0 in 2.4 min
+[91/132] laps_val_300162_payload: rc=0 in 2.7 min
+[92/132] laps_val_300229_payload: rc=0 in 2.4 min
+[93/132] laps_val_300267_payload: rc=0 in 1.9 min
+[94/132] laps_val_300229_mass_mult: rc=0 in 2.5 min
+[95/132] laps_val_300162_mass_mult: rc=0 in 2.8 min
+[96/132] laps_val_300253_mass_mult: rc=0 in 2.3 min
+[97/132] laps_val_300253_payload: rc=0 in 2.4 min
+[98/132] laps_val_300267_mass_mult: rc=0 in 2.3 min
+[99/132] laps_val_300522_payload: rc=0 in 1.8 min
+[100/132] laps_val_300522_mass_mult: rc=0 in 1.9 min
+[101/132] laps_val_300389_payload: rc=0 in 2.9 min
+[102/132] laps_val_300565_payload: rc=0 in 2.2 min
+[103/132] laps_val_300389_mass_mult: rc=0 in 2.9 min
+[104/132] laps_val_300565_mass_mult: rc=0 in 2.4 min
+[105/132] laps_val_300553_payload: rc=0 in 3.3 min
+[106/132] laps_val_300553_mass_mult: rc=0 in 3.3 min
+[107/132] laps_val_300624_payload: rc=0 in 2.5 min
+[108/132] laps_val_300624_mass_mult: rc=0 in 2.6 min
+[109/132] laps_val_300637_payload: rc=0 in 2.7 min
+[110/132] laps_val_300704_payload: rc=0 in 2.4 min
+[111/132] laps_val_300637_mass_mult: rc=0 in 2.7 min
+[112/132] laps_val_300808_payload: rc=0 in 2.3 min
+[113/132] laps_val_300808_mass_mult: rc=0 in 2.5 min
+[114/132] laps_val_300704_mass_mult: rc=0 in 2.8 min
+[115/132] laps_val_301152_payload: rc=0 in 2.6 min
+[116/132] laps_val_301152_mass_mult: rc=0 in 2.7 min
+[117/132] laps_val_301236_payload: rc=0 in 2.8 min
+[118/132] laps_val_301236_mass_mult: rc=0 in 2.7 min
+[119/132] laps_val_301381_payload: rc=0 in 2.4 min
+[120/132] laps_val_301284_payload: rc=0 in 3.6 min
+[121/132] laps_val_301381_mass_mult: rc=0 in 2.7 min
+[122/132] laps_val_301284_mass_mult: rc=0 in 3.6 min
+[123/132] laps_val_301524_payload: rc=0 in 3.3 min
+[124/132] laps_val_301566_payload: rc=0 in 2.5 min
+[125/132] laps_val_301566_mass_mult: rc=0 in 2.8 min
+[126/132] laps_val_301524_mass_mult: rc=0 in 3.3 min
+[127/132] laps_val_301688_payload: rc=0 in 2.7 min
+[128/132] laps_val_301702_payload: rc=0 in 2.3 min
+[129/132] laps_val_301688_mass_mult: rc=0 in 2.8 min
+[130/132] laps_val_301702_mass_mult: rc=0 in 2.4 min
+[131/132] laps_val_301910_mass_mult: rc=0 in 1.8 min
+[132/132] laps_val_301910_payload: rc=0 in 1.9 min
+
+base (completed at lambda=0, of 22 tracks): fa0 10, fa1 2, fa2 8, M1 22, M1+L1 22
+
+== raw: completed laps / laps ==
+condition   member         lam=0.0      lam=0.25       lam=0.5      lam=0.75       lam=1.0
+wind_const  fa0        10/22   45%    9/22   41%    7/22   32%    6/22   27%    4/22   18%
+wind_const  fa1         2/22    9%    2/22    9%    3/22   14%    5/22   23%    5/22   23%
+wind_const  fa2         8/22   36%   12/22   55%    9/22   41%    3/22   14%    2/22    9%
+wind_const  M1         22/22  100%   21/22   95%    8/22   36%    2/22    9%    2/22    9%
+wind_const  M1+L1      22/22  100%   21/22   95%   22/22  100%   22/22  100%   18/22   82%
+
+payload     fa0        10/22   45%   10/22   45%   10/22   45%   13/22   59%   11/22   50%
+payload     fa1         2/22    9%    1/22    5%    3/22   14%    4/22   18%    3/22   14%
+payload     fa2         8/22   36%   10/22   45%   11/22   50%   11/22   50%   10/22   45%
+payload     M1         22/22  100%   22/22  100%   22/22  100%   14/22   64%    6/22   27%
+payload     M1+L1      22/22  100%   22/22  100%   20/22   91%   21/22   95%   12/22   55%
+
+wind_gust   fa0        10/22   45%   30/66   45%   31/66   47%   24/66   36%   12/66   18%
+wind_gust   fa1         2/22    9%    7/66   11%   13/66   20%    6/66    9%    3/66    5%
+wind_gust   fa2         8/22   36%   25/66   38%   23/66   35%   15/66   23%    8/66   12%
+wind_gust   M1         22/22  100%   62/66   94%   49/66   74%   27/66   41%   14/66   21%
+wind_gust   M1+L1      22/22  100%   64/66   97%   62/66   94%   50/66   76%   29/66   44%
+
+lighthouse  fa0        10/22   45%   33/66   50%   30/66   45%   31/66   47%   18/66   27%
+lighthouse  fa1         2/22    9%   13/66   20%   10/66   15%    9/66   14%   10/66   15%
+lighthouse  fa2         8/22   36%   38/66   58%   43/66   65%   40/66   61%   23/66   35%
+lighthouse  M1         22/22  100%   64/66   97%   51/66   77%   23/66   35%    5/66    8%
+lighthouse  M1+L1      22/22  100%   57/66   86%   33/66   50%   12/66   18%   10/66   15%
+
+mass_mult   fa0        10/22   45%    9/22   41%   10/22   45%    9/22   41%   11/22   50%
+mass_mult   fa1         2/22    9%    3/22   14%    1/22    5%    3/22   14%    3/22   14%
+mass_mult   fa2         8/22   36%    9/22   41%   14/22   64%   12/22   55%   12/22   55%
+mass_mult   M1         22/22  100%   21/22   95%   21/22   95%   18/22   82%   14/22   64%
+mass_mult   M1+L1      22/22  100%   22/22  100%   19/22   86%   16/22   73%   13/22   59%
+
+combined    fa0        10/22   45%   34/66   52%   30/66   45%    5/66    8%    0/66    0%
+combined    fa1         2/22    9%   10/66   15%    9/66   14%    4/66    6%    0/66    0%
+combined    fa2         8/22   36%   36/66   55%   19/66   29%    5/66    8%    0/66    0%
+combined    M1         22/22  100%   57/66   86%    5/66    8%    0/66    0%    0/66    0%
+combined    M1+L1      22/22  100%   56/66   85%    9/66   14%    0/66    0%    0/66    0%
+
+
+== retention: completed laps / laps ==
+condition   member         lam=0.0      lam=0.25       lam=0.5      lam=0.75       lam=1.0
+wind_const  fa0        10/10  100%    9/10   90%    7/10   70%    6/10   60%    3/10   30%
+wind_const  fa1         2/2   100%    2/2   100%    2/2   100%    2/2   100%    2/2   100%
+wind_const  fa2         8/8   100%    7/8    88%    6/8    75%    1/8    12%    1/8    12%
+wind_const  M1         22/22  100%   21/22   95%    8/22   36%    2/22    9%    2/22    9%
+wind_const  M1+L1      22/22  100%   21/22   95%   22/22  100%   22/22  100%   18/22   82%
+
+payload     fa0        10/10  100%    9/10   90%   10/10  100%    9/10   90%    8/10   80%
+payload     fa1         2/2   100%    0/2     0%    0/2     0%    0/2     0%    0/2     0%
+payload     fa2         8/8   100%    7/8    88%    5/8    62%    5/8    62%    4/8    50%
+payload     M1         22/22  100%   22/22  100%   22/22  100%   14/22   64%    6/22   27%
+payload     M1+L1      22/22  100%   22/22  100%   20/22   91%   21/22   95%   12/22   55%
+
+wind_gust   fa0        10/10  100%   26/30   87%   24/30   80%   17/30   57%    7/30   23%
+wind_gust   fa1         2/2   100%    6/6   100%    5/6    83%    1/6    17%    1/6    17%
+wind_gust   fa2         8/8   100%   18/24   75%   15/24   62%   10/24   42%    7/24   29%
+wind_gust   M1         22/22  100%   62/66   94%   49/66   74%   27/66   41%   14/66   21%
+wind_gust   M1+L1      22/22  100%   64/66   97%   62/66   94%   50/66   76%   29/66   44%
+
+lighthouse  fa0        10/10  100%   28/30   93%   26/30   87%   24/30   80%   10/30   33%
+lighthouse  fa1         2/2   100%    5/6    83%    2/6    33%    1/6    17%    2/6    33%
+lighthouse  fa2         8/8   100%   24/24  100%   23/24   96%   18/24   75%   12/24   50%
+lighthouse  M1         22/22  100%   64/66   97%   51/66   77%   23/66   35%    5/66    8%
+lighthouse  M1+L1      22/22  100%   57/66   86%   33/66   50%   12/66   18%   10/66   15%
+
+mass_mult   fa0        10/10  100%    8/10   80%    8/10   80%    9/10   90%    8/10   80%
+mass_mult   fa1         2/2   100%    0/2     0%    0/2     0%    0/2     0%    0/2     0%
+mass_mult   fa2         8/8   100%    7/8    88%    7/8    88%    5/8    62%    5/8    62%
+mass_mult   M1         22/22  100%   21/22   95%   21/22   95%   18/22   82%   14/22   64%
+mass_mult   M1+L1      22/22  100%   22/22  100%   19/22   86%   16/22   73%   13/22   59%
+
+combined    fa0        10/10  100%   27/30   90%   20/30   67%    2/30    7%    0/30    0%
+combined    fa1         2/2   100%    3/6    50%    2/6    33%    1/6    17%    0/6     0%
+combined    fa2         8/8   100%   18/24   75%   12/24   50%    3/24   12%    0/24    0%
+combined    M1         22/22  100%   57/66   86%    5/66    8%    0/66    0%    0/66    0%
+combined    M1+L1      22/22  100%   56/66   85%    9/66   14%    0/66    0%    0/66    0%
+

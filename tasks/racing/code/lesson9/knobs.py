@@ -63,6 +63,11 @@ NOMINAL = {
 CONDITIONS = ("wind_const", "payload", "wind_gust", "lighthouse", "mass_mult", "combined")
 EXTRA_CONDITIONS = ("latency_only",)      # calibration only: the fixed 1-step Lighthouse delay and nothing else
 HELD_OUT = ("lift", "light", "step_wind", "blackout")      # never trained on, never calibrated (see the docstring)
+# GATE_SHIFT (added 2026-09-26; not a force or a sensor error, so it lives beside the held-out set, not in it): the TRUE gate poses
+# move while the plan and everything the controllers observe stay nominal. Amplitudes are lsy_drone_racing's level-2 gate
+# randomisation (x, y +-0.15 m, z +-0.10 m, yaw +-0.20 rad; roll/pitch are not modelled: RaceGate is yaw-only), reached at lam = 1.
+GATE_CONDITIONS = ("gate_shift",)
+GATE_SHIFT_MAX = {"xy": 0.15, "z": 0.10, "yaw": 0.20}
 T_STEP = 2.0                  # s, lap clock: when `step_wind` switches on (between gates 1 and 2 on most tracks)
 BLACKOUT_T0, BLACKOUT_MAX_S = 2.0, 0.4    # s: when the position stream freezes, and how long at lam = 1
 START_SCALES = {"wind_const": 2.0, "payload": 2.0, "wind_gust": 2.0, "lighthouse": 2.0, "mass_mult": 2.0}
@@ -276,14 +281,30 @@ class BlackoutSensor:
         return out
 
 
+def displace_gates(gates, cond: str, lam: float, seed: int = 0):
+    """The TRUE gates for one lap: `gates` themselves unless cond == "gate_shift". Each gate draws (dx, dy, dz, dyaw) as unit
+    uniforms in [-1, 1] from a stream fixed by (seed, gate index), so the draw is the same at every lam and for every member
+    (paired curves); lam only scales it. The controllers keep the nominal gates; only contact and crossing tests use these."""
+    if cond != "gate_shift" or lam == 0.0:
+        return list(gates)
+    from crazy_track.trajectories.freestyle import RaceGate
+    m = GATE_SHIFT_MAX
+    out = []
+    for k, g in enumerate(gates):
+        u = np.random.default_rng([int(seed), 7919, k]).uniform(-1.0, 1.0, 4)
+        d = lam * np.array([u[0] * m["xy"], u[1] * m["xy"], u[2] * m["z"]])
+        out.append(RaceGate(tuple(np.asarray(g.pos, dtype=float) + d), yaw=float(g.yaw) + lam * u[3] * m["yaw"]))
+    return out
+
+
 # ---- the entry point -------------------------------------------------------------------------------------------
 def make_conditions(cond: str, lam: float, seed: int = 0, control_freq: int = 100, horizon: int = 6000,
                     scale: dict | None = None):
     """(disturbance, sensor) for `cond` at severity `lam` in [0, 1]. (None, None) at lam = 0, and for
     `mass_mult` at any lam (mass is not a force or a sensor error; see `mass_scale`, applied to the Sim itself)."""
-    if cond not in CONDITIONS + EXTRA_CONDITIONS + HELD_OUT:
-        raise ValueError(f"unknown condition {cond!r}; one of {CONDITIONS + EXTRA_CONDITIONS + HELD_OUT}")
-    if cond in ("mass_mult", "light"):
+    if cond not in CONDITIONS + EXTRA_CONDITIONS + HELD_OUT + GATE_CONDITIONS:
+        raise ValueError(f"unknown condition {cond!r}; one of {CONDITIONS + EXTRA_CONDITIONS + HELD_OUT + GATE_CONDITIONS}")
+    if cond in ("mass_mult", "light", "gate_shift"):     # gate_shift moves the gates: see `displace_gates`
         if not 0.0 <= lam <= 1.0:
             raise ValueError(f"lam must be in [0, 1], got {lam}")
         return None, None

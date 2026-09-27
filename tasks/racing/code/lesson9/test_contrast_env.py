@@ -2,8 +2,9 @@
 
     python tasks/racing/code/lesson9/test_contrast_env.py        # no pytest needed
 
-MECHANICS ONLY, like test_robust_env.py. Never `.learn()` -- no training happens here or anywhere in
-Lesson 9 yet (train_contrast.py has not been run).
+MECHANICS ONLY, like test_robust_env.py. Never `.learn()` -- no training happens here. `ContrastTrackingEnv`
+is trained via `train_gate_aware.py --group contrast`; the vendored-contrast group itself was DROPPED as
+infeasible 2026-09-25 (METHODOLOGY.md section 5c).
 
 The point of every test below is the SAME point the class exists to make: this env differs from
 RacingTrackingEnv in exactly the window and the frequency, and from RobustTrackingEnv in exactly the

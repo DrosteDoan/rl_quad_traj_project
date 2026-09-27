@@ -21,7 +21,7 @@ window at the harness's own frequency, which is equally correct for a contrast-t
 it assumes matched disturbance training. `datt:<path>` (the vendored controller, 0.6 s window) is wrong for
 either of this study's two RL groups.
 
-NOT yet used to train anything -- see `train_contrast.py`'s module docstring.
+Trained via `train_gate_aware.py --group contrast` (through `GateAwareContrastEnv`, `gate_aware_env.py`); the vendored-contrast group was DROPPED as infeasible 2026-09-25 (METHODOLOGY.md section 5c).
 """
 
 from __future__ import annotations

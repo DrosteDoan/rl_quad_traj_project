@@ -1,26 +1,44 @@
 # Lesson 9 — Where the crossover is: learned vs model-based racing under graded disturbance
 
-**Status: in progress.** Tracks, contacts, the disturbance knobs, the driver, and calibration are built and
-tested; the RL recipe was rebuilt after the first training rounds (the gate-aware recipe, below) and its contrast group dropped; nothing has been swept yet. This lesson
-grows as each phase lands. The living design document, updated before this lesson text catches up to it, is
-`tasks/racing/code/lesson9/METHODOLOGY.md` — read it first if a claim here and there disagree.
+⏱️ ~3 hours of reading; the compute is the expensive part if you run it yourself — flying the
+shipped checkpoint against M1 on the validation pool is under 2 minutes on 8 workers, but training
+your own copy of the recipe is 5–6 hours (16M steps) or 9+ hours (25M). **You finish when** you have
+(a) the shipped `gate_aware_v4` checkpoint flown against M1 on the 22 validation tracks and your own
+number next to the pre-registered viability bar, (b) the held-out-condition table read and a verdict
+on whether the RL policy's advantage travels beyond what it was trained on, (c) an opinion on the
+control-authority question — should MPC be capped to match RL, or RL retrained to match MPC — and
+what changes about the answer once you pick one, and (d) a plain-English account of what the *dropped*
+control group would have told us, and why held-out conditions are a substitute, not a replacement,
+for it.
 
-**Prerequisites:** Lesson 7 (the disturbance models, the conditions matrix), Lesson 8 (the corrected MPC
-family, ground-start plans, the box contact model). Everything runs in the `rl_quad_traj` container.
+> **The one big idea:** Lesson 7 asked whether a tracker is precise, robust, or survives contact, at
+> one disturbance setting, on one track. This lesson asks a sharper question: as a disturbance grows
+> from nothing to a calibrated ceiling, *where* does the ranking between model-based and learned
+> trackers flip, and does that crossover point sit in the same place across many track geometries or
+> wander with the course. Getting an RL policy that could even race turned out to be most of the
+> work — three rebuilds, a dropped control group, and a control-authority argument that overturned its
+> own pre-registered rule — and every one of those detours is worth more than the numbers it produced,
+> because each is a way an RL-vs-MPC comparison can quietly cheat before a single lambda is swept.
+> **The notice that governs every number this lesson produces: the crossover regimes found here are
+> not intended to represent universal thresholds for learned or model-based control** — they describe
+> this course's tracks, this course's disturbance models, and these specific trackers.
+
+**Prerequisites:** Lesson 7 (the disturbance models, the six-condition matrix, the λ ∈ [0, 1] grading),
+Lesson 8 (the corrected MPC family, ground-start plans, the box contact model). Everything runs inside
+the `rl_quad_traj` container.
+
+**Receipts.** Every number here is measured and traceable: `tasks/racing/code/lesson9/METHODOLOGY.md`
+is the living design document (read it first if a claim here and there disagree — it is updated before
+this lesson text catches up to it, and its §13 is a standing errata of every correction made along the
+way). The raw per-lap CSVs and their summaries live under `tasks/racing/code/lesson9/results/eval/`,
+one directory per experiment; the saved, frozen recipe is `tasks/racing/code/lesson9/saved/gate_aware_v4/`
+(code snapshot, checkpoints, sha256s — a regression test reads it directly).
 
 ---
 
-> **The one big idea:** Lesson 7 asked whether a tracker is precise, robust, or survives contact, at one
-> disturbance setting, on one track. This lesson asks a sharper question: as a disturbance grows from
-> nothing to a calibrated ceiling, *where* does the ranking between model-based and learned trackers flip,
-> and does that crossover point sit in the same place on fifteen different track geometries or wander with
-> the course. The notice that governs every number this lesson produces: **the crossover regimes found here
-> are not intended to represent universal thresholds for learned or model-based control** — they describe
-> this course's tracks, this course's disturbance models, and these specific trackers.
+## 0. The design: five controllers, six conditions, fifteen tracks
 
-## 0. The trackers
-
-Five model-based, the Lesson 8 corrected family, plus two learned groups of three seeds each:
+Five model-based controllers, the Lesson 8 corrected family, evaluated with no re-tuning:
 
 | column | what it is | spec |
 |---|---|---|
@@ -29,316 +47,248 @@ Five model-based, the Lesson 8 corrected family, plus two learned groups of thre
 | `M1+L1` | M1 + L1 adaptation | `...,dist=l1` |
 | `M1+mass` | M1 + thrust-scale (mass) adaptation | `...,mass=1` |
 | `mppi_l1` | sampling-based MPC + L1, reconfigured to an 0.8 s preview horizon | `mppi_l1` |
-| `robust_s0/1/2` | trained with domain randomization matched to this lesson's own disturbance ceilings | `robust:<path>` |
-| ~~`contrast_s0/1/2`~~ | ~~the same recipe, but with the *vendored*, unmatched disturbance ranges~~ — **dropped 2026-09-25** (§1) | — |
 
-The contrast group exists to answer one question honestly rather than just disclose it: does matching the
-RL training ranges to the disturbance ceilings this lesson measures against buy anything beyond generic
-domain-randomization robustness? Full reasoning in `METHODOLOGY.md` §5b.
+M1 alone completes all 22 unseen validation tracks (RMSE 0.0525 m) with none of Lesson 8's parameters
+touched — the model-based side of this study needed nothing new.
 
-## 1. Train the two RL groups
+Six disturbance conditions, each graded by λ ∈ [0, 1] against a frozen ceiling (Lesson 7's own values
+for four of them, Lesson 8's Level-1 extreme for `mass_mult`): `wind_const`, `payload`, `wind_gust`,
+`lighthouse` (sensor noise), `mass_mult`, and `combined` (gust + payload together). Fifteen randomly
+generated study tracks carry the headline sweep; a further 111-track `train` pool and 22-track `val`
+pool, from disjoint fixed seed windows, exist purely so every RL design decision below can be made
+*without* touching the tracks the eventual sweep reports on (METHODOLOGY.md §3).
 
-Both recipes start from the same racing-envelope policy Lesson 7 §2 trained (asymmetric actor-critic, PPO
-settings unchanged), with two things equalised between them so the comparison to the MPC family is not
-handicapped by an accident of the vendored recipe: an 0.8 s reference preview (matching the MPC family's
-own horizon, not the vendored 0.6 s) and training at 100 Hz (matching the harness, so the policy's own L1
-estimator is not shaped by one control rate and evaluated at another — `METHODOLOGY.md` limitation 14).
+The learned side is one policy family, developed in several rounds below, and (as of this lesson) two
+parallel recipes that differ only in how much roll/pitch authority the policy is allowed to command —
+§5 is why that split exists and which one this lesson actually reports.
 
-What differs between the two groups is exactly the disturbance training:
+## 1. Building an RL policy that can race at all
 
-|  | force box | Lighthouse | mass |
-|---|---|---|---|
-| `robust` (`train_robust.py`) | x,y ±4.4 m/s², z −3.6..+1.8 (0.8× this lesson's frozen ceilings) | λ ~ U(0, 0.8) of this lesson's own axis, sizes + refresh interval coupled | fraction ~ U(0, 0.184), heavier only |
-| `contrast` (`train_contrast.py`) | vendored ±3.5 m/s² box, unchanged | vendored noise scale ~ U(0, 1.5), uncoupled from the refresh rate | none |
+The obvious thing — take the racing-envelope policy Lesson 7 trained, add the six disturbance
+conditions as domain randomization, and evaluate it — does not produce a racer. It produces a policy
+that tracks a smooth open-space reference about as well as ever and completes 0–2 of 6 screening
+tracks. Diagnosing why took four rebuilds, and the diagnosis is the actual content of this section —
+not "we trained longer," but successive elimination of confounds that had nothing to do with learned
+vs model-based control at all.
 
-Six seeds (0, 1, 2 for each group) — not five, not a lone seed per group. Lesson 7 §2 found a single
-training seed can be a coin flip (`racing_s1`, 3/4 on every plan through no fault of the recipe); three
-seeds per group, the same count on both sides, keeps that lottery from quietly favouring whichever group
-happened to draw fewer seeds. Six also schedules cleanly: paired two at a time under a 2-concurrent-session
-machine, three rounds use every slot, five would waste one.
+**A precision gap, ruled out as the whole story.** Flying the open-space policy and M1 on the same
+tracks at the same margins: M1 completes with under 9.3 cm of deviation while the RL policy crashes
+4–11× over the available margin. Checking whether this was a train/eval distribution mismatch (flying
+the checkpoint inside its own training range, not at the nominal λ = 0 it was screened at) changed
+nothing. The reference distribution itself was the suspect: every training episode is a smooth,
+randomly-wandering open-space curve (`ChainedPolyTrajectory.random`) — nothing in it ever asks the
+policy to thread a narrow, oriented 0.4 m opening with 3.5–5 cm of margin, which is the literal skill
+gate racing demands.
 
-Run each round's pair together and wait for both to finish before starting the next (about 50–100 minutes
-per run on this machine, so roughly 2.5–5 hours end to end for all six; `--timesteps 8000000` because
-training at 100 Hz halves the simulated seconds per environment step at a fixed step budget, so the budget
-is doubled to keep the amount of simulated experience comparable to the vendored recipe's 4,000,000 at
-50 Hz):
+**A control-authority gap, checked and ruled out.** Every RL policy in this course, going back to
+Lesson 1, has trained under a ±0.7 rad roll/pitch cap inherited from the vendored recipe, while the MPC
+family plans with the full ±1.0 rad bound. Widening it to match M1 (one seed, everything else held
+equal) plateaued in the same training band and scored a wash against its 0.7 rad twin (8/24 gates vs
+10/24). Authority was not the bottleneck *at that budget* — a finding this lesson returns to and
+partially reverses in §5, once the recipe could actually race.
 
-Every command below runs INSIDE the `rl_quad_traj` container, not on the host — `numpy`, `jax` and
-`crazyflow` live only in the container's `/opt/venvs/main`, and running a bare `python ...` on the host
-fails with `ModuleNotFoundError: No module named 'numpy'` (or worse, silently picks up an unrelated host
-Python). Each command below is a complete, self-contained `docker exec`, safe to paste into a plain host
-terminal as-is:
+**The real gap: training had no gates.** The open-space environment's only failure conditions are the
+floor and gross divergence — no gate geometry, no contact, anywhere in training. Three rebuilds later
+established viability:
 
-```bash
-# round 1 -- run these two together, in separate terminals
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_robust.py \
-  --timesteps 8000000 --seed 0 --reason "Lesson 9: robust seed 0"'
-```
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_contrast.py \
-  --timesteps 8000000 --seed 0 --reason "Lesson 9: contrast seed 0"'
-```
-```bash
-# round 2
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_robust.py \
-  --timesteps 8000000 --seed 1 --reason "Lesson 9: robust seed 1"'
-```
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_contrast.py \
-  --timesteps 8000000 --seed 1 --reason "Lesson 9: contrast seed 1"'
-```
-```bash
-# round 3
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_robust.py \
-  --timesteps 8000000 --seed 2 --reason "Lesson 9: robust seed 2"'
-```
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_contrast.py \
-  --timesteps 8000000 --seed 2 --reason "Lesson 9: contrast seed 2"'
-```
+- **v1** re-origined the dev-track references so training started airborne (a literal ground start
+  would trip the open-space floor-crash rule). It trained cleanly by every optimizer diagnostic and
+  scored **0 of 6** on the screening set, every failure a gate-1 contact at t = 1.2–1.7 s — uniform
+  enough to be a train/eval gap rather than generic imprecision. M1, which re-solves from an explicit
+  model at every step rather than generalizing from a training distribution, flies the same ground
+  launch on three of those tracks with under 9 cm of deviation.
+- **v2** removed the gap at its source: real ground-start references (`driver.build_traj`, the same
+  trajectory the eval harness constructs) and a floor rule matched to the eval harness's own divergence
+  check. Also **0 of 6**, but the failure mode changed — the policy now *swerves around* gate 1 rather
+  than crashing into it, missing by 0.4–0.8 m with no contact. That distinction mattered: training had
+  never penalized a missed gate at all, only contact and gross divergence, and a contact forfeits on
+  the order of 200 units of remaining return against roughly 0.3 for a clean miss. A policy under
+  pressure will find the two-orders-of-magnitude cheaper way out every time.
+- **v3** closed that loophole — terminate on *any* missed gate, using the eval harness's own
+  gate-crossing rule so training and evaluation share one definition of failure, with modest penalties
+  (−3.5 for a miss or contact) rather than the vendored −5.0. It learned its own three training tracks
+  but transferred to only 1 of 6 screening tracks: viable, but a 3-track training pool is not enough to
+  generalize from.
+- **v4** attacked pool size and training length together: 111 additional training tracks and a
+  separate 22-track validation pool, both from fixed seed windows disjoint from the study tracks, 16M
+  steps. A viability bar was written down before this checkpoint was flown: **≥11 of 22 validation
+  tracks viable, 7–10 promising, ≤6 no change.** The final checkpoint completed **13 of 22** (68/88
+  gates, RMSE 0.187 m against M1's 0.0525 m) — past the bar, and roughly 3.5× looser than M1 wherever
+  it does complete. This is the recipe the rest of this lesson calls `v4`, saved at
+  `saved/gate_aware_v4/`.
 
-`JAX_PLATFORMS=cpu` is not optional on this machine: without it, JAX processes on this WSL setup fall back
-to a path that is measured over 10x slower and hangs at exit (found while parallelising the calibration
-sweep, §5 below). Thread counts are deliberately left uncapped here, unlike the calibration launcher's
-8-way parallel sweep — two long, internally-vectorized training runs should split the machine's cores
-between them rather than each being pinned to one.
-
-Each run prints its own log directory on startup
-(`tasks/racing/crazy_track/results/<stamp>_racing-robust-train/` or `..._racing-contrast-train/`), with
-`datt_ppo_final.zip` and a tensorboard log inside once it finishes. A model from either script is evaluated
-through `robust:<path>` (`driver.py`), never `datt:<path>` — that spec loads through the vendored
-controller, which assumes the vendored 0.6 s window and would silently mistrack the reference.
-
-**Watch `rollout/ep_rew_mean` in tensorboard as it trains.** The vendored `SB3Adapter` these scripts build
-on never reports it (a pre-existing gap — `_update_info_buffer` needs an `"episode"` key in `infos` that
-the vendored adapter doesn't set; `METHODOLOGY.md` §5a has the full trace). `monitored_adapter.py` fixes
-this without touching the vendored file or changing how the policy trains — confirmed that key is read only
-for logging, never by the actual PPO update. Round 1 (seed 0 of each group) trained before this fix
-existed, so it has to be read from optimizer-internal diagnostics alone (`train/value_loss`,
-`train/explained_variance`) — both looked like ordinary, converging PPO runs, but flown directly on five
-study tracks at nominal conditions, `robust_s0` completed none and `contrast_s0` completed one.
-
-All three seeds of both groups, once trained, told a consistent story: 0–2 of 6 screening tracks completed,
-RMSE 0.13–0.36 m against the MPC family's nominal 0.06–0.10 m, no clear improving trend across seeds — not a
-bug (mechanics checked out at every stage) but not close to competitive either.
-
-**A hyperparameter mismatch, found after rounds 1–3.** `gamma=0.98` and `n_steps=256` are both defined in
-units of steps, and neither was rescaled when `freq` doubled from the vendored 50 to this recipe's 100 —
-`gamma`'s effective discount horizon halved from 1.0 s to 0.5 s (shorter than the 0.8 s observation window
-built for this recipe), and `n_steps`'s rollout window halved from 85% of an episode to 43%. Corrected
-defaults are now CLI flags (`--gamma 0.99 --n-steps 512 --batch-size 2048`; add `--gamma 0.98 --n-steps 256
---batch-size 1024` to reproduce rounds 1–3 exactly). Before redoing all six seeds, screen with one pair at
-seed 0 — the same seed already used, so this isolates the hyperparameter change alone:
+Train your own copy the same way (about 5.7 hours for 16M steps on this machine; the container-only
+command, safe to paste into a plain host terminal):
 
 ```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_robust.py \
-  --seed 0 --reason "Lesson 9: hyperparameter screen, robust seed 0"'
-```
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_contrast.py \
-  --seed 0 --reason "Lesson 9: hyperparameter screen, contrast seed 0"'
-```
-
-(the corrected values are now the defaults, so no extra flags are needed for the screen itself). If this
-closes the gap meaningfully, all six seeds get redone at the corrected settings. If it barely moves things,
-the more likely bottleneck is structural: every training reference is a smooth, randomly-wandering curve in
-open space (`ChainedPolyTrajectory.random`) — nothing in it ever asks the policy to thread a narrow,
-oriented opening, which is the literal skill a 0.4 m gate with 3.5–5 cm of margin demands. `METHODOLOGY.md`
-§5a has three design options for that, not yet decided.
-
-**Screen result: mixed, not a fix on its own.** `robust_s0_screen` improved in survival (7 → 10 of 24 gates,
-0 → 1 completions) but got slightly *less* precise (RMSE 0.206 → 0.216 m); `contrast_s0_screen` regressed
-(9 → 8 gates, 1 → 0 completions, RMSE 0.178 → 0.214 m). The hyperparameter mismatch was real but not the
-dominant bottleneck. Three follow-up checks, each isolating one variable, converge on the same explanation:
-(1) flying `robust_s0`/`contrast_s0` and M1 on the *same* tracks at the *same* margins showed M1 completing
-with under 9.3 cm of deviation while the RL policies crashed 4–11× over the available margin — a controller
-precision gap, not a path-generation one; (2) flying the same checkpoints inside their own training range
-(λ = 0.3, 0.6, not just the nominal λ = 0 they were measured at) showed no improvement, ruling out a
-train/eval distribution mismatch; (3) Lesson 7's own pre-existing benchmark data (`racing_s0`–`s2`, written
-months before this lesson existed) shows the identical signature — nominal max deviation 0.38–0.54 m against
-the MPC family's 0.10–0.35 m, and its own stated conclusion, "a 0.4–0.5 m deviation at 4–5 m/s is a frame."
-The reference-distribution gap is the best-supported explanation on the table; `METHODOLOGY.md` §5a has the
-full trace.
-
-**A second, related gap: control authority.** The MPC family plans with the full ±1.0 rad roll/pitch bound
-(`mpc_dev.py`'s `rp_max`); every RL policy in this course, robust and contrast alike, has trained under a
-±0.7 rad cap inherited unchanged from the vendored recipe since Lesson 1 — an asymmetry the "equal inputs"
-work of §5a's window/frequency fixes never touched, because it was never examined for the *action* side.
-Cheaply checked first: M1 flown with `rp_max=0.7` (matching RL's own ceiling, zero code changes needed since
-`rp_max` is already spec-configurable) still completed all three same-path tracks, just less precisely —
-ruling the cap out as *sufficient* on its own to explain the RL crashes, but leaving open whether it costs
-something on top of RL's larger existing tracking error. `full_authority_env.py`/`full_authority_policy.py`/
-`train_full_authority.py` isolate that: one seed (0, locked, same RNG stream as `robust_s0`), everything
-else held equal to `robust_s0_screen`, only the roll/pitch scale widened to match M1's:
-
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_full_authority.py \
-  --reason "Lesson 9: control-authority screen, seed 0"'
-```
-
-Evaluated only through `robust_full:<path>` (`driver.py`) — `robust:<path>` would silently apply the wrong
-(0.7×) scale to a model trained expecting the full range.
-
-**Control-authority result: not a fix, ruled out.** The training curve plateaued in the exact same band as
-`robust_s0_screen`'s own curve at the same step counts; the flown evaluation confirmed it — 8/24 gates, 0/6
-completions, mean RMSE 0.2044, a wash against `robust_s0_screen`'s 10/24 gates, 1/6 completions, RMSE 0.2161.
-Combined with a same-path M1 diagnostic (M1 capped to RL's own 0.7 rad ceiling still completed all three
-tracks checked), control authority is ruled out as a contributing explanation.
-
-**The locality finding.** Binning deviation from the reference into "near a gate" (within 0.3 s of a
-crossing) vs "between gates," on the same three tracks: M1 shows no gate-locality at either authority level
-(precise everywhere). Both RL groups show the opposite, consistently, on every track — mean deviation near a
-gate is 34–148% higher than between gates, and 4 of 6 RL failure cases are clearly *diverging* in the final second before impact (one is flat, one converging), while M1 is flat or actively converging in the same window. This is not "RL fails by a
-comparable amount that happens to land at a gate" — its error specifically grows worst exactly where the
-geometry punishes it most.
-
-**The viability screen.** Checking whether training even has a contact model surfaced a third gap: it
-doesn't — the only crash conditions are hitting the floor or drifting more than 2 m off the reference, with
-no gate geometry in the training scene at all. Rather than commit to the full reference-distribution redesign
-(and the overfitting question that comes with it) before knowing whether it's worth the budget, the smaller,
-prior question is whether the recipe can pass a viability gate at all: one seed, trained entirely on the 3
-real dev-track references with a genuine gate-contact consequence added to `step()` (`contact.py`'s exact box
-test, the same one the eval harness uses), evaluated on the existing 6-track screen at one number:
-completions at λ = 0.
-
-**Version 1: 0 of 6.** The first build re-origined each dev track so every episode started already airborne
-(these are ground-start plans, and training's floor crash, `pos[:, 2] < 0.05`, would trip on a literal ground
-start). It trained cleanly — reward 8 → 282, episode length 48 → 516 of 700, still climbing at 8M steps, with
-`explained_variance` at 0.85–0.95 and no sign of instability; a mid-run look at the curve did not support
-raising the learning rate — and then scored **0/6 completions, 0/24 gates, every failure a gate-1 contact at
-t = 1.2–1.7 s**, on all six tracks including `level2`. Failures that uniform are not generic imprecision or
-a too-small track pool, which would scatter across gates. The eval harness always flies a real ground start;
-v1 never trained on one.
-
-That is a train/eval gap, and it is a gap only a learned controller can have. M1 has no training distribution
-to be out of: it re-solves from an explicit dynamics model at every step, so a ground launch is another
-initial condition rather than a situation needing prior exposure — and it flies this exact launch on tracks
-4, 93 and 387 with under 9 cm of deviation, through the same `driver.py` code path v1 failed in.
-
-**Version 2** removes the gap at its source instead of routing around it. The references are
-`driver.build_traj(track)` — the same `GroundStartTrajectory` eval constructs (hold, climb-out, gate 1 at its
-normal lead-time) — and the training floor crash moves to `pos[:, 2] < -0.3`, which is `driver.py`'s own
-divergence check rather than a new number. The simulator was never the obstacle (every controller flies this
-launch in the harness); the obstacle was a crash rule written when nothing trained near the ground.
-`episode_time` is 8.0 s to cover the longest full ground-start duration (7.196 s). v1's two candidate causes —
-the missing launch, and gate 1's truncated lead-time — are removed together, so a v2 pass will not say which
-mattered; the question here is viability, not attribution.
-
-**Version 2 result: 0 of 6 again** (2/24 gates; `level2` and study 387 now clear gate 1 and hit gate 2, four
-tracks still hit gate 1). Training was healthy (reward 60 → 334, episode length 155 → 521 of 800). The
-informative check was flying it on its *own* three training tracks: it completes only one. On the other two it
-misses gate 1 with no contact, swerving 0.4–0.8 m sideways from about 0.2 s before the gate and recovering
-after it, while altitude tracks throughout and the launch is fine. Deterministic and stochastic actions give
-identical outcomes, so this is not an evaluation-mode artefact. The missing ground start was at most a minor
-factor.
-
-Training ended an episode on contact, gross divergence or the floor — never on a missed gate. That makes the
-two failures very unequal: contact forfeits the rest of the episode (on the order of 200 reward at gate 1, a
-rough estimate) on top of its penalty, while a 0.8 m swerve costs about 0.3 in total. A policy that cannot
-reliably hold a 3.5–5 cm margin is pushed to go around the gate instead of through it. (The tracking reward
-does pull toward the gate; it is soft and saturating, and it loses to a cliff that costs two orders of
-magnitude more.) This is inferred, not proven — "won't thread" and "can't hold the line" produce the same
-trace, and the fix below cannot tell them apart; it only removes the cheap way out.
-
-**Version 3** ends the episode on *any* missed gate, using `driver.py`'s own rule (a crossing counts inside
-`HALF_OPENING` and within ±1.0 s of the gate's clock; a miss is that clock + 1.0 s), so training and eval share
-one definition of failure. Replayed over six real flown paths it agrees with `driver.py` on every one — M1's
-completions never trigger a false miss, and the v2 policy's misses fire at exactly gate time + 1.0 s.
-Finishing all four gates does not end the episode (that would forfeit the reward for succeeding). Penalties are
-−3.5 for contact or a miss and the vendored −5.0 for the floor or gross divergence; the terminal constant is
-the smaller lever, since the forfeited return dominates it, so −3.5 is chosen for scale rather than expected to
-change behaviour on its own. A callback now writes `gate/*` scalars to tensorboard each rollout — how episodes
-ended, gates passed per episode, and `gate/full_lap_frac`, the training-time completion rate — so the next run
-can show whether the policy is threading, which v2's aggregate curves could not.
-
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu && \
   /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py \
-  --reason "Lesson 9: gate-aware viability screen v3 (missed-gate termination), seed 0"'
+  --group robust --reason "Lesson 9: gate-aware recipe, seed 0"'
 ```
 
-**v3 result: it learns its training tracks, and does not transfer.** 122 minutes; the new `gate/*` scalars showed
-gates passed per episode rising 0 → 2.9, misses falling 0.49 → 0.00, and a pooled training full-lap rate of 0.535
-(142 episodes). Flown, it completes 2 of its own 3 training tracks but only 1 of 6 on the selection set — level
-with the open-space baseline (1/6, 10 vs 11 gates). Misses vanishing while contacts remain says the cheap way out
-is closed and what is left is failing to hold the line (inferred from the two fractions, not from a trace).
-
-**Version 4** tackles the two suspects together: a larger pool and longer training. `gen_pool.py` generated 111
-training tracks and 22 validation tracks from fixed seed windows (about 0.25 s per candidate per worker, about 4 minutes on 8 workers),
-with the same generator and filters as the study tracks; the training pool is the 3 dev tracks plus those 111, and
-the validation pool is never trained on. From here RL decisions are judged on validation, not study tracks. Before
-v4 existed, the validation baselines at λ = 0 were: M1 22/22 completions (RMSE 0.0525, no re-tuning), open-space RL
-2/22, v3 3/22. The bar for v4 is written down in advance in `METHODOLOGY.md`: 11 or more of 22 is viable, 7–10 is
-promising, 6 or fewer means neither the pool nor the steps fixed transfer. It trains 16M steps (estimated at ~4.3 hours; it took 5.7) and saves a checkpoint every 2M so one run also shows whether longer training helps transfer or only
-fits the pool better.
+Evaluate it against M1 on the 22 validation tracks (a couple of minutes on 8 workers):
 
 ```bash
-python tasks/racing/code/lesson9/gen_pool.py   # already run: 111 train + 22 val tracks (skip)
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu MPLBACKEND=Agg && \
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/eval_pool.py \
+  --role val --member v4=robust:<path to your datt_ppo_final.zip> --m1'
+```
+
+One seed only clears the viability bar; three seeds of this exact recipe complete **13, 13 and 6** of
+22 tracks. A seed spread that wide, on an identical recipe, is well beyond binomial noise — one seed
+never characterises this recipe, and the spread turns out to be the single most consistent finding of
+this lesson, repeating itself at every later variant.
+
+## 2. The control group that could not be built
+
+`v4` was trained on disturbance ranges matched to 0.8× this lesson's own frozen ceilings. That makes
+its robustness impossible to tell apart from "trained on the exam" — an advantage under `wind_const` at
+λ = 0.6 might be real controller robustness, or it might be a policy that has simply seen exactly this
+force in training. The obvious fix is a control group: the identical gate-aware recipe, but trained on
+the *vendored*, unmatched disturbance ranges instead, so any advantage v4 shows beyond the control
+group's is attributable to the matching, not to learning in general.
+
+It was built and it never learned to race at all — 0 of 22 validation tracks after 16M steps, most
+likely because its vendored sensor and force ranges never hand it an episode easy enough to bootstrap
+from. Every rescue considered either narrowed the question (a force-only ablation) or reintroduced the
+same confound in a different shape (a range-scaled dose-response still needs the vendored group to
+train at all). The control group was dropped as infeasible. This is stated plainly rather than
+smoothed over: **the confound is unresolved**, and the RL line in this study is labelled "trained on
+ranges matched to the study's own ceilings" everywhere it is reported.
+
+## 3. Held-out conditions: does the advantage travel?
+
+With no control group, the test moved to the other side. Instead of asking "would an untrained policy
+do worse under these exact conditions," ask "does a *trained* policy's advantage survive on conditions
+it never saw at all." Four new conditions, built and never trained on or calibrated: an upward force
+beyond v4's trained range (`lift`, the mirror of `payload`), a *lighter* drone (`light`, the mirror of
+`mass_mult` — training only ever made the drone heavier), a wind that switches on mid-lap instead of
+being constant from the start (`step_wind`), and a position sensor that freezes for longer than
+anything in training (`blackout`). Each has a nearest in-distribution analogue, so the measure is a
+difference of differences: how much *more* does RL lose than an MPC member, moving from its trained
+condition to the unseen one, at the same λ.
+
+The rule was written before any flight: at λ ∈ {0.5, 1.0}, a condition pair shows the **overfit
+signature** if that loss is ≥20 points worse than *both* MPC comparators; it **generalises** if the gap
+is under 20 points against both. Eight cells (four conditions × two λ) decide by a simple majority.
+
+The result repeats itself, with variations, across every seed and every recipe this lesson trains:
+
+- **`step_wind` and most of `blackout` transfer.** Losing no more than MPC does when the condition
+  changes is the generalising case, and it holds here consistently.
+- **A lighter drone at λ = 1 is an overfit cell in every single RL run flown** — 0.7-authority seeds
+  and full-authority seeds alike. Training only ever made the drone heavier; the policy has nothing to
+  generalise from in the other direction, and it shows.
+- **Upward force past the trained edge is usually an overfit cell too**, and the size of the drop
+  scales almost exactly with how far past training the condition pushes.
+- The aggregate verdict (generalises / mixed / overfit) is **sensitive to which MPC members it's
+  compared against** — capping MPC's own authority to match RL (§5) turns several "generalises"
+  verdicts into "mixed," because the MPC comparator's own robustness was flattered by extra authority
+  in the first place. The per-condition reading is the stable one; the one-word aggregate label is not.
+- A post-hoc bootstrap over the 22 tracks resolves only the clearest cells (the lighter-drone one,
+  reliably); most of the rest include zero in their 95% interval, meaning "generalises" mostly means
+  "not distinguishable from no change" at this sample size, not "shown equal."
+
+Read plainly: **v4's robustness is bounded by what it was trained on, and is not shown to be
+exam-specific everywhere else.** That is a narrower claim than either "it generalises" or "it's an
+exam artefact," and it is the honest one this design can support.
+
+## 4. Equal authority: whose tuning point wins?
+
+Every RL policy in this course commands roll/pitch at 0.7× the drone's physical limit — a convention
+carried unmodified from the very first lesson. The MPC family plans with the full 1.0× bound, because
+that is the value Lesson 8's whole tuning — horizon, cost weights, the corrected thrust map — was fit
+under. Comparing 0.7-authority RL against 1.0-authority MPC compares two controllers each free to use a
+different fraction of the same drone, and it isn't obvious which side that favours until it's measured.
+
+**Capping MPC down, to match RL:** M1 capped to `rp_max=0.7` completes 21 of 22 validation tracks (not
+22 — an earlier claim, checked on only 3 tracks, was wrong), and M1+L1's advantage under steady wind
+mostly evaporates: 22/22 → 18/22 → 5/22 completions from λ = 0.5 to 1.0 once capped, against 22/22 all
+the way to 22/22 uncapped. Most of what looked like "MPC dominates steady forces" turns out to be
+authority, not control quality.
+
+**Retraining RL up, to match MPC:** the alternative is to give RL the full 1.0× bound instead and
+retrain. The action-magnitude term in the reward operates on the *normalized* policy output, not
+physical radians, so widening authority doesn't quietly change what that term penalizes — a real
+confound was checked for and ruled out before trusting the comparison. Three seeds at 16M steps gave 10
+and 5 of 22 (a third not yet trained); extended to 25M steps, the same three seeds gave **10, 2 and 8**
+— one seed (2/22) did not recover with more training and dragged the three-seed mean to 6.7, exactly at
+the pre-registered line for "comparatively worse than the 0.7 recipe" (whose own three-seed mean is
+10.7).
+
+By the letter of that pre-registered rule, full authority should have stayed a reported sensitivity and
+the 0.7 recipe should have stayed primary. It was overridden instead, deliberately and on the record:
+M1's own tuning point is 1.0×, so capping it is the less faithful comparison for the model-based side
+regardless of which number makes RL look better, and one weak seed dragging a three-seed mean down is
+not, by itself, evidence that the recipe is worse. **As of this lesson, the full-authority recipe (25M
+steps, seeds 0–2) against the uncapped MPC family is the reported RL line; the 0.7-authority recipe
+(16M steps) is the sensitivity line, with its own capped-MPC comparisons already flown.** This is
+recorded as a stated deviation from a pre-registered rule, not folded in silently — and the weak seed
+stays in the reported spread rather than being replaced.
+
+Train the full-authority recipe the same way, with `--group robust_full`:
+
+```bash
+docker exec -it rl_quad_traj bash -lc 'cd /workspace && export JAX_PLATFORMS=cpu && \
   /opt/venvs/main/bin/python tasks/racing/code/lesson9/train_gate_aware.py \
-  --reason "Lesson 9: gate-aware v4 (114-track pool, 16M steps), seed 0"'
+  --group robust_full --reason "Lesson 9: gate-aware recipe, full authority, seed 0"'
 ```
 
-Evaluate each checkpoint on validation with
-`eval_pool.py --role val --member label=robust:<path> --m1` (inside the container).
+Held-out verdicts for the full-authority seeds echo §3 exactly: one seed generalises, the other two are
+mixed, and the lighter-drone-at-λ=1 overfit cell reappears regardless of authority.
 
-**v4 result: it passes the viability bar, and only that.** The final (16M) checkpoint completes **13 of 22**
-validation tracks at λ = 0 (68/88 gates, RMSE 0.187), against the pre-registered line of 11: viable. For scale, M1
-completes 22/22 (RMSE 0.0525), open-space RL 2/22, and v3 3/22. At matched 8M steps the 114-track pool completed
-11/22 against the 3-track pool's 3/22, so the pool moved transfer; steps mattered too (4M = 3/22, 6M = 10/22).
-The curve then plateaued in a 10–16 band (12M 14, 14M 16, 16M 13); the 14M checkpoint scored higher but the bar
-named the final one, so 13 is the number. Viable means roughly 60% of M1, not competitive: it threads gates from
-a path about 3.5× looser (RMSE 0.187 vs 0.0525, median max deviation 0.365 m vs 0.085 m). One seed, λ = 0 only.
+## 5. A gate that isn't where the plan says
 
-**The λ > 0 preview, and what happened to the contrast group.** On the 22 validation tracks, v4 against M1 and M1+L1
-at λ = 0.25–1.0 shows a condition-specific ordering: v4 overtakes M1 in `wind_const`, `payload`, `lighthouse` and
-`combined` at some λ, never in `wind_gust`, and M1+L1 (the strongest MPC member) beats it in every steady-force
-condition. On tracking error it is worse than M1 everywhere, but flat in λ where M1's grows: the completion crossovers
-come from v4 not degrading, not from it tracking better. v4 was trained on ranges matched to 0.8× the very ceilings the
-study measures against, so its robustness cannot be told apart from "trained on the exam". The contrast group — the same
-recipe on the vendored, unmatched ranges — was meant to separate that. It did not learn the gate-aware task (0 of 22
-validation tracks after 16M steps, most likely because its vendored sensor never gives an easy episode to learn from), and
-every rescue either changed its curriculum or answered a narrower question, so **the control group was dropped on
-2026-09-25** as infeasible. The confound stays and is stated: the RL line is "trained on the study's own ceilings".
+Neither controller family in this study senses the gates directly — the MPC family follows a plan, and
+RL's observation is a reference preview, not the gate's true pose. A related project's own version of
+this lesson builds a policy that *does* observe the gates directly and reports that a perfect
+plan-following tracker, under the kind of gate-pose randomization real racing competitions use, clears
+all four gates only about a third of the time. That is exactly the condition neither of our controllers
+has ever had to face, so it was built: `gate_shift` displaces the *true* gate poses (at those same
+randomization amplitudes, scaled by λ) while the plan and everything either controller observes stay
+nominal.
 
-**Held-out conditions instead.** The test moves to the other side: fly v4 and the MPC family on disturbances neither was
-developed against — an upward force beyond v4's training limit (`lift`, the payload mirrored), a lighter drone (`light`),
-a wind that steps on mid-lap (`step_wind`), and a frozen position stream (`blackout`) — and ask whether v4's standing
-survives against each condition's nearest in-distribution analogue. The design, the difference-in-differences measure and
-the decision rule are written into `METHODOLOGY.md` section 5c before any flight; `heldout_conditions.py` computes them.
+The prediction, written down first, was that no crossover should appear — a controller that cannot
+sense the gate has no way to react to it moving, so the ordering should be set by tracking precision
+alone. That held: MPC is modestly ahead at λ = 0.5 (81–85% retention against 59–64%), and the two
+families sit within sampling noise of each other from λ = 0.75 up. The pre-registered surprise
+threshold (an RL seed 20 or more points ahead of both MPC members) was not met. What decides a given
+lap is whether the *original* plan's line happens to still clear the moved gate — geometry, not
+controller family.
 
-```bash
-docker exec -it rl_quad_traj bash -lc 'cd /workspace && /opt/venvs/main/bin/python \
-  tasks/racing/code/lesson9/heldout_conditions.py \
-  --member v4=robust:/workspace/tasks/racing/code/lesson9/saved/gate_aware_v4/ckpt/datt_ppo_final.zip'
-```
+## 6. What this does not settle
 
-No training is involved; it takes roughly 20 minutes on 8 workers.
+1. **The training confound is unresolved, not answered.** The control group that would have separated
+   "trained on matched ranges" from "learned generic robustness" could not be built. Held-out conditions
+   are the substitute, and they show something narrower: robustness is bounded by the training range,
+   not that it is absent everywhere else.
+2. **Seed variance is the largest effect measured in this lesson, full stop.** The 0.7-authority recipe
+   spans 6–13 of 22 validation tracks across three identical-recipe seeds; the full-authority recipe
+   spans 2–10. Any single-seed number in this lesson should be read as one draw from that spread, never
+   as the recipe's true performance.
+3. **The full-authority decision is an argued deviation, not a data-driven one.** The numbers alone
+   still favour the 0.7-authority recipe; it was overridden on a fairness argument about which
+   controller's tuning point to respect. A reader who disagrees with that argument should read this
+   lesson's RL line as the 0.7-authority recipe instead — the sensitivity comparisons for that reading
+   already exist.
+4. **n = 22 throughout the validation pool** means single retention or difference-in-differences cells
+   carry roughly ±10–20 points of sampling noise; only the clearest signals (the lighter-drone overfit
+   cell) survive a bootstrap check.
+5. **The actual research question has not been run.** Everything above is validation-pool development
+   and screening, deliberately kept separate from the 15 study tracks so that no RL design decision
+   could leak into the tracks the real sweep reports on. The six-condition × λ-grid sweep, on the ten
+   study tracks no RL decision has touched, is the next step and is still open.
+6. **The gate-displacement finding is a first pass**, on the validation pool only, against the capped
+   MPC comparators, not yet against the study tracks or the full authority/uncapped pairing.
 
-**Result (2026-09-26).** By the pre-registered rule the verdict is *generalises* (2 overfit / 5 generalises / 1 mixed of 8
-cells): moving from the trained condition to the unseen one, v4 mostly loses no more than the MPC members do. Two cells are
-clear exceptions — upward force (v4 collapses to 8% by λ=0.75, right past its training limit, while payload holds 85%) and a
-lighter drone at λ=1 (v4 69% against ≥86% for both MPC members). A post-hoc bootstrap over the 22 tracks resolves only those
-two cells, and the count drops to "mixed" if the threshold were 15 points instead of the pre-registered 20. So: v4's
-robustness is bounded by its training range, and is not shown to be exam-specific elsewhere — with one seed and n=22.
-Absolute standing is unchanged: M1+L1 still beats v4 in raw completions under steady and stepped wind at high λ.
+---
 
-**Three seeds.** The same recipe trained with seeds 1 and 2 completes 13/22 and 6/22 validation tracks at λ=0 (seed 0: 13/22), so the
-RL result is a spread, not a single line, and is reported per seed. Held-out verdicts: seeds 0 and 1 generalise by the pre-registered
-rule, seed 2 is mixed (4 of 8 cells show the overfit signature). The lighter drone at λ=1 is an overfit cell in all three seeds; step wind
-and blackout transfer in all three. Seed 2 has only 6 viable tracks, so its numbers are noisy.
+## 🛠️ Before you move on
 
-## 2. Tracks, contacts, disturbances, calibration
+1. **Fly `gate_aware_v4` yourself.** `eval_pool.py --role val --m1 --member v4=robust:saved/gate_aware_v4/ckpt/datt_ppo_final.zip` and check your number against the pre-registered bar (§1) before reading further.
+2. **Read one held-out summary end to end.** `results/eval/val_heldout/summary.txt` (or any `val_heldout_*` sibling) has the raw table, the retention table, the difference-in-differences table and the tally. Recompute the verdict for one condition pair by hand from the raw retention numbers, and say in one sentence why the 20-point threshold, not 15, was the one fixed in advance.
+3. **Argue the other side of §4.** The lesson reports full authority as primary despite the numbers favouring 0.7-authority. Write the paragraph that would justify the opposite call — keeping 0.7-authority as primary because the rule said so — and say what would have to be true about M1's tuning for your paragraph to be the right one instead.
+4. **Design the missing control group.** §2 could not build one. Propose a design that would isolate "trained on matched ranges" from "learned generic robustness" without requiring the control policy to solve the exact same hard bootstrapping problem v4 did, and name the number that would tell you it worked before you spend the compute.
+5. **Predict the sweep.** Before it runs: on which of the six conditions do you expect the crossover to sit at the *lowest* λ, and on which study track geometry (if any) do you expect it to differ most from the validation-pool preview in this lesson? Write both down now, dated, so you can be wrong later on the record.
 
-*(the rest of this lesson is written as each phase's results land; see `METHODOLOGY.md` for the finished
-design of the track library, the contact model, the five disturbance conditions and their frozen ceilings,
-and the trial/grid protocol — all built and tested, none of it summarised here yet)*
+**Back to:** [Lesson 8 — Closing the gap](08-closing-the-gap.md)

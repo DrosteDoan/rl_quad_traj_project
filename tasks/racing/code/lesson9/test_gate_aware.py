@@ -470,6 +470,39 @@ def test_train_script_offers_the_force_only_contrast_group():
     assert a.group == "contrast_force" and a.dr_lam_max == 0.8
 
 
+def test_full_authority_group_differs_from_v4_only_in_the_tilt_scale():
+    from gate_aware_env import GateAwareFullAuthorityEnv
+    from crazy_track.controllers.utils import RPY_MAX
+    a = GateAwareTrackingEnv(num_envs=4, seed=0, v3=True, v5=True)
+    b = GateAwareFullAuthorityEnv(num_envs=4, seed=0, v3=True, v5=True)
+    act = np.ones((4, 4), dtype=np.float32)
+    ca, cb = a._denorm_action(act), b._denorm_action(act)
+    np.testing.assert_allclose(ca[:, 0, 0:2], 0.7 * RPY_MAX, rtol=1e-6)         # v4: the vendored 0.7 cap
+    np.testing.assert_allclose(cb[:, 0, 0:2], 1.0 * RPY_MAX, rtol=1e-6)         # full authority: the MPC family's bound
+    np.testing.assert_array_equal(ca[:, 0, 2:], cb[:, 0, 2:])                    # yaw and thrust unchanged
+    assert type(a).__mro__[1] is type(b).__mro__[1]                              # same gate-aware mixin
+    oa, ob = a.reset(), b.reset()
+    np.testing.assert_array_equal(np.asarray(oa[0] if isinstance(oa, tuple) else oa), np.asarray(ob[0] if isinstance(ob, tuple) else ob))
+    assert a.observation_space.shape == b.observation_space.shape
+
+
+def test_train_script_offers_the_full_authority_group_and_names_its_run():
+    import train_gate_aware as tga
+    a = tga.build_parser().parse_args(["--reason", "t", "--group", "robust_full", "--seed", "1"])
+    assert a.group == "robust_full" and a.seed == 1
+
+
+def test_train_script_resume_option_is_opt_in_and_keeps_the_fresh_path_unchanged():
+    import train_gate_aware as tga
+    a = tga.build_parser().parse_args(["--reason", "t", "--seed", "1"])
+    assert a.resume is None                                                         # default: a fresh run, as before
+    b = tga.build_parser().parse_args(["--reason", "t", "--seed", "1", "--resume", "x.zip", "--timesteps", "25000000"])
+    assert b.resume == "x.zip" and b.timesteps == 25_000_000
+    src = inspect.getsource(tga.main)
+    assert "env_seed = args.seed + (1000 if args.resume else 0)" in src            # fresh runs keep seed == args.seed
+    assert "reset_num_timesteps=not args.resume" in src
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in list(globals().items()):

@@ -81,6 +81,7 @@ import driver as drv  # noqa: E402
 from contrast_env import ContrastTrackingEnv  # noqa: E402
 from lighthouse_batch import LambdaLighthouseSensorBatch  # noqa: E402
 from robust_env import DR_LAM_MAX, FREQ, RobustTrackingEnv  # noqa: E402
+from full_authority_env import FullAuthorityTrackingEnv  # noqa: E402
 
 from crazy_track.trajectories.freestyle import RaceGate  # noqa: E402
 
@@ -258,6 +259,12 @@ class GateAwareMixin:
 class GateAwareTrackingEnv(GateAwareMixin, RobustTrackingEnv):
     """The matched-disturbance group: `RobustTrackingEnv` (0.7 rad, study-matched force/Lighthouse/mass ranges) with
     the gate-aware recipe. This is the recipe saved as `saved/gate_aware_v4/` (behaviourally identical to it, tested)."""
+
+
+class GateAwareFullAuthorityEnv(GateAwareMixin, FullAuthorityTrackingEnv):
+    """`GateAwareTrackingEnv` with roll/pitch authority 1.0 x RPY_MAX instead of 0.7 (the MPC family's own bound). The ONE
+    change against the saved v4 recipe; everything else (pool, contact/miss/floor termination, penalties, disturbance
+    training ranges) is identical. Evaluate ONLY through `robust_full:<ckpt>` -- `robust:<ckpt>` would apply 0.7."""
 
 
 class GateAwareContrastEnv(GateAwareMixin, ContrastTrackingEnv):

@@ -197,6 +197,21 @@ def test_lighthouse_is_deterministic_per_seed_and_task_resumes():
             float(rows[2]["race_time"]) if rows[2]["race_time"] else "")
 
 
+def test_gate_shift_scores_against_the_displaced_gates_and_leaves_the_plan_alone():
+    """At lam = 1 the controller still gets the nominal traj (same first actions), but the laps are scored on shifted gates."""
+    traj = dr.build_traj(TRACK)
+    nominal = [(g.pos, g.yaw) for g in traj.gates]
+    fl = dr.Flyer({"M1": dr.DEFAULT_MEMBERS["M1"]})
+    a = fl.fly("M1", traj, "wind_const", 0.0, 0, keep_path=True)
+    b = fl.fly("M1", traj, "gate_shift", 1.0, 0, keep_path=True)
+    assert [(g.pos, g.yaw) for g in traj.gates] == nominal, "the plan's gates are never displaced"
+    np.testing.assert_array_equal(a["_path"]["pos"][:100], b["_path"]["pos"][:100])       # same flight until a gate matters
+    true = kb.displace_gates(traj.gates, "gate_shift", 1.0, 0)
+    off = [g["offset"] for g in b["_path"]["gates"]]
+    exp = [g["offset"] for g in gate_crossing_metrics(b["_path"]["pos"], b["_path"]["t"], dr._TrueGates(traj, true))]
+    assert off == exp, "the row's gate metrics are the ones against the displaced gates"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in list(globals().items()):

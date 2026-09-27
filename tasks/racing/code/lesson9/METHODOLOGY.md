@@ -1,10 +1,12 @@
 # Lesson 9 methodology: learned vs model-based racing under graded disturbance
 
-Status (audited and updated 2026-09-25): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
+Status (audited and updated 2026-09-27): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
 driver and calibration are built and frozen. The RL recipe was rebuilt after the first open-space training rounds; the
 gate-aware recipe (section 5c) passed its pre-registered viability bar on validation tracks (robust group, seed 0,
 saved), the control (contrast) group was dropped as infeasible on 2026-09-25, held-out-condition tests are flown (section 5c), and the
-study sweep has not started. This file is the
+study sweep has not started. As of 2026-09-27 the REPORTED RL LINE is the full-authority recipe (25M steps, seeds 0-2, roll/pitch at
+1.0 x RPY_MAX, matching the MPC family's own bound) against the UNCAPPED MPC family; the original 0.7-authority recipe (16M steps) is
+the sensitivity line. This is a user-decided deviation from a pre-registered rule (section 5c) and is stated as such. This file is the
 reference for `tasks/racing/lessons/09-*.md`; when the two disagree, fix whichever is wrong and say why.
 
 ## 0. Where the study stands (2026-09-25; read this first)
@@ -33,9 +35,17 @@ cells), but with two clear exceptions, upward force beyond v4's training edge an
 "mixed" at a 15-point threshold; only those two cells are resolved by a (post hoc) bootstrap at n = 22. Read: RL robustness is bounded by
 its training range, not shown to be exam-specific elsewhere.
 
-**Three seeds (2026-09-26):** lambda-0 viability 13/22, 13/22, 6/22 (two of three pass the bar). Held-out verdicts: GENERALISES, GENERALISES,
-MIXED (seed 2: 4 overfit cells). The lighter drone at lambda = 1 is an overfit cell in all three seeds. RL results in the sweep are reported
-per seed; the spread is itself a finding (section 5c).
+**Three seeds, 0.7-authority recipe (2026-09-26):** lambda-0 viability 13/22, 13/22, 6/22 (two of three pass the bar). Held-out verdicts:
+GENERALISES, GENERALISES, MIXED (seed 2: 4 overfit cells). The lighter drone at lambda = 1 is an overfit cell in all three seeds. This
+recipe is now the SENSITIVITY line (see below); RL results in the sweep are reported per seed either way, and the spread is itself a finding.
+
+**Full authority is now the reported RL line (2026-09-27, user decision, a deviation from the pre-registered rule -- section 5c).**
+Roll/pitch authority equalised to the MPC family's own bound (1.0 x RPY_MAX instead of the vendored 0.7), 25M steps, seeds 0-2:
+lambda-0 viability 10/22, 2/22, 8/22 (mean 6.7, below the 0.7 line's mean of 10.7 -- WORSE on this number, kept as primary anyway because
+M1 was tuned at rp_max = 1.0 and capping it to 0.7 is the less faithful MPC comparison; the pre-registered rule said full authority should
+only become primary if not worse, and the user overrode it, reasoning that seed fa1 alone (2/22) drags the mean down and is not
+representative). Held-out verdicts against uncapped MPC: GENERALISES, MIXED, MIXED (fa1's cells rest on only 2 tracks and are noted as
+near-uninterpretable). The lighter drone at lambda = 1 is an overfit cell for fa0 and fa2, matching every RL run flown in this study.
 
 **Side threads:** held-out geometry is
 parked; the contrast group and its variants (force-only ablation, range-scaled control) are dropped.
@@ -1111,6 +1121,108 @@ What this does and does not say (my reading, stated with its limits):
   lambda transfer), and it DOES show v4's robustness is bounded by what it was trained on (force direction, mass direction). The
   binding limits are one v4 seed, imperfect analogues, and n = 22.
 
+**Roll/pitch equalisation (user decision 2026-09-26).** The RL policies cap roll/pitch at 0.7 x RPY_MAX (vendored convention); the MPC
+family optimised under rp_max = 1.0. Thrust bounds are identical (`THRUST_MIN/MAX`, both families). Decision: equalise on the MPC side rather
+than retrain RL (the full-authority RL retrain, seed 0 only, showed marginal improvement). Implemented as additive opt-in twins in
+`driver.py` (`RP_MAX_MEMBERS`: `M1@0.7`, `M1+L1@0.7`, ..., reachable only via `--only`, so nothing already flown changes). CORRECTION to the
+rationale "M1 completes all tracks under the 0.7 clip": that was checked on 3 tracks only; on the 22 val tracks M1@0.7 completes 21/22
+(contact on 300267) and M1+L1@0.7 20/22 (contact on 300522, 301702), mean RMSE 0.067/0.083 m, versus 22/22 uncapped. So the cap costs the
+MPC members 1-2 tracks at lambda = 0. All lambda-preview and held-out numbers above use the UNCAPPED MPC (rp_max = 1.0) and are therefore
+asymmetric on this axis; capped-MPC re-flights (`val_lambda_cap07`, `val_heldout_cap07_s0/s1/s2`) are the like-for-like version and, once flown, supersede
+the uncapped comparisons for the RL-vs-MPC ordering. (Not twinned: mppi_l1 has no spec-string rp_max.)
+
+**Gate displacement condition (`gate_shift`; built 2026-09-26, motivated by upstream's Lesson 9; pre-registered before any flight).**
+What moves: the TRUE gate poses used for contact and crossing tests (`knobs.displace_gates`, `driver.py`'s `_TrueGates`), per gate and per
+seed, at lsy_drone_racing's level-2 amplitudes reached at lambda = 1 (x, y +-0.15 m, z +-0.10 m, yaw +-0.20 rad; roll/pitch not modelled,
+`RaceGate` is yaw-only), same unit draw at every lambda and for every member (paired). What does not move: the plan, the reference, and
+everything a controller observes. Neither family senses gate poses (the RL observation is the reference preview plus state; the MPC follows
+the reference), so this measures how a nominal-plan follower fares when the gate is elsewhere, NOT reactive replanning, which upstream's
+gate-relative policy has and ours lack. It is a separate tuple (`GATE_CONDITIONS`), not in `HELD_OUT`, so the held-out analogue
+machinery is untouched; not calibrated; ceilings are upstream's, not `maxima.json`'s. Note our `RaceGate.HALF_OPENING` is 0.20 m
+(the drone-clear crossing rule), not the 0.101 m aperture upstream quotes, so a given displacement is less deadly here than in their
+Monte Carlo (34 % for a perfect nominal tracker). Flown as a preview on the 22 val tracks at lambda {0.25, 0.5, 0.75, 1.0}, 3 seeds,
+members s0/s1/s2 and the capped MPC twins `M1@0.7`, `M1+L1@0.7`. Expectation, recorded so it can be wrong: completions fall with lambda
+for every member, and the ordering follows tracking precision (M1 RMSE ~0.07 m vs RL ~0.2 m), i.e. MPC at or above RL at every lambda;
+NO crossover is expected because neither side can react. A surprise would be an RL seed ahead of both MPC members in retention by >= 20
+points at lambda >= 0.5; it would be reported as such and not explained away. Also expected: the effect is modest at lambda = 0.25.
+
+**Capped-MPC results (flown 2026-09-26; `results/eval/val_lambda_cap07/`, `val_heldout_cap07_s0/s1/s2/`; supersede the uncapped comparisons above for
+the equal-authority reading).** Lambda preview: capping costs M1+L1 most under steady forces (wind_const raw completions at lambda 0.5/0.75/1.0:
+22/22/18 uncapped -> 18/15/5 capped; s0: 13/10/5), so under steady wind at lambda >= 0.75 the RL seeds 0 and 1 are level with the best capped MPC member
+(retention at 0.75: s0 77 %, s1 62 %, M1+L1@0.7 70 %); payload and mass_mult orderings are unchanged (RL seed 0 still ahead on payload at 1.0, 11/13
+retained vs 10/20); lighthouse crossover holds (RL ahead from lambda ~0.75). Held-out DiD against the capped members: verdicts are now MIXED for all
+three seeds -- s0 3 overfit / 2 generalises / 3 mixed (was GENERALISES against uncapped MPC), s1 2/4/2 (was GENERALISES), s2 2/4/2 (unchanged, MIXED);
+`light` at lambda 1.0 is an overfit cell for all three seeds again (-53/-69/-138 vs M1@0.7), and `light` 0.5 for s1 and s2; s0 gains a `blackout` 0.5 overfit
+cell (-21/-20) and lift 1.0 stays overfit (-61/-35). Lift-edge signature unchanged (+69 s0, +46 s1, +0 s2). So the earlier "generalises" verdicts for s0/s1
+depended on comparing against MPC members whose own robustness was flattered by extra tilt authority: a DiD is a difference of drops, so weakening
+the MPC's analogue base shrinks the drop it can be compared against. Read: v4-type policies transfer to unseen step wind and most blackout, and do NOT
+transfer to a lighter drone (all seeds) or to upward force beyond the trained edge (s0, s1); the aggregate "generalises / mixed" label is sensitive to
+the MPC comparator, and the per-condition reading is the stable one. Same caveats: n = 22 (+-10), threshold-sensitive tallies, imperfect analogues.
+Not re-run: bootstrap intervals are in each `summary.txt`.
+
+**Gate displacement, first flights (`results/eval/val_gate_shift/`, 22 val tracks x 3 seeds; retention over each member's lambda-0 tracks, computed by hand
+because `preview_lambda.py`'s summary takes its base from wind_const only):** lambda 0.25/0.5/0.75/1.0 -- s0 95/64/41/28 %, s1 92/59/38/13, s2 89/61/22/6,
+M1@0.7 92/81/38/16, M1+L1@0.7 98/85/45/23. All members fall steeply with lambda and the families overlap: MPC is ahead at 0.5 (81-85 vs 59-64), the
+ordering is within noise at 0.75-1.0 (s0 28 % against MPC 16-23 % is a difference of 4-5 laps in ~40, well inside sampling error). Against my pre-registered
+expectation: "MPC at or above RL at every lambda" is NOT cleanly borne out at lambda = 1 (s0 nominally ahead), and the pre-registered surprise (an RL seed ahead
+of BOTH MPC members by >= 20 points at lambda >= 0.5) did NOT occur, so no crossover is reported; the honest reading is "no separation" -- the outcome is set
+by geometry (whether the plan's line still clears the moved gate), not by controller family, which is what neither-family-senses-the-gate predicts.
+
+**Full-authority RL (user decision 2026-09-26: "we can afford full-authority, unless its results are comparatively worse than without";
+rule written before any full-authority run).** `train_gate_aware.py --group robust_full` trains the saved v4 recipe with roll/pitch authority
+1.0 x RPY_MAX instead of 0.7 (`GateAwareFullAuthorityEnv`; the ONE difference, tested), seeds 0, 1, 2, 16M steps each, evaluated only through
+`robust_full:<ckpt>`. Purpose: an equal-authority RL-vs-MPC comparison at the MPC's own bound (rp_max = 1.0), the counterpart of the capped-MPC
+twins. Decision rule, lambda = 0 on the 22 val tracks, final checkpoints: full authority is "comparatively worse" if its 3-seed MEAN
+completions fall below the 0.7 line's mean (13, 13, 6 -> 10.7 of 22) by 4 or more tracks (the seed spread alone is sd ~4, so 4 is about
+one sd of a 3-seed-mean difference). If NOT worse it becomes the RL line for the uncapped-MPC comparison, and the 0.7 line keeps the
+capped-MPC comparison; both are then reported. If worse, the 0.7 line stays the RL headline and full authority is a reported sensitivity
+only. Either way the lambda preview and held-out flights are run for it too, and all three seeds are reported (no seed dropped).
+Full-authority seeds 0 and 1 (trained 2026-09-26, 16M steps, run dirs `*racing-gate-aware-fa-s0/s1`; seed 2 NOT yet trained): val, lambda = 0, final
+checkpoints, `robust_full:` (`results/eval/val_fa/`): seed 0 11/22 (68/88 gates), seed 1 5/22 (46/88), mean RMSE 0.21 m for both. Two-seed mean 8.0 against the rule's
+threshold 6.7 (0.7 line's mean 10.7 minus 4): not worse so far, but the rule needs three seeds and this is inconclusive. Seed spread again ~6 tracks (0.7 line:
+13, 13, 6). Training side: seed 1 lagged seed 0 in onset (first reached 0.25 smoothed gates/episode at 3.8M vs 2.5M steps; the 0.7 runs spanned 1.8-2.6M) and
+finished lower (1.88 vs 2.34 gates/episode over the last 2M steps; episode length 399 vs 491), matching the validation order. Policy std followed nearly the same
+schedule in both (0.82 -> 0.16 vs 0.78 -> 0.17) although their progress differed; hypothesis (untested): std shrinks with steps almost independent of progress, so a
+run that starts learning later has less exploration left for the hard part (gates 3-4) and freezes at a weaker policy.
+**Full-authority training extended to 25M steps (user decision 2026-09-26; full authority is the intended primary RL line, subject to the rule above).** Made after seeing that
+full-authority seed 1 was still improving at 16M, and applied to all full-authority seeds alike: seeds 0 and 1 continue from their 16M checkpoints (`train_gate_aware.py --resume`,
+a new run directory, environment stream re-seeded, so a continuation in distribution and not bit-identical to one uninterrupted run), and seed 2 is trained straight to 25M
+(its 16M checkpoint is kept). The 0.7 line is NOT extended: it stays at 16M as the sensitivity line (capped-MPC comparisons already flown), and its budget is labelled 16M
+wherever it is compared with a 25M full-authority result. The 16M full-authority results above stay on record.
+
+CORRECTION and first look at the extension (2026-09-26, extension runs at 16-20M of 25M): full-authority seed 1 is not collapsing, but my earlier reading that it was "budget-limited
+and still climbing" is not supported: over 16-19.9M it is flat at about 1.97 gates/episode (episode length ~410; seed 0 flat at ~2.4, length ~500). Validation failure modes at
+16M (all are gate-frame contacts, none are misses): full-authority seed 0 fails mostly at gate 3 (7 of 11 failures) and seed 1 mostly at gate 2 (9 of 17); the 0.7 seeds are spread over gates 2-4.
+So seed 1 stalls one gate earlier. Not yet explained; a hypothesis is a hard gate-2 approach geometry it never masters, which the per-track failure list could test.
+**Full-authority RESULT at 25M (flown 2026-09-27; `results/eval/val_lambda_fa25/`, `val_heldout_fa25_s0/s1/s2`), against the UNCAPPED MPC (M1, M1+L1).**
+Val, lambda = 0: fa0 10/22, fa1 2/22 (WORSE than its own 16M reading of 5/22), fa2 8/22. Three-seed mean 6.7, exactly at the pre-registered rule's threshold
+(0.7 line's 16M mean 10.7 minus 4). Without fa1, fa0+fa2's mean is 9.0, close to the 0.7 line's 10.7; the 6.7 three-seed mean is fa1 alone pulling it down.
+fa1 in particular did not recover with more steps -- see the training-curve entry above (flat at ~1.97 gates/episode from ~17M to 20M) -- and its held-out
+base of 2 completed tracks makes its held-out cells very high-variance (n = 2). Held-out verdicts (pre-registered rule): fa0 GENERALISES (1 overfit / 6
+generalises / 1 mixed -- the best-looking of the three, but note `lift` 1.0 is still an overfit cell, matching every other RL run so far); fa1 MIXED (1/3/4,
+driven mostly by mixed cells at n=2, not resolvable); fa2 MIXED (1/4/3). `light` at lambda = 1.0 is again an OVERFIT SIGNATURE for fa0 and fa2 (fa1's light
+retention is 0/2 at every lambda > 0, uninterpretable at n = 2). Lambda preview: fa0 and fa2 track roughly like the 0.7 seeds (payload retention 80-100 %
+through lambda = 1.0; lighthouse crossover present, fa0/fa2 ahead of both MPC members from lambda ~= 0.5); fa1 is dominated by its tiny base throughout.
+
+**DEVIATION FROM THE PRE-REGISTERED RULE (user decision 2026-09-27).** The rule above said full authority stays the reported RL line only if its 3-seed mean
+is not >= 4 tracks below the 0.7 line's; at 6.7 vs 10.7 that is a bare tie, read at the time as "not passing." The user then overrode the rule: "pre-registered
+rule was built on a whim anyways; we can disregard that if conditions allow us to do so. and the full authority seeds were only dragged down by seed 1, which
+is not representative of it being comparatively worse." Decision: FULL AUTHORITY (25M, fa0/fa1/fa2, against uncapped M1/M1+L1) is now the reported RL line for
+the study; the 0.7 line (16M) becomes the sensitivity line. Recorded as a deviation, not folded in silently: the switch is justified on principle (M1 was
+tuned at rp_max = 1.0; capping it to 0.7 runs it outside its designed operating point, so full authority is the fairer comparison for MPC) rather than because
+it produces a better-looking RL number -- on the numbers alone it is the WORSE line (6.7 vs 10.7 mean completions at lambda = 0), and that stays true and stays
+reported. fa1 (2/22, and the weakest seed of any RL run so far, capped or full-authority) is NOT dropped or renumbered; it is part of the reported RL line's
+seed spread, and its being an outlier is the user's stated reasoning for overriding the rule, not a reason to exclude it. No new seed was trained to replace
+it (the user declined a fourth seed on 2026-09-27, citing compute cost). Practical effect: every uncapped-MPC comparison below (lambda preview, held-out,
+gate_shift where flown against uncapped MPC) now reads as the study's primary RL result; the 0.7-line versions of the same comparisons are the sensitivity.
+Confound check on smoothness weighting (2026-09-26, by reading the code; nothing run): our env has NO action-difference term and no last-action state or
+observation. The only action term is the vendored `-0.02 * ||action[:, 0:2]||`, a MAGNITUDE penalty on roll/pitch computed from the raw NORMALIZED policy output
+(the argument of `step`, before `_denorm_action`), identical in `GateAwareTrackingEnv` and `GateAwareFullAuthorityEnv` (only `_denorm_action` differs). So authority
+does not change the penalty's weight in policy space. One residual: in physical terms it is 30 % cheaper per radian at 1.0 (the same tilt needs 0.7x the normalized
+action); its size is <= 0.028 per step against a tracking term of at most 1, so I expect it to be negligible but I have not measured it.
+Caveat to state with the result: seed-to-seed spread is as large as any plausible authority effect, so a small gap in either direction is
+not evidence.
+
 **Seeds 1 and 2 (trained 2026-09-25 with the identical recipe, `--seed 1/2`, 16M steps each; flown 2026-09-26).** Validation, lambda = 0,
 final checkpoints, deterministic: seed 0 (v4) 13/22 (68/88 gates), seed 1 13/22 (67/88), seed 2 6/22 (55/88). Against the
 pre-registered bar (>= 11/22): seeds 0 and 1 pass, seed 2 is in the "no change" band (<= 6). Completed-track overlap: 11 shared by seeds 0 and 1,
@@ -1200,6 +1312,23 @@ checkpoint hash matches). Restore with `tar xzf <archive> -C <repo root>`. The s
 (`gen_tracks.py` for study/dev, `gen_pool.py` for train/val); every candidate's verdict and reason is in the tracked manifests. After
 the prune all 151 remaining plans load (151 trajectories built), `test_track_lib` (3) and `test_gate_aware` (32) pass. The backup
 is a second copy on the same disk, not off-site.
+
+Housekeeping (2026-09-27, user-confirmed before deletion). Two prunes: (1) training checkpoints -- every gate-aware/full-authority
+run's `ckpt/` directory is reduced to only the checkpoint at (or nearest) 16M steps and the final model (`datt_ppo_final.zip`); the
+two 16M-to-25M extension runs (`*fa-ext25-s0/s1`) keep only their final (25M) checkpoint, since their 16M state already exists
+as a full checkpoint in the pre-extension run directories they resumed from. This removes the 2/4/6/8/10/12/14/18/20/22/24M
+intermediate saves; nothing already reported depends on their raw bytes (the one exception, v4's 4/8/12M evaluation curve, is
+already captured as CSVs in `results/eval/val_v4_curve/`). (2) Scripts: `train_robust.py`, `train_contrast.py` and
+`train_full_authority.py` -- the pre-gate-aware standalone trainers -- are deleted; every reported checkpoint in this study
+(0.7-authority and full-authority alike) came from `train_gate_aware.py` instead. `test_train_scripts_cli.py` was rewritten to
+test `train_gate_aware.py`'s corrected-defaults and minibatch-structure invariants (the two checks in it that actually bear on
+the kept models) rather than the deleted scripts; one CLI test in `test_full_authority.py` that exercised `train_full_authority.py`
+was removed, and stale docstring references to the three deleted files (`contrast_env.py`, `robust_env.py`, `full_authority_env.py`,
+`train_gate_aware.py`, `test_contrast_env.py`, `test_robust_env.py`, `driver.py`) were reworded to point at `train_gate_aware.py`'s
+`--group` instead. The env classes these scripts operated on directly (`RobustTrackingEnv`, `ContrastTrackingEnv`,
+`FullAuthorityTrackingEnv`) are NOT touched -- they remain the base classes `gate_aware_env.py` mixes the gate logic into, and
+their own tests (`test_robust_env.py`, `test_contrast_env.py`, most of `test_full_authority.py`) stay. Full suite re-run after
+(all 10 test files, container): 95 passed, 0 failed.
 
 ## 10. Limitations to state in Lesson 9
 

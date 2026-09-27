@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE))
 from launcher import launch  # noqa: E402
 
 CONDS = ("wind_const", "payload", "wind_gust", "lighthouse", "mass_mult", "combined")
-STOCHASTIC = ("wind_gust", "lighthouse", "combined")
+STOCHASTIC = ("wind_gust", "lighthouse", "combined", "gate_shift")
 LAMS = [0.25, 0.5, 0.75, 1.0]
 
 
@@ -98,9 +98,13 @@ def main() -> None:
     ap.add_argument("--tag", default="val_lambda")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--summary-only", action="store_true")
+    ap.add_argument("--conds", default=None, help="comma-separated conditions instead of the six (e.g. gate_shift)")
     ap.add_argument("--paired-rmse", default=None, metavar="LABEL",
                     help="also print paired tracking RMSE of this member against every other member (completed laps only)")
     args = ap.parse_args()
+    if args.conds:
+        global CONDS
+        CONDS = tuple(args.conds.split(","))
 
     members = dict(m.split("=", 1) for m in args.member)
     labels = list(members) + [x for x in args.only.split(",") if x]
@@ -108,7 +112,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     if not args.summary_only:
         seeds = sorted(int(p.stem.split("_")[1]) for p in (HERE / "tracks" / "val").glob("track_*.json"))
-        tasks = [{"role": "val", "track": s, "cond": c, "lams": ([0.0] if c == "wind_const" else []) + LAMS,
+        tasks = [{"role": "val", "track": s, "cond": c, "lams": ([0.0] if c == ("wind_const" if "wind_const" in CONDS else CONDS[0]) else []) + LAMS,
                   "seeds": 3 if c in STOCHASTIC else 1, "members": members, "only": ",".join(labels),
                   "out": out_dir / f"laps_val_{s:06d}_{c}.csv"} for s in seeds for c in CONDS]
         print(f"{len(tasks)} tasks ({len(seeds)} tracks x {len(CONDS)} conditions), members {labels}", flush=True)

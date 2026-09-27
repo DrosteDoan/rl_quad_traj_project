@@ -19,7 +19,7 @@ policy's own L1 estimator (in `robust_policy.py`) is integrated at the SAME rate
 no more info at https://knobs.py than the frozen scales, and no plumbing beyond what `freq` already threads
 through `DATTTrackingEnv.__init__` (the L1 estimator's dt, the Lighthouse control_freq, `n_substeps`).
 
-NOT yet used to train anything -- see `train_robust.py`'s module docstring.
+Trained via `train_gate_aware.py --group robust` (through `GateAwareTrackingEnv`, `gate_aware_env.py`) -- the recipe behind every reported RL checkpoint.
 """
 
 from __future__ import annotations

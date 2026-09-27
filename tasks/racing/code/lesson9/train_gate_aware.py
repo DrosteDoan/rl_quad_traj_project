@@ -37,7 +37,7 @@ trained on ranges matched to the same ceilings the study measures against, so it
 told apart from "trained on the exam"; the contrast group is what can (METHODOLOGY.md section 5b). Judge both on the
 `val` pool, not on study tracks (limitation 15).
 
-What differs from `train_robust.py` (`GateAwareTrackingEnv`, `gate_aware_env.py`):
+What `GateAwareTrackingEnv` (`gate_aware_env.py`) adds on top of `RobustTrackingEnv`:
   * references are the pool tracks flown from a real ground start, 100% of episodes, drawn uniformly per episode;
   * `step()` ends the episode on gate-frame contact (`contact.py`'s exact box test), on a missed gate
     (`driver.py`'s rule), or on floor/gross divergence (`pos[:, 2] < -0.3`, eval's check, not the vendored 0.05);
@@ -61,7 +61,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gate_aware_env import (DEV_SEEDS, EPISODE_TIME, FLOOR_PENALTY, FLOOR_Z, GATE_PENALTY, POOL_SPEC,  # noqa: E402
-                            GateAwareContrastEnv, GateAwareForceContrastEnv, GateAwareTrackingEnv, summarise_gate_stats)
+                            GateAwareContrastEnv, GateAwareForceContrastEnv, GateAwareFullAuthorityEnv, GateAwareTrackingEnv, summarise_gate_stats)
 from robust_env import DR_LAM_MAX, FORCE_XY_MAX, FORCE_Z_HI, FORCE_Z_LO, FREQ, WINDOW_DT  # noqa: E402
 
 from crazy_track.eval.runlog import RunLogger  # noqa: E402
@@ -74,11 +74,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--ckpt-every", type=int, default=2_000_000,
                    help="save ckpt/ppo_<steps>_steps.zip every this many env steps (0 = off)")
     p.add_argument("--n-envs", type=int, default=16)
-    p.add_argument("--group", choices=["robust", "contrast", "contrast_force"], default="robust",
+    p.add_argument("--group", choices=["robust", "robust_full", "contrast", "contrast_force"], default="robust",
                    help="which disturbance training the gate-aware recipe sits on (see the module docstring)")
     p.add_argument("--seed", type=int, default=0, choices=[0, 1, 2],
                    help="the study's three seeds per group; seed 0 of `robust` is the saved v4 run")
     p.add_argument("--reason", required=True)
+    p.add_argument("--resume", default=None, metavar="ZIP",
+                   help="continue training from this saved PPO model (policy, value and optimizer state) up to --timesteps TOTAL steps. "
+                        "The new run gets its own directory; the source run is untouched. The environment stream is re-seeded "
+                        "(seed + 1000) so it does not replay the first steps of the original run, so this is a continuation "
+                        "in distribution, NOT bit-identical to one uninterrupted longer run.")
     p.add_argument("--dr-lam-max", type=float, default=DR_LAM_MAX)
     p.add_argument("--no-perturb", action="store_true")
     p.add_argument("--gamma", type=float, default=0.99)
@@ -104,11 +109,12 @@ def main() -> None:
     from monitored_adapter import MonitoredSB3Adapter
 
     tag = args.tag or {"robust": "racing-gate-aware-train", "contrast": "racing-gate-aware-contrast-train",
-                       "contrast_force": "racing-gate-aware-contrast-force-train"}[args.group]
+                       "contrast_force": "racing-gate-aware-contrast-force-train",
+                       "robust_full": "racing-gate-aware-full-authority-train"}[args.group]
     log = RunLogger(tag=tag, reason=args.reason,
                     config={**vars(args), "floor_z": FLOOR_Z, "gate_penalty": GATE_PENALTY, "floor_penalty": FLOOR_PENALTY,
                             "recipe": "racing-gate-aware-v4-pool" + {"robust": "", "contrast": "-contrast",
-                                                          "contrast_force": "-contrast-force"}[args.group],
+                                                          "contrast_force": "-contrast-force", "robust_full": "-full-authority"}[args.group],
                             "group": args.group, "episode_time": EPISODE_TIME,
                             "pool_size": len(POOL_SPEC), "pool_train_seeds": [x for r, x in POOL_SPEC if r == "train"],
                             "freq": FREQ, "window_dt": WINDOW_DT,
@@ -116,22 +122,31 @@ def main() -> None:
     print(f"Logging to {log.dir}", flush=True)
     print(f"track pool: {len(POOL_SPEC)} tracks ({len(DEV_SEEDS)} dev + {len(POOL_SPEC) - len(DEV_SEEDS)} train), "
           f"episode_time {EPISODE_TIME} s", flush=True)
-    if args.group == "robust":
-        raw_env = GateAwareTrackingEnv(num_envs=args.n_envs, seed=args.seed, v3=True, v5=True,
-                                       perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max)
+    env_seed = args.seed + (1000 if args.resume else 0)
+    if args.group in ("robust", "robust_full"):
+        env_cls = GateAwareTrackingEnv if args.group == "robust" else GateAwareFullAuthorityEnv
+        raw_env = env_cls(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
+                       perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max)
     elif args.group == "contrast_force":
-        raw_env = GateAwareForceContrastEnv(num_envs=args.n_envs, seed=args.seed, v3=True, v5=True,
+        raw_env = GateAwareForceContrastEnv(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
                                             perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max)
     else:
-        raw_env = GateAwareContrastEnv(num_envs=args.n_envs, seed=args.seed, v3=True, v5=True,
+        raw_env = GateAwareContrastEnv(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
                                        perturb=not args.no_perturb)
     env = MonitoredSB3Adapter(raw_env)
     print(f"obs dim: {env.env.single_observation_space.shape} (must be 56: the v5 layout, unchanged)", flush=True)
-    model = PPO(
-        AsymmetricPolicy, env, verbose=1, seed=args.seed,
-        n_steps=args.n_steps, batch_size=args.batch_size, learning_rate=3e-4, gamma=args.gamma,
-        tensorboard_log=str(log.dir / "tb"),
-    )
+    if args.resume:
+        model = PPO.load(args.resume, env=env, tensorboard_log=str(log.dir / "tb"))
+        model.set_random_seed(env_seed)
+        print(f"resumed from {args.resume} at {model.num_timesteps:,} steps; training to {args.timesteps:,}", flush=True)
+        if model.num_timesteps >= args.timesteps:
+            raise SystemExit(f"--timesteps ({args.timesteps:,}) must exceed the checkpoint's {model.num_timesteps:,} steps")
+    else:
+        model = PPO(
+            AsymmetricPolicy, env, verbose=1, seed=args.seed,
+            n_steps=args.n_steps, batch_size=args.batch_size, learning_rate=3e-4, gamma=args.gamma,
+            tensorboard_log=str(log.dir / "tb"),
+        )
 
     class GateStatsCallback(BaseCallback):
         """Writes the env's per-rollout `gate/*` summary to tensorboard (see `summarise_gate_stats`)."""
@@ -153,7 +168,8 @@ def main() -> None:
     if args.ckpt_every > 0:
         callbacks.append(CheckpointCallback(save_freq=max(args.ckpt_every // args.n_envs, 1),
                                             save_path=str(log.dir / "ckpt"), name_prefix="ppo"))
-    model.learn(total_timesteps=args.timesteps, progress_bar=False, callback=callbacks)
+    remaining = args.timesteps - model.num_timesteps if args.resume else args.timesteps
+    model.learn(total_timesteps=remaining, progress_bar=False, callback=callbacks, reset_num_timesteps=not args.resume)
     model.save(log.dir / "datt_ppo_final")
     print(f"Saved model to {log.dir / 'datt_ppo_final.zip'}", flush=True)
 
