@@ -88,7 +88,20 @@ COARSE_LAMS = [round(i / 10, 1) for i in range(11)]     # 0.0, 0.1, ..., 1.0
 STOCHASTIC_SEEDS = 25
 DET_CHECK_TRACK_LAM = 0.5                # the one cell the determinism phase repeats
 DET_CHECK_SEEDS = 2
+SHOW_FAMILY_LINES = False   # the S7 best-of/median-of overlay; OFF for now, user request 2026-09-27
 MPC_LABELS = tuple(drv.DEFAULT_MEMBERS)   # M1, M1+ESO, M1+L1, M1+mass, mppi_l1
+
+# Chart colors (found 2026-10-01: `plt.cm.autumn(linspace(0.15, 0.75, 5))` packed the 5 MPC members into a
+# ~36 degree hue sliver -- autumn only varies its green channel, so samples that close together read as
+# near-identical to the eye, worse under red-green color-blindness. Hand-picked instead and checked with a
+# CVD delta-E simulation (Machado-Oliveira-Fernandes 2009, OKLab): worst pair among all 5*4/2 = 10 warm pairs
+# is deltaE 10.1 (deutan) / 15.2 (normal vision), both clear of the usual 8.0 / 15.0 safety floors even
+# under the strict "any two can be neighbors" pairlist. MPC_LINESTYLES is a second, color-independent cue
+# for the same 5 -- useful in grayscale/print and belt-and-suspenders for anyone still finding two hues
+# close by eye.
+MPC_COLORS = ("#7c4403", "#bd285a", "#e06c92", "#93821f", "#cfb317")
+MPC_LINESTYLES = ("-", "--", "-.", ":", (0, (3, 1, 1, 1)))
+RL_COLORS = ("#125aa1", "#5ec1ed", "#bb51fb")
 
 
 def untouched_study_tracks() -> list[int]:
@@ -183,7 +196,7 @@ def cell_tasks(track: int, cond: str, lams: list[float], rl_members: dict[str, s
                         "members": rl_members, "only": ",".join(reg), "out": out})
     if esc:
         batch2.append({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": 3,
-                        "members": rl_members, "only": ",".join(esc), "out": out})
+                        "members": rl_members, "only": ",".join(esc), "out": out, "full_seeds_at_zero": True})
     return batch1, batch2
 
 
@@ -321,37 +334,39 @@ def _render(ax_title: str, out_png: Path, csv_path: Path, stat: Stat,
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(6, 5))
-    warm = plt.cm.autumn(np.linspace(0.15, 0.75, len(mpc_labels)))
-    cool = plt.cm.winter(np.linspace(0.15, 0.75, len(rl_labels)))
-    all_x: list[float] = []
-    for lab, colour in zip(mpc_labels + rl_labels, np.concatenate([warm, cool]) if len(mpc_labels + rl_labels) else []):
-        x, y = _mean_series(csv_path, lab, stat)
-        if not x:
+    colors = MPC_COLORS[:len(mpc_labels)] + RL_COLORS[:len(rl_labels)]
+    styles = MPC_LINESTYLES[:len(mpc_labels)] + ("-",) * len(rl_labels)
+    all_y: list[float] = []
+    for lab, colour, style in zip(mpc_labels + rl_labels, colors, styles):
+        lams, vals = _mean_series(csv_path, lab, stat)
+        if not lams:
             continue
-        ax.plot(y, x, color=colour, lw=1, alpha=0.8, label=lab)
-        all_x += y
+        ax.plot(lams, vals, color=colour, ls=style, lw=1.6, alpha=0.9, label=lab)
+        all_y += vals
         if stat.key != "completion":   # S6: continuous stats get a band; completion never does (S6a)
             _, lo, hi = _band_series(csv_path, lab, stat)
-            ax.fill_betweenx(x, lo, hi, color=colour, alpha=0.12, lw=0)
-            all_x += lo + hi
-    best_label = "best" if stat.higher_is_better else "best (lowest)"
-    x, y = _family_series(csv_path, mpc_labels, "best", stat)
-    if x:
-        ax.plot(y, x, color="firebrick", lw=2.5, label=f"MPC {best_label} (primary)"); all_x += y
-    x, y = _family_series(csv_path, rl_labels, "best", stat)
-    if x:
-        ax.plot(y, x, color="navy", lw=2.5, label=f"RL {best_label} (primary)"); all_x += y
-    x, y = _family_series(csv_path, rl_labels, "median", stat)
-    if x:
-        ax.plot(y, x, color="navy", lw=2.5, ls="--", label="RL median (sensitivity)"); all_x += y
-    ax.set_xlabel(stat.unit)
-    ax.set_ylabel("lambda")
+            ax.fill_between(lams, lo, hi, color=colour, alpha=0.12, lw=0)
+            all_y += lo + hi
+    if SHOW_FAMILY_LINES:   # OFF for now (user request 2026-09-27: "just a look at the raw controller
+                            # statistics") -- flip back to True to restore the S7 best-of/median-of overlay
+        best_label = "best" if stat.higher_is_better else "best (lowest)"
+        lams, vals = _family_series(csv_path, mpc_labels, "best", stat)
+        if lams:
+            ax.plot(lams, vals, color="firebrick", lw=2.5, label=f"MPC {best_label} (primary)"); all_y += vals
+        lams, vals = _family_series(csv_path, rl_labels, "best", stat)
+        if lams:
+            ax.plot(lams, vals, color="navy", lw=2.5, label=f"RL {best_label} (primary)"); all_y += vals
+        lams, vals = _family_series(csv_path, rl_labels, "median", stat)
+        if lams:
+            ax.plot(lams, vals, color="navy", lw=2.5, ls="--", label="RL median (sensitivity)"); all_y += vals
+    ax.set_xlabel("lambda")
+    ax.set_ylabel(stat.unit)
+    ax.set_xlim(-0.02, 1.02)
     if stat.key == "completion":
-        ax.set_xlim(-2, 102)
-    elif all_x:
-        pad = 0.05 * (max(all_x) - min(all_x) + 1e-9)
-        ax.set_xlim(min(all_x) - pad, max(all_x) + pad)
-    ax.set_ylim(-0.02, 1.02)
+        ax.set_ylim(-2, 102)
+    elif all_y:
+        pad = 0.05 * (max(all_y) - min(all_y) + 1e-9)
+        ax.set_ylim(min(all_y) - pad, max(all_y) + pad)
     ax.set_title(ax_title)
     ax.legend(fontsize=7, loc="best")
     fig.tight_layout()

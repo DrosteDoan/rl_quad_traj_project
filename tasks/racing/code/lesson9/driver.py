@@ -272,7 +272,7 @@ def _existing(path: Path) -> set:
 
 def run_task(role: str, track_seed: int, cond: str, lams: list[float], seeds: list[int], members: dict[str, str],
              out: Path | None = None, hold: float = HOLD, flyer: Flyer | None = None, verbose: bool = True,
-             stretch_mult: float = 1.0) -> Path:
+             stretch_mult: float = 1.0, full_seeds_at_zero: bool = False) -> Path:
     track = level2_track() if role == "level2" else load_track(role, track_seed)
     track = {**track, "stretch": float(track["stretch"]) * float(stretch_mult)}    # 1.0 = the plan as generated
     traj = build_traj(track, hold)
@@ -286,7 +286,15 @@ def run_task(role: str, track_seed: int, cond: str, lams: list[float], seeds: li
         if new_file:
             w.writeheader()
         for lam in lams:
-            for seed in ([0] if lam == 0 else seeds):                # lam = 0 is deterministic: one run
+            # lam = 0 is deterministic for the EXTERNAL disturbance (kb.make_conditions returns (None, None)
+            # there), so one run is normally enough -- but an internally-sampling member (mppi_l1) still varies
+            # seed to seed regardless of external disturbance, which is exactly why study_sweep.py's escalation
+            # exists (see its own module docstring: "even at lambda = 0 ... can show seed-to-seed variance from
+            # its own internal randomness"). Found 2026-09-30: that escalation was being silently collapsed back
+            # to 1 seed at lam=0 by this same shortcut, since it has no notion of "which members are escalated" --
+            # `full_seeds_at_zero` is the opt-in override the escalated call path now sets; every other caller of
+            # run_task/driver.py is unaffected (default False, unchanged behavior).
+            for seed in (seeds if full_seeds_at_zero else ([0] if lam == 0 else seeds)):
                 for label in members:
                     if (round(lam, 4), seed, label) in done:
                         continue
@@ -316,6 +324,12 @@ def main() -> None:
                     help="override the disturbance ceilings (units of Lesson 7's value), e.g. wind_const=8; calibration")
     ap.add_argument("--stretch-mult", type=float, default=1.0,
                     help="multiply the track's time-stretch (same path, slower: less thrust demand); experiments only")
+    ap.add_argument("--full-seeds-at-zero", action="store_true",
+                    help="fly the full --seeds count even at lambda=0, instead of collapsing to one run. Opt-in, "
+                         "default off (every existing caller is unaffected) -- for a member whose OWN behaviour is "
+                         "stochastic regardless of external disturbance (e.g. mppi_l1's internal sampling), the "
+                         "usual lambda=0 shortcut silently throws away the seed variance study_sweep.py's "
+                         "escalation exists to capture (found 2026-09-30).")
     ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args()
     if args.scales:
@@ -328,7 +342,8 @@ def main() -> None:
         members = {**members, **RP_MAX_MEMBERS}   # the capped twins are reachable ONLY by naming them in --only
         members = {k: v for k, v in members.items() if k in args.only.split(",")}
     out = run_task(args.role, args.track, args.cond, [float(x) for x in args.lams.split(",")],
-                   list(range(args.seeds)), members, args.out, stretch_mult=args.stretch_mult)
+                   list(range(args.seeds)), members, args.out, stretch_mult=args.stretch_mult,
+                   full_seeds_at_zero=args.full_seeds_at_zero)
     print(f"rows in {out}")
 
 

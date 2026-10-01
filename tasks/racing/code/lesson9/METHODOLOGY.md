@@ -52,8 +52,9 @@ without re-flying anything. *(section 7)*
 folder, holding that (track, condition) cell's raw per-lap CSV(s) (S5's stored rows, every member and
 seed) and its rendered chart together. Rendering: matplotlib, `MPLBACKEND=Agg` (the existing convention,
 `gen_tracks.py`, `launcher.py`), so it runs headless inside the container the same way every other batch
-job in this file does. Axes: **x = the measurement statistic (e.g. completion rate, in percent), y =
-lambda intensity** (this order is deliberate, not the more usual reverse). The main comparison chart
+job in this file does. Axes: **x = lambda intensity, y = the measurement statistic (e.g. completion rate,
+in percent)** (REVERSED 2026-09-27 from the original x/y choice -- "so hard to look at with lambda being
+the y axis" -- this is the ordinary way round; nothing else about the chart spec changes). The main comparison chart
 carries the 8 members of S2; the sensitivity chart carries the 0.7-authority seeds, alone -- both live in
 the same condition mini-folder. A line's value at a given lambda is the MEAN over that cell's trials
 (S4). A CONTINUOUS statistic's line (RMSE, lap time, max deviation) also carries a shaded band, the raw
@@ -122,14 +123,22 @@ trial counts, an estimated ~27 hours on 8 workers before midpoints -- a real mul
 
 ---
 
-Status (audited and updated 2026-09-27): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
+Status (audited and updated 2026-10-01): design agreed 2026-09-21. Tracks, the contact model, the disturbance knobs, the
 driver and calibration are built and frozen. The RL recipe was rebuilt after the first open-space training rounds; the
 gate-aware recipe (section 5c) passed its pre-registered viability bar on validation tracks (robust group, seed 0,
-saved), the control (contrast) group was dropped as infeasible on 2026-09-25, held-out-condition tests are flown (section 5c), and the
-study sweep has not started. As of 2026-09-27 the REPORTED RL LINE is the full-authority recipe (25M steps, seeds 0-2, roll/pitch at
-1.0 x RPY_MAX, matching the MPC family's own bound) against the UNCAPPED MPC family; the original 0.7-authority recipe (16M steps) is
-the sensitivity line. This is a user-decided deviation from a pre-registered rule (section 5c) and is stated as such. This file is the
-reference for `tasks/racing/lessons/09-*.md`; when the two disagree, fix whichever is wrong and say why.
+saved), the control (contrast) group was dropped as infeasible on 2026-09-25, held-out-condition tests are flown (section 5c). As of 2026-09-27 the REPORTED
+RL LINE is the full-authority recipe (seeds 0-2, roll/pitch at 1.0 x RPY_MAX, matching the MPC family's own bound) against the UNCAPPED MPC
+family; the original 0.7-authority recipe (16M steps) is the sensitivity line. This is a user-decided deviation from a pre-registered rule
+(section 5c) and is stated as such. **CORRECTION 2026-09-29 (section 5c): the full-authority PRIMARY checkpoint is now each seed's 16M
+save, not 25M -- the 25M extension made every seed worse, not just fa1 (mean completions 9.0/22 at 16M vs 6.7/22 at 25M on val).**
+**THE STUDY SWEEP (section 2 at the top of this file, the one experiment everything else existed to enable) RAN 2026-09-29/10-01 and is
+COMPLETE: all four phases (determinism, coarse, midpoints, charts) across all 10 untouched study tracks x 6 conditions, on the
+corrected 16M full-authority checkpoints. 360 charts in `results/eval/study_sweep/track_<seed>/<condition>/` (3 statistics x
+primary/sensitivity x 10 tracks x 6 conditions), raw per-lap CSVs alongside them. A real bug was found and fixed along the way
+(`driver.py`'s lam=0 seed-collapse shortcut silently overrode `mppi_l1`'s 3-seed escalation at lambda=0 on every deterministic-condition
+cell; fixed via the opt-in `--full-seeds-at-zero` flag, backfilled, verified). READING THE RESULT is the next step, not yet done here --
+this status line records that the data exists and is trustworthy, not what it shows.** This
+file is the reference for `tasks/racing/lessons/09-*.md`; when the two disagree, fix whichever is wrong and say why.
 
 ## 0. Where the study stands (2026-09-25; read this first)
 
@@ -1345,6 +1354,30 @@ action); its size is <= 0.028 per step against a tracking term of at most 1, so 
 Caveat to state with the result: seed-to-seed spread is as large as any plausible authority effect, so a small gap in either direction is
 not evidence.
 
+**CORRECTION (2026-09-29): the primary full-authority checkpoint moves from 25M to 16M, for all three seeds.**
+Motivated by the user's question of whether the 16M-to-25M extension (above) helped or hurt beyond fa1, which
+was the only seed with a documented before/after comparison. Checked directly: all three seeds' 16M checkpoints
+still exist on disk (`ppo_16000000_steps.zip`, kept by the 2026-09-27 checkpoint prune even for fa2, which
+trained straight through to 25M and had never actually been evaluated at 16M before this). Flown on `val`,
+lambda = 0:
+
+    seed   16M      25M (this file's own earlier number)
+    fa0    12/22    10/22
+    fa1     5/22     2/22
+    fa2    10/22     8/22
+    mean    9.0      6.7
+
+Every seed is better at 16M, not just fa1 -- the 25M extension made things worse across the board. fa2 in
+particular had never been checked at 16M at all (it trained straight through), so "seed 2 also degenerates"
+was previously unmeasured, not just unstated; it is now measured and confirms the same pattern as fa1.
+**Decision: the full-authority PRIMARY checkpoint for every downstream use (the sweep, lambda previews,
+held-out flights, gate_shift) is now each seed's 16M checkpoint, not its 25M one.** The 25M extension runs
+(`*-fa-ext25-s0/s1`) and their numbers stay on record above as measured, superseded rather than deleted, the
+same convention this file uses for every other correction (section 13). This does not touch the 0.7-authority
+sensitivity line (already at 16M) or the full-authority-vs-0.7-authority decision itself (section 4's deviation,
+above) -- only which checkpoint each full-authority seed uses. No retraining was needed; the checkpoints already
+existed.
+
 **Seeds 1 and 2 (trained 2026-09-25 with the identical recipe, `--seed 1/2`, 16M steps each; flown 2026-09-26).** Validation, lambda = 0,
 final checkpoints, deterministic: seed 0 (v4) 13/22 (68/88 gates), seed 1 13/22 (67/88), seed 2 6/22 (55/88). Against the
 pre-registered bar (>= 11/22): seeds 0 and 1 pass, seed 2 is in the "no change" band (<= 6). Completed-track overlap: 11 shared by seeds 0 and 1,
@@ -1399,9 +1432,10 @@ was worst at lambda 0 is also the least robust to unseen conditions. Threshold s
   MEMBERS ON THE MAIN CHART (user decision 2026-09-27): the primary 8 -- the 5-member MPC family plus the 3 full-authority
   RL seeds (fa0/fa1/fa2, the reported line, section 4/5c). The 0.7-authority recipe's 3 seeds (the sensitivity line) are
   NOT on this chart; they get their own separate chart, same axes and spec, so the two authority conventions are never
-  mixed on one comparison. AXES,
-  as specified (not the more usual reverse): **x = the measurement statistic (e.g. completion rate, in percent), y = lambda
-  intensity.** Completion means the strict per-lap outcome already used everywhere in this file -- all 4 gates passed in
+  mixed on one comparison. AXES
+  (REVERSED 2026-09-27, see the SWEEP PROTOCOL block's S6 at the top of this file for the current spec):
+  **x = lambda intensity, y = the measurement statistic (e.g. completion rate, in percent).**
+  Completion means the strict per-lap outcome already used everywhere in this file -- all 4 gates passed in
   order, no contact at any point -- NOT a partial gates-passed fraction; "gates passed" stays a stored, secondary field
   (section 7), never the plotted completion statistic. A line's value at a given lambda is the MEAN over however many
   trials that (track, condition, lambda, member) cell has: 25 for the three stochastic conditions (`wind_gust`,

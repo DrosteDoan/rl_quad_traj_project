@@ -197,6 +197,31 @@ def test_lighthouse_is_deterministic_per_seed_and_task_resumes():
             float(rows[2]["race_time"]) if rows[2]["race_time"] else "")
 
 
+def test_full_seeds_at_zero_flies_every_seed_at_lam_zero_when_set():
+    """Found 2026-09-30: study_sweep.py escalates a sampling-based member (mppi_l1) to 3 seeds specifically
+    BECAUSE its own internal randomness varies even when the external disturbance is off at lam=0 (its own
+    module docstring says so) -- but `run_task`'s lam=0 shortcut silently collapsed that back to 1 seed
+    anyway, since it had no notion of per-member escalation. `full_seeds_at_zero` is the opt-in fix: default
+    False (this test's own sibling above, unchanged, proves the OLD default behavior still holds), True
+    flies the full seed list even at lam=0."""
+    z = _zip()
+    if z is None:
+        print("  (skipped: no trained policy zip in results/)")
+        return
+    members = {"pol": f"datt:{z}"}
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "laps.csv"
+        dr.RESULTS = Path(tmp)
+        import csv
+
+        fl = dr.Flyer(members)
+        dr.run_task("level2", 0, "lighthouse", [0.0, 0.4], [0, 1], members, out, flyer=fl, verbose=False,
+                   full_seeds_at_zero=True)
+        rows = list(csv.DictReader(open(out)))
+        assert len(rows) == 2 + 2, len(rows)          # BOTH seeds flown at lam=0 too, not just seed 0
+        assert {r["seed"] for r in rows if float(r["lam"]) == 0.0} == {"0", "1"}
+
+
 def test_gate_shift_scores_against_the_displaced_gates_and_leaves_the_plan_alone():
     """At lam = 1 the controller still gets the nominal traj (same first actions), but the laps are scored on shifted gates."""
     traj = dr.build_traj(TRACK)

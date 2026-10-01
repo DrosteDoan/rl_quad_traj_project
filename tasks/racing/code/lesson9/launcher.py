@@ -37,6 +37,8 @@ def task_cmd(t: dict) -> list[str]:
         cmd += ["--only", t["only"]]
     if t.get("stretch_mult"):
         cmd += ["--stretch-mult", str(t["stretch_mult"])]
+    if t.get("full_seeds_at_zero"):
+        cmd += ["--full-seeds-at-zero"]
     return cmd
 
 
