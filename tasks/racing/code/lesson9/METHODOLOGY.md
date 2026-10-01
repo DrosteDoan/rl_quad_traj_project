@@ -99,10 +99,15 @@ phase renders all three S5/S6 statistics (completion, RMSE, lap time) for both t
 comparators -- 12 PNGs per cell. Every phase after the first needs the same six `--member`/`--sensitivity-member`
 flags, repeated identically (later phases find earlier phases' data by these labels):
 
+**CORRECTION (2026-10-01): the paths below were updated to each seed's 16M checkpoint** (`ckpt/ppo_16000000_steps.zip`
+in the plain `-fa-s0/s1/s2` run dirs), replacing the superseded 25M `-fa-ext25-s0/s1` paths this block used to show --
+this is the same switch recorded above (CORRECTION 2026-09-29), the command block just hadn't been updated to match
+it until now. The actual study sweep (section 2) was already run against these 16M paths, not the stale ones.
+
 ```bash
-M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-44_racing-gate-aware-fa-ext25-s0/datt_ppo_final.zip \
-   --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-49_racing-gate-aware-fa-ext25-s1/datt_ppo_final.zip \
-   --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/datt_ppo_final.zip \
+M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_08-22-36_racing-gate-aware-fa-s0/ckpt/ppo_16000000_steps.zip \
+   --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_08-26-14_racing-gate-aware-fa-s1/ckpt/ppo_16000000_steps.zip \
+   --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/ckpt/ppo_16000000_steps.zip \
    --sensitivity-member s0=robust:/workspace/tasks/racing/crazy_track/results/2026-09-24_18-26-35_racing-gate-aware-train/datt_ppo_final.zip \
    --sensitivity-member s1=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-31-56_racing-gate-aware-train-s1/datt_ppo_final.zip \
    --sensitivity-member s2=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-32-00_racing-gate-aware-train-s2/datt_ppo_final.zip'

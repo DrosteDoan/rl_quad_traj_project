@@ -211,20 +211,29 @@ authority, not control quality.
 retrain. The action-magnitude term in the reward operates on the *normalized* policy output, not
 physical radians, so widening authority doesn't quietly change what that term penalizes — a real
 confound was checked for and ruled out before trusting the comparison. Three seeds at 16M steps gave 10
-and 5 of 22 (a third not yet trained); extended to 25M steps, the same three seeds gave **10, 2 and 8**
-— one seed (2/22) did not recover with more training and dragged the three-seed mean to 6.7, exactly at
-the pre-registered line for "comparatively worse than the 0.7 recipe" (whose own three-seed mean is
-10.7).
+and 5 of 22 (the third, fa2, trained straight through to 25M without a 16M evaluation at the time);
+extended to 25M steps, the same three seeds gave **10, 2 and 8** — one seed (2/22) did not recover with
+more training and dragged the three-seed mean to 6.7, exactly at the pre-registered line for
+"comparatively worse than the 0.7 recipe" (whose own three-seed mean is 10.7).
 
 By the letter of that pre-registered rule, full authority should have stayed a reported sensitivity and
 the 0.7 recipe should have stayed primary. It was overridden instead, deliberately and on the record:
 M1's own tuning point is 1.0×, so capping it is the less faithful comparison for the model-based side
 regardless of which number makes RL look better, and one weak seed dragging a three-seed mean down is
-not, by itself, evidence that the recipe is worse. **As of this lesson, the full-authority recipe (25M
-steps, seeds 0–2) against the uncapped MPC family is the reported RL line; the 0.7-authority recipe
-(16M steps) is the sensitivity line, with its own capped-MPC comparisons already flown.** This is
+not, by itself, evidence that the recipe is worse. **As of 2026-09-27, the full-authority recipe (25M
+steps, seeds 0–2) against the uncapped MPC family was made the reported RL line; the 0.7-authority
+recipe (16M steps) is the sensitivity line, with its own capped-MPC comparisons already flown.** This is
 recorded as a stated deviation from a pre-registered rule, not folded in silently — and the weak seed
 stays in the reported spread rather than being replaced.
+
+**CORRECTION (2026-09-29): the primary full-authority checkpoint moved again, from 25M back to 16M, for
+all three seeds** — still the full-authority recipe against the uncapped MPC family, just a different
+save point. Checked directly on `val`: every seed is better at 16M than at 25M (fa0 12/22 vs 10/22, fa1
+5/22 vs 2/22, fa2 10/22 vs 8/22 — fa2's 16M checkpoint had never actually been evaluated before this
+check), mean 9.0/22 at 16M vs 6.7/22 at 25M. The 25M extension made every seed worse, not just fa1. The
+25M runs stay on record above as measured, superseded rather than deleted; the full-authority-vs-0.7-authority
+decision itself (the override argued two paragraphs up) is unaffected — only which checkpoint of the
+full-authority recipe is primary changed. (METHODOLOGY.md section 5c has the full numbers.)
 
 Train the full-authority recipe the same way, with `--group robust_full`:
 
@@ -274,19 +283,24 @@ controller family.
 4. **n = 22 throughout the validation pool** means single retention or difference-in-differences cells
    carry roughly ±10–20 points of sampling noise; only the clearest signals (the lighter-drone overfit
    cell) survive a bootstrap check.
-5. **The actual research question has not been run.** Everything above is validation-pool development
-   and screening, deliberately kept separate from the 15 study tracks so that no RL design decision
-   could leak into the tracks the real sweep reports on. The six-condition × λ-grid sweep, on the ten
-   study tracks no RL decision has touched, is the next step and is still open.
+5. **UPDATE (2026-10-01): the actual research question has now been run.** Everything above is
+   validation-pool development and screening, deliberately kept separate from the 15 study tracks so
+   that no RL design decision could leak into the tracks the real sweep reports on. The six-condition ×
+   λ-grid sweep, on the ten study tracks no RL decision has touched, ran 2026-09-29/10-01 and is
+   complete: all four phases (`determinism`, `coarse`, `midpoints`, `charts`) across all 10 tracks × 6
+   conditions, on the corrected 16M full-authority checkpoints. 360 charts live under
+   `results/eval/study_sweep/track_<seed>/<condition>/`, raw per-lap CSVs alongside them. This records
+   that the data exists and is trustworthy, not what it shows — reading the result is a separate step,
+   not done in this lesson text yet.
 
-   **Running it.** `study_sweep.py` implements the frozen protocol (METHODOLOGY.md's "SWEEP PROTOCOL"
-   block, S1–S7) — four phases (`determinism`, `coarse`, `midpoints`, `charts`), one track and one
-   condition at a time, each resumable on its own CSVs:
+   **Running it** (for your own copy, or to extend the grid). `study_sweep.py` implements the frozen
+   protocol (METHODOLOGY.md's "SWEEP PROTOCOL" block, S1–S7) — four phases (`determinism`, `coarse`,
+   `midpoints`, `charts`), one track and one condition at a time, each resumable on its own CSVs:
 
    ```bash
-   M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-44_racing-gate-aware-fa-ext25-s0/datt_ppo_final.zip \
-      --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_15-09-49_racing-gate-aware-fa-ext25-s1/datt_ppo_final.zip \
-      --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/datt_ppo_final.zip \
+   M='--member fa0=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_08-22-36_racing-gate-aware-fa-s0/ckpt/ppo_16000000_steps.zip \
+      --member fa1=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_08-26-14_racing-gate-aware-fa-s1/ckpt/ppo_16000000_steps.zip \
+      --member fa2=robust_full:/workspace/tasks/racing/crazy_track/results/2026-09-26_18-49-10_racing-gate-aware-fa-s2/ckpt/ppo_16000000_steps.zip \
       --sensitivity-member s0=robust:/workspace/tasks/racing/crazy_track/results/2026-09-24_18-26-35_racing-gate-aware-train/datt_ppo_final.zip \
       --sensitivity-member s1=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-31-56_racing-gate-aware-train-s1/datt_ppo_final.zip \
       --sensitivity-member s2=robust:/workspace/tasks/racing/crazy_track/results/2026-09-25_17-32-00_racing-gate-aware-train-s2/datt_ppo_final.zip'
@@ -299,8 +313,9 @@ controller family.
    # repeat coarse/midpoints/charts for each of the other 9 tracks and 5 conditions
    ```
 
-   This is a multi-day job, not a single sitting — the coarse phase alone is an estimated ~86,500 laps
-   across the full grid, roughly 27 hours on 8 workers before `midpoints` adds more.
+   This was a multi-day job, not a single sitting — the coarse phase alone was an estimated ~86,500 laps
+   across the full grid, roughly 27 hours on 8 workers before `midpoints` added more (the paths above use
+   the corrected 16M full-authority checkpoints, not the 25M ones an earlier copy of this block showed).
 6. **The gate-displacement finding is a first pass**, on the validation pool only, against the capped
    MPC comparators, not yet against the study tracks or the full authority/uncapped pairing.
 
@@ -312,6 +327,6 @@ controller family.
 2. **Read one held-out summary end to end.** `results/eval/val_heldout/summary.txt` (or any `val_heldout_*` sibling) has the raw table, the retention table, the difference-in-differences table and the tally. Recompute the verdict for one condition pair by hand from the raw retention numbers, and say in one sentence why the 20-point threshold, not 15, was the one fixed in advance.
 3. **Argue the other side of §4.** The lesson reports full authority as primary despite the numbers favouring 0.7-authority. Write the paragraph that would justify the opposite call — keeping 0.7-authority as primary because the rule said so — and say what would have to be true about M1's tuning for your paragraph to be the right one instead.
 4. **Design the missing control group.** §2 could not build one. Propose a design that would isolate "trained on matched ranges" from "learned generic robustness" without requiring the control policy to solve the exact same hard bootstrapping problem v4 did, and name the number that would tell you it worked before you spend the compute.
-5. **Predict the sweep.** Before it runs: on which of the six conditions do you expect the crossover to sit at the *lowest* λ, and on which study track geometry (if any) do you expect it to differ most from the validation-pool preview in this lesson? Write both down now, dated, so you can be wrong later on the record.
+5. **Predict the sweep.** The real sweep has since run (§6 point 5, updated 2026-10-01) and its charts exist under `results/eval/study_sweep/` — but predict before you open them: on which of the six conditions do you expect the crossover to sit at the *lowest* λ, and on which study track geometry (if any) do you expect it to differ most from the validation-pool preview in this lesson? Write both down now, dated, so you can be wrong later on the record, then go check.
 
 **Back to:** [Lesson 8 — Closing the gap](08-closing-the-gap.md)
