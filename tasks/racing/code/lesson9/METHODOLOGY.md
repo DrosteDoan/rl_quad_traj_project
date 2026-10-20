@@ -141,8 +141,16 @@ COMPLETE: all four phases (determinism, coarse, midpoints, charts) across all 10
 corrected 16M full-authority checkpoints. 360 charts in `results/eval/study_sweep/track_<seed>/<condition>/` (3 statistics x
 primary/sensitivity x 10 tracks x 6 conditions), raw per-lap CSVs alongside them. A real bug was found and fixed along the way
 (`driver.py`'s lam=0 seed-collapse shortcut silently overrode `mppi_l1`'s 3-seed escalation at lambda=0 on every deterministic-condition
-cell; fixed via the opt-in `--full-seeds-at-zero` flag, backfilled, verified). READING THE RESULT is the next step, not yet done here --
-this status line records that the data exists and is trustworthy, not what it shows.** This
+cell; fixed via the opt-in `--full-seeds-at-zero` flag, backfilled, verified).**
+**THE RESULT HAS BEEN READ (2026-10-17, section 14).** Headline, stated narrowly on purpose: the study finds a
+*completion/survival* crossover, never a *precision* one (MPC's best-of-family RMSE beats RL's in 99.5% of all
+sampled points, including inside the two conditions where RL wins completion). The completion crossover itself
+is real but narrow and seed-dependent: clean and repeated under best-of-3-seeds (`lighthouse`, 6/6 viable tracks;
+`combined`, real mid-range lead), but survives on only 3 of 36 (track, condition) cells once RL is held to its
+worst seed instead of its best -- 2 in `lighthouse` (mechanistically confirmed: no MPC estimator targets sensing
+noise), 1 in `payload` (unexplained, looks like a shared actuator/thrust-margin limit, not a representation gap).
+Full detail, including three ruled-out explanations for why RL's baseline fails outright on 4 of the 10 study
+tracks and the complete aggregation-statistic methodology, is section 14. This
 file is the reference for `tasks/racing/lessons/09-*.md`; when the two disagree, fix whichever is wrong and say why.
 
 ## 0. Where the study stands (2026-09-25; read this first)
@@ -1635,6 +1643,77 @@ their own tests (`test_robust_env.py`, `test_contrast_env.py`, most of `test_ful
     (measured recommendation in section 5, before 5a; now also supported by M1 completing 22/22 val tracks with
     no re-tuning; still not agreed by the user).
 
+16. **The completion crossover is a survivorship finding, not a precision one, and reporting completion alone
+    overstates it (found 2026-10-17, section 14d).** Best-of-family RMSE favors MPC in 605 of 608 sampled points
+    (99.5%, mean ratio 3.26x) across every condition, track and lambda, including inside `lighthouse` and
+    `combined` where RL wins on completion. RL does not fly a better line anywhere in the sweep; it keeps
+    finishing while flying measurably worse than MPC whenever MPC also finishes. Any statement of the crossover
+    needs "completion" or "survival" attached, not left implicit -- this reproduces an earlier, independent
+    finding on the val pool (section 5c, "Tracking error under disturbance"), now confirmed on the held-out
+    study tracks.
+
+17. **The completion crossover is not seed-guaranteed (found 2026-10-17, section 14e).** Checked across the
+    full lambda grid, not only lambda = 1: under best-of-MPC vs. worst-of-RL, RL retains an advantage on 3 of
+    36 (track, condition) cells total, reproducing on both the full-authority and 0.7-authority lines. A fully
+    symmetric worst-of-MPC(excluding `mppi_l1`)-vs-worst-of-RL comparison gives MPC a point-majority in every
+    single condition, both lines; `lighthouse`, RL's best showing, tops out at 32% (full-authority) / 22%
+    (sensitivity) of points, never a majority. The best-of-3-seeds version of the finding (6/6 `lighthouse`
+    tracks) is real and mechanistically grounded, not an artifact -- but it answers "what's achievable with the
+    luxury of training several seeds and choosing," not "what's reliable from one training run," and the two
+    give materially different answers. Both need reporting, not just the first.
+
+18. **`mppi_l1` contaminates any unlabeled worst-of-MPC statistic (found 2026-10-17, section 14i).** It is the
+    floor of the five-member MPC family on 68-98% of all sampled grid points, across every condition -- a
+    "worst-of-MPC" number that includes it is mostly measuring this one vendored-parameter, previously-flagged
+    fragile member (section 5, "the weakest provenance in the family"), not the family's serious designs. Any
+    robustness claim for the MPC side should pair worst-of-5 with worst-of-4-excluding-`mppi_l1`, or state which
+    one is meant.
+
+19. **The mechanism behind MPC's precision advantage differs by condition, and is not always "graceful
+    degradation" (found 2026-10-17, section 14d).** `wind_const`, `wind_gust`, `lighthouse` and `combined` show
+    genuine, gradual RMSE growth among completing laps as lambda increases (2.1-3.0x). `mass_mult` does not
+    (RMSE flat-to-declining, 0.63x): the controllers that finish track about as well as ever; the ones that
+    don't fail outright, consistent with `M1+mass`'s adaptive estimator either successfully identifying the
+    mass offset or not. `payload` is weaker and noisier than the clearly-gradual group (1.68x) and, separately,
+    is the one condition where all four non-`mppi_l1` MPC members rise and fall together as a block (85% of
+    sampled grid points show zero spread between the family's best and worst member) rather than one estimator
+    differentiating itself -- consistent with a shared actuator/thrust-margin ceiling rather than a
+    controller-design difference. Consequence for limitation-type arguments: "model-based control is
+    extensible by construction, a further estimator would be expected to recover the lead" is a live argument
+    for `lighthouse` (a representation gap) but not for `payload`, if its failure mode is a physical thrust
+    ceiling -- no estimator closes a margin that isn't there. The one surviving worst-of-RL cell in `payload`
+    (limitation 17) should be read with this in mind, not folded into the `lighthouse` finding as if they shared
+    a cause.
+
+20. **Why RL's baseline fails outright on 4 of the 10 study tracks is unresolved, with three explanations ruled
+    out (found 2026-10-17, section 14g).** All three full-authority seeds fail to complete tracks 747, 834, 837
+    and 1318 at lambda = 0 (1-3 of 4 gates, uniform across seeds); MPC completes all ten. Checked and ruled out:
+    (a) general track difficulty -- MPC's own precision on the four tracks is statistically indistinguishable
+    from the six viable ones once `mppi_l1` is excluded (0.0551 vs 0.0520 mean RMSE; the initial 35% gap was an
+    `mppi_l1` artifact); (b) simple geometric outlier-ness -- crossing angle, frame margin, gate-gap distance and
+    cumulative heading change all show substantial overlap between the two groups, no clean separator; (c) a
+    training-pool coverage gap -- the four dead tracks sit closer to their nearest training-pool neighbor (mean
+    normalized distance 0.942) than the six viable tracks do (1.224), the opposite of a sparsity explanation.
+    What is established: the failures are reproducible and seed-independent -- same gate, tightly clustered
+    impact time, one case (track 834, seeds `fa0`/`fa2`) identical to the millisecond -- and MPC successfully
+    threads the identical reference, which rules out a reference-generation explanation. The remaining
+    explanation is a policy-level generalization gap at specific, identifiable locations, not resolvable further
+    from track-geometry data alone; doing so would need trajectory-level data this study does not have.
+
+21. **A pre-registered check (limitation 11) was executed and is suggestive, not confirmed (found 2026-10-17,
+    section 14h).** Crossover-location lambda* was correlated against track geometry for `lighthouse` and
+    `combined`, both RL lines (4 independent checks, n = 6-8 each). None individually clears conventional
+    significance. Directionally consistent across all four: peak speed and lap time correlate positively with
+    lambda* (faster/longer tracks show a later crossover), frame margin correlates negatively. Strongest single
+    value: `combined`/full-authority lap time, r = 0.781 (n = 6), just under the conventional threshold at that
+    sample size. Not flat, not a confirmed trend -- stated as an open question for a larger track population,
+    not pursued further here: a track-count expansion large enough to resolve it costs another multi-day sweep
+    (section 9's own estimate, ~27+ hours for the coarse phase alone) for a check that does not bear on any
+    other finding in this file, and supplementing it with the val pool's lambda-preview data was considered and
+    declined -- that pool's completion numbers (and therefore any lambda* derived from them) are exactly what
+    limitation 15 already flags as potentially shaped by RL's own design-selection process, making it a worse
+    source for this specific correlation than a coarser-but-clean one.
+
 ## 11. How the initial input became this framework
 
 | proposed | now |
@@ -1760,3 +1839,183 @@ Checked and found correct: the lambda-preview raw and retention tables against `
 rows), the val baselines, the v2 and v3 result numbers, the locality percentages (+34/+48/+148 and +52/+43/+82), the pool yields
 and margins, EPISODE_TIME (8.41 s -> 9.0), the reject-reason mix, and the "M1 fails 100092 and only M1+L1 completes it" claim
 (calibration CSVs).
+
+## 14. Reading the study sweep (2026-10-17)
+
+Section 2 (the SWEEP PROTOCOL block) ran 2026-09-29/10-01 and produced 360 charts plus raw per-lap CSVs under
+`results/eval/study_sweep/`. This section reads that result -- the step the status line flagged as not yet done.
+A separate, research-paper-style Methods document distilled from this file (design only, no dated narrative) is
+`study_methodology.txt` in this directory. Every number below is read directly from the stored CSVs, not from
+the rendered charts; several findings below correct a first-pass reading of the same data, and the corrections
+are kept rather than silently replaced, matching this file's own convention (section 13).
+
+**14a. Baseline viability.** Before any disturbance (lambda = 0), all three full-authority RL seeds (`fa0`/
+`fa1`/`fa2`) fail to complete the course on four of the ten study tracks -- 747, 834, 837, 1318 -- stalling at
+1-3 of 4 gates, checked per-seed (not one weak seed dragging an aggregate). Every MPC member completes all ten
+tracks, `mppi_l1` included. Per the protocol's own rule (section 3, "non-viable cells are excluded from any
+later crossover statistic"), this leaves 6 of 10 tracks for the full-authority headline: 757, 965, 989, 1089,
+1145, 1250. For the 0.7-authority sensitivity line the viable count depends on which statistic defines
+"viable": best-of-3 gives 9/10 (only 834 dead), but the protocol's own SENSITIVITY statistic, median-of-3,
+additionally kills track 1089 (seeds score 0/100/0 there, median 0), giving 8/10: 747, 757, 837, 965, 989,
+1145, 1250, 1318. Viability and the reported statistic must use the same aggregation rule or non-viable tracks
+leak into the "viable" set silently -- this is exactly how an earlier 6-vs-8-vs-9 track-count discrepancy arose
+and was resolved.
+
+**14b. Where completion crosses over.** A genuine crossing is a strict sign flip (MPC-led, then RL-led, skipping
+tied points) -- an early pass over-counted every tied point as a crossing and was corrected. On the viable
+tracks, zero genuine crossings occur in any of the three deterministic conditions (`wind_const`, `payload`,
+`mass_mult`), on any track, for either RL line. Consistent, repeated crossovers occur only in the stochastic
+conditions: `combined` (7 of 8 sensitivity-line tracks, first-crossing lambda mean 0.44, sd 0.13 -- the
+tightest clustering of any condition) and `lighthouse` (6 of 8, mean 0.61, sd 0.20). A noise check (14g,
+methodology note) confirms the deterministic-condition zero-crossing result is not an artifact of thin,
+single-trial data: completion-vs-lambda curves for every non-`mppi_l1` member, both RL lines, show a lone-point
+"flicker" rate (a value that differs from both neighbors, which agree with each other) of 0.1% -- the data is
+smooth, not noisy, so the zero-crossing finding is a real negative result.
+
+**14c. Mechanism: matched disturbance estimators explain the split.** Checked which specific MPC member
+achieves the family's best completion at the lambda ceiling, per condition, across viable tracks. `wind_const`:
+`M1+ESO` wins 6/6 tracks, `M1+L1` ties 4/6 -- the two force-estimator members carry it. `mass_mult`: `M1+mass`
+wins 6/6 -- the cleanest single-member result in the study. `wind_gust`: `M1+L1` alone wins 6/6. `lighthouse` is
+the negative control that makes this more than correlation: no estimator targets sensing noise, and `M1+L1`
+wins zero of six cells there; plain, unadapted `M1` ties with the "equipped" members just as often as they beat
+it. `payload` does not fit the pattern at all -- see 14d.
+
+**14d. Precision: this is a survival crossover, never a precision one.** Best-of-family RMSE favors MPC in 605
+of 608 sampled points (99.5%, mean ratio 3.26x, median 3.11x) across every condition, track and lambda,
+including inside `lighthouse` and `combined` where RL wins on completion; the three exceptions are all at high
+lambda inside that same regime and are thin margins (e.g. 0.1920 vs 0.1831). Lap time is nearly identical
+between families everywhere (within ~0.1-0.3 s), ruling out "RL just flies faster" as a confound. This
+reproduces an earlier, independent dev-stage finding on the val pool (section 5c, "Tracking error under
+disturbance": "the completion crossovers in the preview are NOT tracking crossovers... RL trades precision for
+insensitivity") -- today's result confirms it on the held-out study tracks, a second independent dataset.
+Checked whether RMSE's censoring-on-failure convention (section 7) biases this: it does not, for the
+best-of-family statistic specifically -- the family minimum always draws from whichever member is currently
+completing, so best-of-family RMSE is numerically identical whether failed laps are included or excluded.
+
+The *mechanism* behind MPC's precision advantage is condition-dependent, not uniform. `wind_const`, `wind_gust`,
+`lighthouse` and `combined` show genuine, gradual RMSE growth among completing laps as lambda rises (2.1-3.0x
+from near lambda=0 to near lambda=1). `mass_mult` does not (0.63x -- flat to declining): completing laps track
+about as well as ever regardless of lambda, consistent with `M1+mass` either successfully identifying the mass
+offset or failing outright, a threshold event rather than a graceful one. `payload` is weaker and noisier than
+the clearly-gradual group (1.68x) and is the one condition where all four non-`mppi_l1` MPC members rise and
+fall together as a block rather than one estimator differentiating itself: 85% of sampled grid points show zero
+completion spread between the family's best and worst non-`mppi_l1` member (confirmed not a trial-count
+artifact by cross-checking against `wind_const`, whose similarly high zero-spread rate -- 55% -- conflicts with
+its own strong RMSE trend and clear `M1+ESO`/`M1+L1` differentiation, and is better explained as an n=1-trial
+quantization effect than genuine shared fate). `payload`'s pattern is consistent with a shared actuator or
+thrust-margin ceiling every controller hits simultaneously, not a model-representation gap -- meaning the
+"a further estimator would be expected to recover the lead" argument does not obviously apply there the way it
+does for `lighthouse` (section 10, limitation 19).
+
+**14e. Seed dependence: the central finding.** Checked whether the completion crossover survives when RL is
+held to its worst seed instead of its best, across the *entire* lambda grid (an initial check at lambda = 1
+only gave a misleadingly incomplete picture for `combined` specifically -- see the methodology note below).
+Under best-of-MPC vs. worst-of-RL, full grid, RL retains an advantage on 3 of 36 (track, condition) cells in
+total: 2 in `lighthouse`, 1 in `payload` (unexplained). This reproduces almost identically on the 0.7-authority
+sensitivity line. A fully symmetric comparison -- worst-of-RL against worst-of-MPC with `mppi_l1` excluded, so
+neither side is represented by an unfairly weak member -- gives MPC a point-majority in every single condition,
+both RL lines: `wind_const` 50%/0% (full-authority) and 33%/10% (sensitivity), `payload` 54%/5% and 57%/3%,
+`wind_gust` 76%/18% and 71%/17%, `lighthouse` 53%/32% and 69%/22%, `mass_mult` 47%/0% and 54%/0%, `combined`
+49%/23% and 41%/29% (MPC/RL share of all sampled grid points). `lighthouse`, RL's best showing on both lines,
+never reaches a majority. The sensitivity line's weaker floor on `lighthouse` specifically (69% MPC vs 53% for
+full-authority) is driven by its known weak seed (`s2`, 6/22 on val) dominating the worst-of-3 statistic more
+than any full-authority seed does.
+
+Methodology note, kept because it is a real trap and not just this study's: an endpoint-only (lambda = 1) read
+of `combined` showed near-total mutual collapse for both families and was initially read as "uninformative."
+The full curve shows the opposite -- a long, graceful degradation through most of the range (lambda ~0.35-0.85)
+with a real, large best-of-RL lead (e.g. lambda=0.6: MPC 20% vs RL-best 55%) that is simply invisible at the
+collapsed endpoint. Checked against worst-of-RL in that same mid-range window: the apparent lead evaporates
+there too (worst-of-RL runs 2-13% in that window, at or below MPC's own falling curve) -- so the correction is
+about which part of the curve carries the signal, not about whether the seed-fragility finding holds; the
+`combined` result is, if anything, a sharper example of it than `lighthouse` is, since it is RL's single
+largest-looking apparent advantage anywhere in the study and it is also almost entirely a best-seed artifact.
+
+Separately, `mppi_l1` is the floor of the five-member MPC family on 68-98% of all sampled grid points across
+every condition -- any worst-of-5-including-`mppi_l1` statistic is mostly re-measuring this one known-fragile,
+vendored-parameter member (section 5), not the family's serious designs; worst-of-RL-seeds carries no analogous
+problem (`fa0`/`fa1`/`fa2` trade off being the floor roughly evenly, 45-74% depending on condition).
+
+**14f. The 0.8x training-ceiling check.** RL's domain randomization during training is capped at 0.8x each
+condition's calibrated ceiling (section 5a), so lambda in (0.8, 1.0] is magnitude RL was never shown in
+training. Checked directly whether this produces the shape a training boundary would predict -- a crossover
+followed by a second crossover back, or a visible cliff in per-seed completion right at lambda=0.8. It does
+not, for either RL line, in `lighthouse` or `combined`: all six seed-curves checked (3 per line x 2 conditions)
+decline smoothly and continuously across the entire range, with no kink at the boundary (e.g. `fa0` in
+`lighthouse`: 63% -> 72% -> 58% -> 56% -> 48% from lambda=0.8 to 1.0, a noisy plateau, not a cliff). The
+sensitivity line's `s0` is the most durable single seed found anywhere in the study: 57.5% completion at
+lambda=1 in `lighthouse`, ahead of MPC's own 30.5% there and ahead of `fa0`'s 48%. This contrasts with the
+already-documented held-out-condition collapse (section 5c: `light`/`lift`, disturbance *directions* never
+trained on at all, val pool only), which does show a sharp "overfit signature." The distinction the data
+supports is disturbance type vs. magnitude: extrapolating to a larger dose of a trained disturbance is graceful
+for this recipe; extrapolating to an unseen disturbance direction is not.
+
+**14g. Why do four study tracks kill RL's baseline? Three explanations checked and ruled out, one open.**
+(1) *General track difficulty*, checked via MPC's own nominal-lambda precision: an initial look (including
+`mppi_l1`) showed MPC's RMSE 35% worse on the four dead tracks (0.1071 vs 0.0792), but excluding `mppi_l1`
+collapses this to 6% (0.0551 vs 0.0520) and the per-track data stops holding up at all -- dead track 1318 has
+the *lowest* MPC RMSE of all ten study tracks; viable track 1089 has one of the *highest*. Ruled out. (2)
+*Simple geometric outlier-ness*: crossing angle, frame margin, gate-to-gate distance and cumulative heading
+change (computed from each track's raw gate positions, not just the stored summary diagnostics) all show
+substantial overlap between the dead-track and viable-track groups; no single feature or threshold separates
+them (e.g. dead track 837's total heading change, 194 degrees, is lower than five of the six viable tracks').
+Ruled out. (3) *Training-pool coverage gap*: nearest-neighbor distance from each study track to the 111-track
+training pool, in a 7-feature normalized space (mean/max crossing angle, gate gap, frame margin, peak speed,
+lap time, cumulative heading change), is *smaller* for the four dead tracks (mean 0.942) than for the six
+viable ones (1.224) -- below the training pool's own typical internal spacing (median 1.175) -- meaning the
+dead tracks sit inside the dense part of the training distribution, not at a sparse edge. Ruled out, and
+backwards from the hypothesis.
+
+What is established instead: the failures are reproducible and seed-independent. All three seeds fail at the
+*same* gate on each dead track, within a tight time window of each other (747: gate 2, t=2.47-2.53s; 834: `fa0`
+and `fa2` both gate 4, t=3.518s, "bottom" box -- identical to the millisecond; 837: gate 2, t=3.16-3.30s; 1318:
+gate 3, t=3.64-3.77s). MPC successfully threads the identical reference on every one of these tracks, which
+rules out a reference/track-generation explanation outright -- the geometry is provably flyable. What remains
+is a policy-level generalization gap at specific, identifiable locations in these four tracks, not further
+resolvable from track-geometry data: closing it further would need trajectory-level data (what the policy
+commands approaching the failure point) that this study's stored per-lap summaries do not contain.
+
+**14h. Lambda* vs. track geometry -- the pre-registered check (limitation 11), executed.** Limitation 11
+proposed, before any sweep result existed, plotting per-track crossover lambda against track geometry as a
+check on whether the crossover generalizes beyond this study's compact-layout track population. Run now, for
+`lighthouse` and `combined`, both RL lines (4 independent checks, n=6-8 each; "lambda*" is the first lambda at
+which RL leads, whether via a genuine sign-flip or because RL already leads at the first non-tied grid point --
+22 of 28 tracks checked are the latter, a real limitation of this specific check). No individual Pearson r
+clears conventional significance at this sample size. Directionally consistent across all four independent
+checks: peak speed and lap time correlate positively with lambda* (faster, longer-lap tracks show a later
+crossover), frame margin correlates negatively. Strongest single value: `combined`/full-authority lap time, r =
+0.781 (n=6), just under the conventional threshold. Read against limitation 11's own framing ("flat is mild
+evidence of robustness, a trend is a warning"): this is neither flat nor a confirmed trend -- a
+directionally-consistent, underpowered signal, stated as an open question for a larger track population, not
+resolved here. Extending the track population to resolve it was considered and declined: the compute cost
+(another multi-day sweep, section 9's own ~27-hour estimate for the coarse phase alone on the current 10 tracks)
+is large relative to a check that bears on no other finding in this file, and supplementing with the val pool's
+lambda-preview data was also declined -- that pool's completion numbers are exactly what limitation 15 flags as
+possibly shaped by RL's own design-selection process, which would taint the one outcome variable (lambda*) this
+specific check depends on, a sharper problem than the pool's coarser lambda resolution (4 points vs. the dense
+sweep grid) by itself.
+
+**14i. Aggregation-statistic notes, for anything built on this data going forward.** Three principles, derived
+from checks above, worth keeping in mind for any further analysis of this sweep: (1) best-of-X, worst-of-X and
+median-of-X are not interchangeable, and the choice must be justified by what each family's instances actually
+are -- RL's three seeds are real draws from one stochastic process, so all three statistics mean something
+coherent for RL (ceiling / floor / typical draw); MPC's five members are deliberate, zero-luck engineering
+choices, so only best-of-condition-matched-design corresponds to a real decision a practitioner would make --
+median-of-MPC is well-behaved but answers no real question, and worst-of-MPC is dominated by `mppi_l1` unless
+explicitly excluded (limitation 18). (2) Box plots fit a continuous metric (RMSE, lap time) on the three
+25-trial stochastic conditions; they do not fit completion (binary per trial) or the 1-3-trial deterministic
+conditions, which cannot support a meaningful distribution. (3) Viability and whichever statistic is reported
+must share one aggregation rule (14a) -- this is not a minor technicality; it was the actual source of a
+real discrepancy during this reading.
+
+**14j. Revised headline, stated narrowly on purpose.** RL's completion advantage over MPC is real under
+best-of-3-seeds -- clean and mechanistically grounded in `lighthouse` (6/6 viable tracks, explained by the
+absence of any sensing-noise estimator in the MPC family), present but weaker in `combined`'s mid-range -- but
+it is not seed-guaranteed (survives on 3 of 36 cells once seed-selection luck is removed) and it is never a
+precision advantage (MPC's RMSE wins 99.5% of all sampled points regardless of which RL seed is used, best or
+worst). Of the three surviving worst-of-RL cells, two (`lighthouse`) have a confirmed mechanism; the third
+(`payload`) does not, and plausibly reflects a physical actuator ceiling rather than a model-representation
+gap, which limits how far the "a further MPC estimator could recover the lead" argument extends. This is the
+study's central result, and it is narrower than either "RL wins under disturbance" or "MPC always wins" would
+suggest -- the crossover this design set out to find is real, specific, and conditional on exactly how it is
+measured.
