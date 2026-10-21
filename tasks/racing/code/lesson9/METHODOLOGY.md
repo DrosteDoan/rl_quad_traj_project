@@ -2104,15 +2104,16 @@ overfit / 5 generalises / 0 mixed at 25pts, meaning its MIXED verdict at the pre
 sits closer to the boundary than either of its neighbors.
 
 **Bootstrap resolution (4,000 paired resamples over the 22 tracks, same convention as the original s0-at-16M
-result): only `fa0`'s `light` at lambda = 1.0 is resolved against both M1 and M1+L1** ([-90,-18] and [-92,-16],
-both entirely negative -- the point-estimate OVERFIT SIGNATURE there is real, not noise). `fa2` partially
-resolves (`light` at 0.5 and 1.0, `lift` at 0.5 vs M1+L1 only, `blackout` at 1.0 vs M1 only). **`fa1` -- the
-seed whose label flips to GENERALISES -- has zero cells resolved against either comparator, anywhere**; every
-interval it has includes zero. Its GENERALISES verdict is correct under the pre-registered point-estimate
-rule, but at the bootstrap level it means "not distinguishable from no change," the same caveat already
-stated for the original s0 held-out result (section 5c: "'5 generalise' means 'not distinguishable from no
-change', at n = 22 it cannot mean 'equal'") -- it applies with more force here, since `fa1`'s own base (5
-tracks) is thinner than `val`'s n = 22.
+result): `light` at lambda = 1.0 is resolved against both M1 and M1+L1 for TWO of three seeds, not one.**
+`fa0` [-90,-18] and [-92,-16]; `fa2` [-116,-17] and [-116,-18] -- both entirely negative, both seeds' point-
+estimate OVERFIT SIGNATURE there is real, not noise (an earlier pass here undercounted this as `fa0` only;
+corrected). `fa2` also partially resolves two more cells (`lift` at 0.5 and `light` at 0.5, each vs M1+L1
+only, and `blackout` at 1.0 vs M1 only). **`fa1` -- the seed whose label flips to GENERALISES -- has zero
+cells resolved against either comparator, anywhere**; every interval it has includes zero. Its GENERALISES
+verdict is correct under the pre-registered point-estimate rule, but at the bootstrap level it means "not
+distinguishable from no change," the same caveat already stated for the original s0 held-out result (section
+5c: "'5 generalise' means 'not distinguishable from no change', at n = 22 it cannot mean 'equal'") -- it
+applies with more force here, since `fa1`'s own base (5 tracks) is thinner than `val`'s n = 22.
 
 **Secondary lift-edge test** (does `lift`'s retention drop from lambda 0.25 to 0.75 exceed `payload`'s by >=
 25 points, the pre-registered signature of training-edge-bounded robustness): `fa0` +83 points excess (strong
