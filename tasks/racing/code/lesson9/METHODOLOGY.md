@@ -2103,6 +2103,25 @@ stable verdict of the three; `fa2` is the most threshold-sensitive -- 4 overfit 
 overfit / 5 generalises / 0 mixed at 25pts, meaning its MIXED verdict at the pre-registered 20pt threshold
 sits closer to the boundary than either of its neighbors.
 
+**Bootstrap resolution (4,000 paired resamples over the 22 tracks, same convention as the original s0-at-16M
+result): only `fa0`'s `light` at lambda = 1.0 is resolved against both M1 and M1+L1** ([-90,-18] and [-92,-16],
+both entirely negative -- the point-estimate OVERFIT SIGNATURE there is real, not noise). `fa2` partially
+resolves (`light` at 0.5 and 1.0, `lift` at 0.5 vs M1+L1 only, `blackout` at 1.0 vs M1 only). **`fa1` -- the
+seed whose label flips to GENERALISES -- has zero cells resolved against either comparator, anywhere**; every
+interval it has includes zero. Its GENERALISES verdict is correct under the pre-registered point-estimate
+rule, but at the bootstrap level it means "not distinguishable from no change," the same caveat already
+stated for the original s0 held-out result (section 5c: "'5 generalise' means 'not distinguishable from no
+change', at n = 22 it cannot mean 'equal'") -- it applies with more force here, since `fa1`'s own base (5
+tracks) is thinner than `val`'s n = 22.
+
+**Secondary lift-edge test** (does `lift`'s retention drop from lambda 0.25 to 0.75 exceed `payload`'s by >=
+25 points, the pre-registered signature of training-edge-bounded robustness): `fa0` +83 points excess (strong
+signature, lift fell 92 vs payload's 8), `fa2` +40 (signature, 80 vs 40). **`fa1` +0 -- its lift retention
+drop (40 points) exactly equals its payload drop (40 points), no edge signature at all.** A second,
+independent line of evidence pointing the same direction as the DiD flip and the bootstrap result above: of
+the three seeds, only `fa1` shows nothing that looks like training-edge-bounded overfitting under `lift`,
+consistently across all three checks run on it.
+
 A process note, kept because it took two separate bugs to get a trustworthy answer, not one. First: the
 initial run used the default `--in-dir` (`val_lambda`), which has no `fa0`/`fa1`/`fa2` rows at all -- every
 retention and DiD cell came back `nan`, and the tally logic counts a `nan` DiD as neither overfit nor
