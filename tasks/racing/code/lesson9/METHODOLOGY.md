@@ -1714,6 +1714,20 @@ their own tests (`test_robust_env.py`, `test_contrast_env.py`, most of `test_ful
     limitation 15 already flags as potentially shaped by RL's own design-selection process, making it a worse
     source for this specific correlation than a coarser-but-clean one.
 
+22. **RESOLVED (2026-10-21, section 14k). The full-authority line's held-out-condition verdict at the
+    corrected 16M checkpoint is now computed, and it is not the same as the superseded 25M verdict for two of
+    three seeds.** Flying `lift`/`light`/`step_wind`/`blackout` at the 16M checkpoints (closing limitation 20's
+    companion gap, that the held-out data on record was for the superseded 25M checkpoints) initially produced
+    valid raw completion numbers but no retention/DiD/verdict, because the lambda-preview the method needs
+    (each RL member's in-distribution performance on `payload`/`mass_mult`/`wind_const`/`lighthouse` at lambda
+    = 0.25-1.0, on the val pool, at the SAME checkpoint) had never been flown for the full-authority line at
+    16M. That preview (`val_lambda_fa16`) was flown and the verdict recomputed; base counts (`fa0 12, fa1 5,
+    fa2 10` of 22) match the independently-known val numbers exactly. Result: `fa0` GENERALISES-at-25M becomes
+    MIXED-at-16M (1/4/3); `fa1` MIXED-at-25M (on a thin, near-uninterpretable 2-track base) becomes
+    GENERALISES-at-16M (0/5/3, on a sturdier 5-track base); `fa2` stays MIXED at both but with more overfit
+    cells at 16M (3 vs 1). The established "lighter drone at lambda=1 is an overfit cell in every RL run"
+    pattern (section 5c) now has its first exception: `fa1` generalises there. Full detail in section 14k.
+
 ## 11. How the initial input became this framework
 
 | proposed | now |
@@ -2019,3 +2033,86 @@ gap, which limits how far the "a further MPC estimator could recover the lead" a
 study's central result, and it is narrower than either "RL wins under disturbance" or "MPC always wins" would
 suggest -- the crossover this design set out to find is real, specific, and conditional on exactly how it is
 measured.
+
+**14k. Held-out conditions at the corrected checkpoint (2026-10-21): complete, and the verdict changes with the
+checkpoint.** Section 14a noted that the study's actual reported line (full-authority, 16M checkpoints) had
+never had its held-out-condition generalization tested -- the only held-out data on record, `val_heldout_fa25_
+s0/s1/s2` (section 5c), was flown against the superseded 25M checkpoints, which section 14 (and the 2026-09-29
+correction it reads) already shows perform worse than 16M on every seed. Flown now (`fa0`/`fa1`/`fa2` at
+`.../ckpt/ppo_16000000_steps.zip`, the same paths used throughout section 14), against M1/M1+L1 on the 22 val
+tracks, `knobs.HELD_OUT` at lambda in {0.25, 0.5, 0.75, 1.0}:
+
+```
+condition   member   lam=0.25  lam=0.5  lam=0.75  lam=1.0
+lift        fa0          64%      45%       0%       0%
+lift        fa1          27%       9%       5%       5%
+lift        fa2          45%       9%       0%       0%
+light       fa0          68%      59%      59%      50%
+light       fa1          27%      27%      18%      14%
+light       fa2          36%      36%      36%      18%
+step_wind   fa0          50%      50%      32%      18%
+step_wind   fa1          27%      27%       9%       5%
+step_wind   fa2          55%      45%      23%       9%
+blackout    fa0          55%      59%      50%      36%
+blackout    fa1          32%      23%      18%      14%
+blackout    fa2          45%      45%      45%      18%
+```
+
+(M1 and M1+L1's rows are unchanged from any other table in this file, since neither depends on the RL
+checkpoint: M1 lift 86/45/0/0, light 91/91/91/91, step_wind 100/41/18/9, blackout 91/64/41/32; M1+L1 lift
+95/77/45/9, light 91/95/100/86, step_wind 100/100/100/77, blackout 91/55/41/32.) These are directly
+comparable in shape to the fa25 and sensitivity-line raw tables already in section 5c -- `fa1` is uniformly
+the weakest seed here too, consistent with every other reading of it in this file.
+
+**The missing lambda-preview was flown (`val_lambda_fa16`, `fa0`/`fa1`/`fa2` vs M1/M1+L1, six conditions, lambda
+in {0.25, 0.5, 0.75, 1.0}, 22 val tracks), closing the gap limitation 22 recorded.** Base (lambda = 0,
+`wind_const`) now reads `fa0 12, fa1 5, fa2 10` against `M1 22`/`M1+L1 22` -- matching the val-pool numbers
+already on record from the 2026-09-29 checkpoint correction exactly, confirming the preview is reading the
+right checkpoints. Verdicts, 8-cell tally, against the superseded 25M results already in section 5c:
+
+```
+seed   16M tally (overfit/generalises/mixed)   verdict    25M tally (section 5c)   25M verdict
+fa0    1 / 4 / 3                                MIXED      1 / 6 / 1                 GENERALISES
+fa1    0 / 5 / 3                                GENERALISES 1 / 3 / 4                MIXED
+fa2    3 / 2 / 3                                MIXED      1 / 4 / 3                 MIXED
+```
+
+Two of three verdict labels flip between checkpoints. `fa0` goes from GENERALISES to MIXED (its one overfit
+cell, `light` at lambda = 1.0, DiD -52/-52 against M1/M1+L1, was already present at 25M but now sits alongside
+weaker `lift` cells at both lambdas, -31/-13 and +30/-11, that cross into "mixed" rather than "generalises").
+`fa1` goes the other way, from MIXED to GENERALISES -- at 25M its held-out base was only 2 completed tracks
+(section 5c: "near-uninterpretable"), so the 25M MIXED verdict was built on very thin data; at 16M its base is
+5, still thin but enough to read, and nothing overfits: every cell is "generalises" except two `lift` cells
+that land as "mixed" (+15/-26 at lambda 0.5, -33/-15 at 1.0) without crossing the -20-against-both-members
+overfit threshold. `fa2` keeps the same MIXED label at both checkpoints but the picture underneath worsens --
+1 overfit cell at 25M, 3 at 16M (`lift` 0.5, `light` 0.5, `light` 1.0, the last at DiD -67/-67), with only 2
+generalising cells left (both `step_wind`).
+
+**One established pattern holds for two of three seeds, breaks for the third.** "The lighter drone at lambda
+= 1 is an overfit cell... matching every RL run flown in this study" (section 5c) holds again for `fa0` (-52/
+-52) and `fa2` (-67/-67) here. `fa1` is the first seed in the whole study where it does not: DiD -7/-7, cleanly
+inside the generalises band. Given `fa1`'s own base is thin (5 tracks), this is one data point, not a
+reversal of the pattern -- but it is the first exception on record, and the pattern's wording should no longer
+say "every" without this caveat. `step_wind` generalises for all three seeds, consistent with section 5c;
+`blackout` is mostly generalises-to-mixed, also consistent; `lift` is the least settled condition across all
+three -- never a clean generalises for any seed, overfit only for `fa2`, otherwise mixed.
+
+**Threshold sensitivity** (same 15/20/25-point sweep the script always reports): `fa0` stays close to MIXED at
+every threshold (1/3/4 at 15pts, 1/5/2 at 25pts); `fa1` is GENERALISES at all three thresholds, the most
+stable verdict of the three; `fa2` is the most threshold-sensitive -- 4 overfit cells at 15pts, down to 3
+overfit / 5 generalises / 0 mixed at 25pts, meaning its MIXED verdict at the pre-registered 20pt threshold
+sits closer to the boundary than either of its neighbors.
+
+A process note, kept because it took two separate bugs to get a trustworthy answer, not one. First: the
+initial run used the default `--in-dir` (`val_lambda`), which has no `fa0`/`fa1`/`fa2` rows at all -- every
+retention and DiD cell came back `nan`, and the tally logic counts a `nan` DiD as neither overfit nor
+generalises, so it silently reported a clean "MIXED" verdict computed from nothing. Caught before being
+written down. Second, after `val_lambda_fa16` was flown specifically to fix that: `--in-dir` was passed as a
+path relative to `/workspace` (the shell's cwd after `cd /workspace`), which resolved to
+`/workspace/results/eval/val_lambda_fa16` -- a directory that does not exist, since the script's own
+default paths are built from its own location, not the caller's cwd. Every base count came back 0 again, this
+time for `M1`/`M1+L1` too, not just the RL seeds, which is what made it obviously wrong rather than quietly
+wrong. Fixed by passing the absolute path
+(`/workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16`); the base counts (`fa0 12, fa1 5, fa2
+10`) then matched the independently-known val numbers exactly, which is what made this result trustworthy
+enough to write down.
