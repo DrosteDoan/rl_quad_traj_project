@@ -1,0 +1,58 @@
+# Analysis for "Where the Crossover Is"
+
+These scripts reproduce every number, table and figure in the paper from the stored laps of the study sweep. They read only files already in this repository (`../results/eval/` and `../tracks/`) and fly nothing.
+
+Place this folder at `tasks/racing/code/lesson9/analysis/`.
+
+## Requirements
+
+Python 3.10+, `numpy`, `pandas`, `scipy`, `matplotlib`.
+
+## Reproduce the numbers
+
+```bash
+cd tasks/racing/code/lesson9/analysis
+python analysis.py            # or: python analysis.py /path/to/lesson9, or set LESSON9_DIR
+```
+
+Each check prints the value reported in the paper next to the computed one, with PASS or CHECK, and ends with a count. The run takes a few minutes; all randomness is seeded.
+
+What it covers:
+
+| Paper item | Where in `analysis.py` |
+|---|---|
+| Crossover rule: lambda*, room and retention (delta = 0.2, window 0.8) | `power_and_cross`, section 7.1 |
+| Sensing crossovers per track, multiples of the nominal model, mechanism (MPC fall, learned rise) | section 7.1 |
+| Table 2 (member level, best or tied at lambda = 0.8, mean completion over [0.1, 0.8], crossovers against the median member) | Table 2 section |
+| 2,878 paired laps; median RMSE ratio 2.5 with a 2.4-2.8 interval (4,000 track resamples); 36 of 36 track-channel combinations; 1.8 % of pairs | section 7.2 |
+| Wilcoxon signed-rank per stochastic channel-intensity cell with at least 10 pairs, Holm-corrected (26 cells) | section 7.2 |
+| Lap-time differences; sensing RMSE trend; gust completion | section 7.2 |
+| Spearman correlations of lambda* with plan properties; viability against turn angle, MPC difficulty and seed luck | section 7.3 |
+| Table 3 (authority corners): validation counts, viable tracks, sensing crossovers for the family maximum and the median seed, median seed at delta = 0.1, 0.2, 0.3, held-out verdicts | section 7.4 |
+| Held-out cells (lighter drone, lift edge) and the per-seed training edge | section 7.5 |
+| Timing: per-step wall time and MPC solve time | Methodology section |
+
+Held-out verdicts and difference-in-differences cells are read from the `summary.txt` files that `../heldout_conditions.py` wrote for each policy.
+
+## Reproduce the figures
+
+```bash
+python makefigs.py            # writes figures/fig_crossover_map.pdf and figures/fig_sensing_completion_rmse.pdf
+```
+
+Set `FIG_DIR` to write elsewhere.
+
+## Files
+
+- `lib.py`: loading the laps; completion tables; viability; family lines (best member or median); the crossover intensity.
+- `pairs.py`: laps both families complete, for RMSE and lap time.
+- `analysis.py`: every reported number, checked against the paper.
+- `boot.py`: seed-level bootstrap of the crossover counts on the stochastic channels.
+- `figdata.py`, `makefigs.py`: the two figures.
+
+## Definitions worth knowing
+
+- The learned family score in a cell is the best seed in that cell (the family maximum), an envelope over seeds rather than one policy; the validation-selected seed and the median seed are reported separately.
+- "Best or tied" in Table 2 does not count a track on which every member completes nothing.
+- The track-channel precision factors are the median of per-lap RMSE ratios within each combination, the same statistic as the pooled ratio.
+- Mean turn angle is the mean heading change in the horizontal plane at the four gates, along start, gates, end.

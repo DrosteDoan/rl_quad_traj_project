@@ -1,0 +1,23 @@
+datetime: 2026-09-23_16-54-11
+tag: racing-gate-aware-train
+reason: 'Lesson 9: gate-aware viability screen, seed 0'
+git_commit: d9f1e93
+config:
+  timesteps: 8000000
+  n_envs: 16
+  seed: 0
+  reason: 'Lesson 9: gate-aware viability screen, seed 0'
+  dr_lam_max: 0.8
+  no_perturb: false
+  gamma: 0.99
+  n_steps: 512
+  batch_size: 2048
+  tag: racing-gate-aware-train
+  recipe: racing-gate-aware-v5
+  episode_time: 7.0
+  freq: 100
+  window_dt: 0.08
+  force_xy_max: 4.4
+  force_z:
+  - -3.6
+  - 1.8

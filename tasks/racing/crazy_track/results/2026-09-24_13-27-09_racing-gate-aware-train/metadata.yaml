@@ -1,0 +1,24 @@
+datetime: 2026-09-24_13-27-09
+tag: racing-gate-aware-train
+reason: 'Lesson 9: gate-aware viability screen v2 (real ground start), seed 0'
+git_commit: d9f1e93
+config:
+  timesteps: 8000000
+  n_envs: 16
+  seed: 0
+  reason: 'Lesson 9: gate-aware viability screen v2 (real ground start), seed 0'
+  dr_lam_max: 0.8
+  no_perturb: false
+  gamma: 0.99
+  n_steps: 512
+  batch_size: 2048
+  tag: racing-gate-aware-train
+  floor_z: -0.3
+  recipe: racing-gate-aware-v2-groundstart
+  episode_time: 8.0
+  freq: 100
+  window_dt: 0.08
+  force_xy_max: 4.4
+  force_z:
+  - -3.6
+  - 1.8
