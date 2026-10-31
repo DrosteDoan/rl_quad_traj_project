@@ -1,0 +1,24 @@
+track 100092 wind_const lam 0.00 seed  0 expert   FAIL contact           rmse 0.413 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 expert   FAIL contact           rmse 0.779 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_v2/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 expert   FAIL contact           rmse 0.413 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_reverted/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 clone    FAIL contact           rmse 0.366 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_clone/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 clone2   FAIL contact           rmse 0.510 wall 3s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_clone2/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 clone    FAIL contact           rmse 0.402 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_clone_v3/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 clone_disturbed FAIL contact           rmse 0.506 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/dev_clone_disturbed/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 bc       FAIL contact           rmse 0.402 wall 2s
+track 100092 wind_const lam 0.00 seed  0 ppo      FAIL contact           rmse 0.563 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_diag/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 s1_8M    FAIL contact           rmse 0.608 wall 2s
+track 100092 wind_const lam 0.00 seed  0 s0_8M    FAIL contact           rmse 0.608 wall 0s
+track 100092 wind_const lam 0.00 seed  0 bc       FAIL contact           rmse 0.337 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_diag2/laps_dev_100092.csv
+track 100092 wind_const lam 0.00 seed  0 s1_10M   FAIL contact           rmse 0.634 wall 2s
+track 100092 wind_const lam 0.00 seed  0 bc       FAIL contact           rmse 0.337 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_diag3/laps_dev_100092.csv

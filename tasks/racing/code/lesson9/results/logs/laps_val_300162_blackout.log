@@ -1,0 +1,99 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300162 blackout lam 0.25 seed  0 M1       OK 5.175               rmse 0.048 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300162 blackout lam 0.25 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 18s
+track 300162 blackout lam 0.25 seed  0 fa0      FAIL contact           rmse 0.196 wall 2s
+track 300162 blackout lam 0.50 seed  0 M1       OK 5.175               rmse 0.048 wall 18s
+track 300162 blackout lam 0.50 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 18s
+track 300162 blackout lam 0.50 seed  0 fa0      FAIL contact           rmse 0.196 wall 2s
+track 300162 blackout lam 0.75 seed  0 M1       OK 5.175               rmse 0.050 wall 17s
+track 300162 blackout lam 0.75 seed  0 M1+L1    OK 5.178               rmse 0.061 wall 17s
+track 300162 blackout lam 0.75 seed  0 fa0      FAIL contact           rmse 0.198 wall 2s
+track 300162 blackout lam 1.00 seed  0 M1       OK 5.175               rmse 0.073 wall 17s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300162 blackout lam 1.00 seed  0 M1+L1    OK 5.178               rmse 0.075 wall 34s
+track 300162 blackout lam 1.00 seed  0 fa0      FAIL contact           rmse 0.202 wall 4s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s0/laps_val_300162_blackout.csv
+track 300162 blackout lam 1.00 seed  0 M1+L1    OK 5.178               rmse 0.075 wall 34s
+track 300162 blackout lam 1.00 seed  0 fa0      FAIL contact           rmse 0.202 wall 3s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s0/laps_val_300162_blackout.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300162 blackout lam 0.25 seed  0 M1       OK 5.175               rmse 0.048 wall 19s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300162 blackout lam 0.25 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 17s
+track 300162 blackout lam 0.25 seed  0 fa0      FAIL contact           rmse 0.196 wall 2s
+track 300162 blackout lam 0.50 seed  0 M1       OK 5.175               rmse 0.048 wall 17s
+track 300162 blackout lam 0.50 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 17s
+track 300162 blackout lam 0.50 seed  0 fa0      FAIL contact           rmse 0.196 wall 2s
+track 300162 blackout lam 0.75 seed  0 M1       OK 5.175               rmse 0.050 wall 17s
+track 300162 blackout lam 0.75 seed  0 M1+L1    OK 5.178               rmse 0.061 wall 17s
+track 300162 blackout lam 0.75 seed  0 fa0      FAIL contact           rmse 0.198 wall 2s
+track 300162 blackout lam 1.00 seed  0 M1       OK 5.175               rmse 0.073 wall 17s
+track 300162 blackout lam 1.00 seed  0 M1+L1    OK 5.178               rmse 0.075 wall 18s
+track 300162 blackout lam 1.00 seed  0 fa0      FAIL contact           rmse 0.202 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s0/laps_val_300162_blackout.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300162 blackout lam 0.25 seed  0 M1       OK 5.175               rmse 0.048 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300162 blackout lam 0.25 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 18s
+track 300162 blackout lam 0.25 seed  0 fa1      OK 5.323               rmse 0.213 wall 2s
+track 300162 blackout lam 0.50 seed  0 M1       OK 5.175               rmse 0.048 wall 18s
+track 300162 blackout lam 0.50 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 19s
+track 300162 blackout lam 0.50 seed  0 fa1      OK 5.322               rmse 0.212 wall 3s
+track 300162 blackout lam 0.75 seed  0 M1       OK 5.175               rmse 0.050 wall 19s
+track 300162 blackout lam 0.75 seed  0 M1+L1    OK 5.178               rmse 0.061 wall 19s
+track 300162 blackout lam 0.75 seed  0 fa1      OK 5.321               rmse 0.214 wall 2s
+track 300162 blackout lam 1.00 seed  0 M1       OK 5.175               rmse 0.073 wall 18s
+track 300162 blackout lam 1.00 seed  0 M1+L1    OK 5.178               rmse 0.075 wall 19s
+track 300162 blackout lam 1.00 seed  0 fa1      OK 5.321               rmse 0.216 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s1/laps_val_300162_blackout.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300162 blackout lam 0.25 seed  0 M1       OK 5.175               rmse 0.048 wall 19s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300162 blackout lam 0.25 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 17s
+track 300162 blackout lam 0.25 seed  0 fa2      OK 5.306               rmse 0.231 wall 2s
+track 300162 blackout lam 0.50 seed  0 M1       OK 5.175               rmse 0.048 wall 17s
+track 300162 blackout lam 0.50 seed  0 M1+L1    OK 5.178               rmse 0.059 wall 17s
+track 300162 blackout lam 0.50 seed  0 fa2      OK 5.306               rmse 0.231 wall 2s
+track 300162 blackout lam 0.75 seed  0 M1       OK 5.175               rmse 0.050 wall 17s
+track 300162 blackout lam 0.75 seed  0 M1+L1    OK 5.178               rmse 0.061 wall 17s
+track 300162 blackout lam 0.75 seed  0 fa2      OK 5.306               rmse 0.230 wall 2s
+track 300162 blackout lam 1.00 seed  0 M1       OK 5.175               rmse 0.073 wall 17s
+track 300162 blackout lam 1.00 seed  0 M1+L1    OK 5.178               rmse 0.075 wall 18s
+track 300162 blackout lam 1.00 seed  0 fa2      OK 5.306               rmse 0.228 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s2/laps_val_300162_blackout.csv

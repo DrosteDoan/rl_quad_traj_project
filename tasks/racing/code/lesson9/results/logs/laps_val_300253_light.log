@@ -1,0 +1,131 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 light lam 0.25 seed  0 M1       FAIL contact           rmse 0.072 wall 26s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 light lam 0.25 seed  0 M1       FAIL contact           rmse 0.072 wall 27s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+CasADi - 2026-10-20 19:27:03 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+track 300253 light lam 0.25 seed  0 M1+L1    OK 4.786               rmse 0.124 wall 32s
+track 300253 light lam 0.25 seed  0 fa0      OK 4.779               rmse 0.231 wall 3s
+CasADi - 2026-10-20 19:27:17 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+CasADi - 2026-10-20 19:27:17 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+Traceback (most recent call last):
+  File "/workspace/tasks/racing/code/lesson9/driver.py", line 351, in <module>
+    main()
+  File "/workspace/tasks/racing/code/lesson9/driver.py", line 344, in main
+    out = run_task(args.role, args.track, args.cond, [float(x) for x in args.lams.split(",")],
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/code/lesson9/driver.py", line 301, in run_task
+    row = flyer.fly(label, traj, cond, lam, seed)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/code/lesson9/driver.py", line 223, in fly
+    action = np.asarray(ctrl.act(meas, t), dtype=np.float32)
+                        ^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/code/mpc_dev.py", line 479, in act
+    self.opti.set_value(self.REFV, self._traj.vel(times).T)
+                                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/code/race_refs.py", line 104, in vel
+    return self._split(t, "vel")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/code/race_refs.py", line 97, in _split
+    out[~m] = getattr(self.plan, method)(tt[~m] - self.takeoff_t + self.plan_lead_in)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/crazy_track/src/crazy_track/trajectories/sampled.py", line 58, in vel
+    return self._interp(t, self._v, outside_zero=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/crazy_track/src/crazy_track/trajectories/sampled.py", line 45, in _interp
+    t = self._clamp(t)
+        ^^^^^^^^^^^^^^
+  File "/workspace/tasks/racing/crazy_track/src/crazy_track/trajectories/base.py", line 44, in _clamp
+    return np.clip(np.asarray(t, dtype=np.float64), 0.0, self.duration)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/main/lib/python3.12/site-packages/numpy/_core/fromnumeric.py", line 2334, in clip
+    return _wrapfunc(a, 'clip', a_min, a_max, out=out, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/main/lib/python3.12/site-packages/numpy/_core/fromnumeric.py", line 54, in _wrapfunc
+    return bound(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/main/lib/python3.12/site-packages/numpy/_core/_methods.py", line 113, in _clip
+    return um.clip(a, min, max, out=out, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 light lam 0.25 seed  0 M1       FAIL contact           rmse 0.072 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 light lam 0.25 seed  0 M1+L1    OK 4.786               rmse 0.124 wall 18s
+track 300253 light lam 0.25 seed  0 fa0      OK 4.779               rmse 0.231 wall 2s
+track 300253 light lam 0.50 seed  0 M1       OK 4.79                rmse 0.075 wall 18s
+track 300253 light lam 0.50 seed  0 M1+L1    OK 4.784               rmse 0.088 wall 18s
+track 300253 light lam 0.50 seed  0 fa0      OK 4.784               rmse 0.237 wall 2s
+track 300253 light lam 0.75 seed  0 M1       OK 4.788               rmse 0.083 wall 18s
+track 300253 light lam 0.75 seed  0 M1+L1    OK 4.782               rmse 0.096 wall 19s
+track 300253 light lam 0.75 seed  0 fa0      OK 4.793               rmse 0.248 wall 2s
+track 300253 light lam 1.00 seed  0 M1       OK 4.786               rmse 0.104 wall 19s
+track 300253 light lam 1.00 seed  0 M1+L1    OK 4.78                rmse 0.108 wall 18s
+track 300253 light lam 1.00 seed  0 fa0      FAIL contact           rmse 0.268 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s0/laps_val_300253_light.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 light lam 0.25 seed  0 M1       FAIL contact           rmse 0.072 wall 16s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 light lam 0.25 seed  0 M1+L1    OK 4.786               rmse 0.124 wall 18s
+track 300253 light lam 0.25 seed  0 fa1      FAIL contact           rmse 0.235 wall 1s
+track 300253 light lam 0.50 seed  0 M1       OK 4.79                rmse 0.075 wall 19s
+track 300253 light lam 0.50 seed  0 M1+L1    OK 4.784               rmse 0.088 wall 20s
+track 300253 light lam 0.50 seed  0 fa1      FAIL contact           rmse 0.240 wall 1s
+track 300253 light lam 0.75 seed  0 M1       OK 4.788               rmse 0.083 wall 19s
+track 300253 light lam 0.75 seed  0 M1+L1    OK 4.782               rmse 0.096 wall 18s
+track 300253 light lam 0.75 seed  0 fa1      FAIL contact           rmse 0.247 wall 1s
+track 300253 light lam 1.00 seed  0 M1       OK 4.786               rmse 0.104 wall 19s
+track 300253 light lam 1.00 seed  0 M1+L1    OK 4.78                rmse 0.108 wall 18s
+track 300253 light lam 1.00 seed  0 fa1      FAIL contact           rmse 0.208 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s1/laps_val_300253_light.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 light lam 0.25 seed  0 M1       FAIL contact           rmse 0.072 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 light lam 0.25 seed  0 M1+L1    OK 4.786               rmse 0.124 wall 18s
+track 300253 light lam 0.25 seed  0 fa2      OK 4.808               rmse 0.216 wall 2s
+track 300253 light lam 0.50 seed  0 M1       OK 4.79                rmse 0.075 wall 18s
+track 300253 light lam 0.50 seed  0 M1+L1    OK 4.784               rmse 0.088 wall 19s
+track 300253 light lam 0.50 seed  0 fa2      OK 4.827               rmse 0.220 wall 2s
+track 300253 light lam 0.75 seed  0 M1       OK 4.788               rmse 0.083 wall 18s
+track 300253 light lam 0.75 seed  0 M1+L1    OK 4.782               rmse 0.096 wall 18s
+track 300253 light lam 0.75 seed  0 fa2      OK 4.845               rmse 0.227 wall 2s
+track 300253 light lam 1.00 seed  0 M1       OK 4.786               rmse 0.104 wall 18s
+track 300253 light lam 1.00 seed  0 M1+L1    OK 4.78                rmse 0.108 wall 17s
+track 300253 light lam 1.00 seed  0 fa2      FAIL contact           rmse 0.191 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s2/laps_val_300253_light.csv

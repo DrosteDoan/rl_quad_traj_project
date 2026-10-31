@@ -1,0 +1,50 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300267 wind_const lam 0.00 seed  0 M1       OK 4.253               rmse 0.060 wall 17s
+track 300267 wind_const lam 0.00 seed  0 bc       FAIL contact           rmse 0.607 wall 1s
+track 300267 wind_const lam 0.00 seed  0 s0_final FAIL missed_gate_1     rmse 0.937 wall 1s
+track 300267 wind_const lam 0.00 seed  0 s1_10M   FAIL contact           rmse 0.721 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_val/laps_val_300267.csv
+track 300267 wind_const lam 0.00 seed  0 s1fid_1M FAIL contact           rmse 0.623 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_val_fid1M/laps_val_300267.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300267 wind_const lam 0.00 seed  0 M1       OK 4.253               rmse 0.060 wall 14s
+track 300267 wind_const lam 0.00 seed  0 s1fid_4M FAIL contact           rmse 0.572 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_val_fid4M/laps_val_300267.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300267 wind_const lam 0.00 seed  0 M1       OK 4.253               rmse 0.060 wall 15s
+track 300267 wind_const lam 0.00 seed  0 s1rew_4M FAIL contact           rmse 0.556 wall 0s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/gaterel_val_rewfix4M/laps_val_300267.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300267 wind_const lam 0.00 seed  0 M1       OK 4.253               rmse 0.060 wall 17s
+track 300267 wind_const lam 0.00 seed  0 fa0_16M  OK 4.289               rmse 0.277 wall 2s
+track 300267 wind_const lam 0.00 seed  0 fa1_16M  FAIL contact           rmse 0.332 wall 1s
+track 300267 wind_const lam 0.00 seed  0 fa2_16M  FAIL contact           rmse 0.295 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/fa_16M_check/laps_val_300267.csv

@@ -1,0 +1,70 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 301566 lighthouse lam 0.25 seed  0 M1       OK 4.647               rmse 0.067 wall 18s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 301566 lighthouse lam 0.25 seed  0 M1+L1    FAIL contact           rmse 0.079 wall 13s
+track 301566 lighthouse lam 0.25 seed  0 fa0      OK 4.718               rmse 0.227 wall 2s
+track 301566 lighthouse lam 0.25 seed  0 fa1      FAIL contact           rmse 0.198 wall 1s
+track 301566 lighthouse lam 0.25 seed  0 fa2      OK 4.811               rmse 0.217 wall 2s
+track 301566 lighthouse lam 0.25 seed  1 M1       OK 4.646               rmse 0.070 wall 17s
+track 301566 lighthouse lam 0.25 seed  1 M1+L1    OK 4.653               rmse 0.079 wall 18s
+track 301566 lighthouse lam 0.25 seed  1 fa0      OK 4.72                rmse 0.218 wall 2s
+track 301566 lighthouse lam 0.25 seed  1 fa1      FAIL contact           rmse 0.206 wall 1s
+track 301566 lighthouse lam 0.25 seed  1 fa2      OK 4.813               rmse 0.219 wall 2s
+track 301566 lighthouse lam 0.25 seed  2 M1       OK 4.648               rmse 0.070 wall 17s
+track 301566 lighthouse lam 0.25 seed  2 M1+L1    OK 4.646               rmse 0.078 wall 18s
+track 301566 lighthouse lam 0.25 seed  2 fa0      FAIL contact           rmse 0.227 wall 2s
+track 301566 lighthouse lam 0.25 seed  2 fa1      FAIL contact           rmse 0.207 wall 1s
+track 301566 lighthouse lam 0.25 seed  2 fa2      OK 4.815               rmse 0.222 wall 2s
+track 301566 lighthouse lam 0.50 seed  0 M1       FAIL contact           rmse 0.230 wall 10s
+track 301566 lighthouse lam 0.50 seed  0 M1+L1    FAIL contact           rmse 0.142 wall 8s
+track 301566 lighthouse lam 0.50 seed  0 fa0      OK 4.721               rmse 0.221 wall 2s
+track 301566 lighthouse lam 0.50 seed  0 fa1      FAIL contact           rmse 0.195 wall 1s
+track 301566 lighthouse lam 0.50 seed  0 fa2      FAIL contact           rmse 0.121 wall 0s
+track 301566 lighthouse lam 0.50 seed  1 M1       OK 4.647               rmse 0.089 wall 17s
+track 301566 lighthouse lam 0.50 seed  1 M1+L1    FAIL contact           rmse 0.215 wall 8s
+track 301566 lighthouse lam 0.50 seed  1 fa0      OK 4.734               rmse 0.208 wall 2s
+track 301566 lighthouse lam 0.50 seed  1 fa1      FAIL contact           rmse 0.195 wall 1s
+track 301566 lighthouse lam 0.50 seed  1 fa2      OK 4.816               rmse 0.215 wall 2s
+track 301566 lighthouse lam 0.50 seed  2 M1       OK 4.725               rmse 0.171 wall 17s
+track 301566 lighthouse lam 0.50 seed  2 M1+L1    OK 4.638               rmse 0.094 wall 18s
+track 301566 lighthouse lam 0.50 seed  2 fa0      FAIL contact           rmse 0.204 wall 1s
+track 301566 lighthouse lam 0.50 seed  2 fa1      FAIL contact           rmse 0.211 wall 1s
+track 301566 lighthouse lam 0.50 seed  2 fa2      OK 4.81                rmse 0.205 wall 2s
+track 301566 lighthouse lam 0.75 seed  0 M1       FAIL contact           rmse 0.113 wall 10s
+track 301566 lighthouse lam 0.75 seed  0 M1+L1    FAIL contact           rmse 0.384 wall 10s
+track 301566 lighthouse lam 0.75 seed  0 fa0      FAIL contact           rmse 0.214 wall 1s
+track 301566 lighthouse lam 0.75 seed  0 fa1      FAIL contact           rmse 0.106 wall 0s
+track 301566 lighthouse lam 0.75 seed  0 fa2      FAIL contact           rmse 0.113 wall 0s
+track 301566 lighthouse lam 0.75 seed  1 M1       FAIL contact           rmse 0.192 wall 10s
+track 301566 lighthouse lam 0.75 seed  1 M1+L1    FAIL contact           rmse 0.344 wall 11s
+track 301566 lighthouse lam 0.75 seed  1 fa0      FAIL contact           rmse 0.211 wall 2s
+track 301566 lighthouse lam 0.75 seed  1 fa1      FAIL contact           rmse 0.261 wall 1s
+track 301566 lighthouse lam 0.75 seed  1 fa2      FAIL contact           rmse 0.254 wall 1s
+track 301566 lighthouse lam 0.75 seed  2 M1       FAIL contact           rmse 0.146 wall 9s
+track 301566 lighthouse lam 0.75 seed  2 M1+L1    FAIL contact           rmse 0.359 wall 9s
+track 301566 lighthouse lam 0.75 seed  2 fa0      FAIL contact           rmse 0.204 wall 2s
+track 301566 lighthouse lam 0.75 seed  2 fa1      FAIL contact           rmse 0.240 wall 1s
+track 301566 lighthouse lam 0.75 seed  2 fa2      OK 4.818               rmse 0.233 wall 2s
+track 301566 lighthouse lam 1.00 seed  0 M1       FAIL contact           rmse 0.243 wall 10s
+track 301566 lighthouse lam 1.00 seed  0 M1+L1    FAIL contact           rmse 0.719 wall 12s
+track 301566 lighthouse lam 1.00 seed  0 fa0      FAIL contact           rmse 0.200 wall 1s
+track 301566 lighthouse lam 1.00 seed  0 fa1      FAIL missed_gate_2     rmse 0.445 wall 1s
+track 301566 lighthouse lam 1.00 seed  0 fa2      FAIL contact           rmse 0.201 wall 1s
+track 301566 lighthouse lam 1.00 seed  1 M1       FAIL missed_gate_2     rmse 0.949 wall 15s
+track 301566 lighthouse lam 1.00 seed  1 M1+L1    FAIL contact           rmse 0.549 wall 10s
+track 301566 lighthouse lam 1.00 seed  1 fa0      FAIL contact           rmse 0.211 wall 1s
+track 301566 lighthouse lam 1.00 seed  1 fa1      FAIL contact           rmse 0.200 wall 1s
+track 301566 lighthouse lam 1.00 seed  1 fa2      FAIL contact           rmse 0.161 wall 0s
+track 301566 lighthouse lam 1.00 seed  2 M1       FAIL contact           rmse 0.436 wall 9s
+track 301566 lighthouse lam 1.00 seed  2 M1+L1    FAIL contact           rmse 0.143 wall 10s
+track 301566 lighthouse lam 1.00 seed  2 fa0      FAIL contact           rmse 0.226 wall 1s
+track 301566 lighthouse lam 1.00 seed  2 fa1      FAIL missed_gate_3     rmse 0.518 wall 2s
+track 301566 lighthouse lam 1.00 seed  2 fa2      FAIL contact           rmse 0.263 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16/laps_val_301566_lighthouse.csv

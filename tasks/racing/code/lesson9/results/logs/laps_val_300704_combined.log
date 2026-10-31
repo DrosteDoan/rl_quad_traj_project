@@ -1,0 +1,70 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300704 combined lam 0.25 seed  0 M1       OK 4.425               rmse 0.097 wall 17s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300704 combined lam 0.25 seed  0 M1+L1    OK 4.434               rmse 0.081 wall 15s
+track 300704 combined lam 0.25 seed  0 fa0      OK 4.445               rmse 0.200 wall 2s
+track 300704 combined lam 0.25 seed  0 fa1      FAIL contact           rmse 0.201 wall 1s
+track 300704 combined lam 0.25 seed  0 fa2      FAIL contact           rmse 0.185 wall 1s
+track 300704 combined lam 0.25 seed  1 M1       FAIL contact           rmse 0.137 wall 8s
+track 300704 combined lam 0.25 seed  1 M1+L1    OK 4.441               rmse 0.088 wall 16s
+track 300704 combined lam 0.25 seed  1 fa0      OK 4.468               rmse 0.203 wall 2s
+track 300704 combined lam 0.25 seed  1 fa1      OK 4.506               rmse 0.198 wall 2s
+track 300704 combined lam 0.25 seed  1 fa2      OK 4.512               rmse 0.196 wall 2s
+track 300704 combined lam 0.25 seed  2 M1       OK 4.433               rmse 0.105 wall 15s
+track 300704 combined lam 0.25 seed  2 M1+L1    OK 4.44                rmse 0.082 wall 16s
+track 300704 combined lam 0.25 seed  2 fa0      OK 4.462               rmse 0.213 wall 2s
+track 300704 combined lam 0.25 seed  2 fa1      OK 4.507               rmse 0.191 wall 2s
+track 300704 combined lam 0.25 seed  2 fa2      FAIL contact           rmse 0.189 wall 2s
+track 300704 combined lam 0.50 seed  0 M1       FAIL contact           rmse 0.184 wall 8s
+track 300704 combined lam 0.50 seed  0 M1+L1    OK 4.428               rmse 0.154 wall 15s
+track 300704 combined lam 0.50 seed  0 fa0      OK 4.471               rmse 0.214 wall 2s
+track 300704 combined lam 0.50 seed  0 fa1      FAIL contact           rmse 0.213 wall 1s
+track 300704 combined lam 0.50 seed  0 fa2      FAIL contact           rmse 0.193 wall 1s
+track 300704 combined lam 0.50 seed  1 M1       FAIL contact           rmse 0.299 wall 8s
+track 300704 combined lam 0.50 seed  1 M1+L1    FAIL contact           rmse 0.195 wall 11s
+track 300704 combined lam 0.50 seed  1 fa0      FAIL contact           rmse 0.243 wall 1s
+track 300704 combined lam 0.50 seed  1 fa1      OK 4.531               rmse 0.207 wall 2s
+track 300704 combined lam 0.50 seed  1 fa2      FAIL contact           rmse 0.227 wall 2s
+track 300704 combined lam 0.50 seed  2 M1       FAIL contact           rmse 0.187 wall 8s
+track 300704 combined lam 0.50 seed  2 M1+L1    FAIL contact           rmse 0.132 wall 12s
+track 300704 combined lam 0.50 seed  2 fa0      FAIL contact           rmse 0.256 wall 1s
+track 300704 combined lam 0.50 seed  2 fa1      FAIL contact           rmse 0.198 wall 1s
+track 300704 combined lam 0.50 seed  2 fa2      FAIL contact           rmse 0.203 wall 1s
+track 300704 combined lam 0.75 seed  0 M1       FAIL contact           rmse 0.431 wall 12s
+track 300704 combined lam 0.75 seed  0 M1+L1    FAIL contact           rmse 0.380 wall 11s
+track 300704 combined lam 0.75 seed  0 fa0      FAIL contact           rmse 0.252 wall 1s
+track 300704 combined lam 0.75 seed  0 fa1      FAIL contact           rmse 0.185 wall 1s
+track 300704 combined lam 0.75 seed  0 fa2      FAIL contact           rmse 0.215 wall 1s
+track 300704 combined lam 0.75 seed  1 M1       FAIL missed_gate_1     rmse 0.711 wall 8s
+track 300704 combined lam 0.75 seed  1 M1+L1    FAIL missed_gate_1     rmse 0.707 wall 8s
+track 300704 combined lam 0.75 seed  1 fa0      FAIL contact           rmse 0.298 wall 1s
+track 300704 combined lam 0.75 seed  1 fa1      FAIL missed_gate_3     rmse 0.489 wall 2s
+track 300704 combined lam 0.75 seed  1 fa2      FAIL contact           rmse 0.311 wall 1s
+track 300704 combined lam 0.75 seed  2 M1       FAIL missed_gate_2     rmse 0.457 wall 11s
+track 300704 combined lam 0.75 seed  2 M1+L1    FAIL missed_gate_2     rmse 0.584 wall 11s
+track 300704 combined lam 0.75 seed  2 fa0      FAIL contact           rmse 0.358 wall 2s
+track 300704 combined lam 0.75 seed  2 fa1      FAIL contact           rmse 0.248 wall 1s
+track 300704 combined lam 0.75 seed  2 fa2      FAIL contact           rmse 0.249 wall 2s
+track 300704 combined lam 1.00 seed  0 M1       FAIL contact           rmse 0.215 wall 4s
+track 300704 combined lam 1.00 seed  0 M1+L1    FAIL contact           rmse 0.178 wall 4s
+track 300704 combined lam 1.00 seed  0 fa0      FAIL missed_gate_2     rmse 0.443 wall 1s
+track 300704 combined lam 1.00 seed  0 fa1      FAIL contact           rmse 0.321 wall 1s
+track 300704 combined lam 1.00 seed  0 fa2      FAIL contact           rmse 0.254 wall 1s
+track 300704 combined lam 1.00 seed  1 M1       FAIL missed_gate_1     rmse 1.986 wall 8s
+track 300704 combined lam 1.00 seed  1 M1+L1    FAIL missed_gate_1     rmse 1.986 wall 8s
+track 300704 combined lam 1.00 seed  1 fa0      FAIL missed_gate_1     rmse 1.708 wall 0s
+track 300704 combined lam 1.00 seed  1 fa1      FAIL missed_gate_1     rmse 0.944 wall 1s
+track 300704 combined lam 1.00 seed  1 fa2      FAIL missed_gate_1     rmse 1.197 wall 0s
+track 300704 combined lam 1.00 seed  2 M1       FAIL contact           rmse 0.321 wall 4s
+track 300704 combined lam 1.00 seed  2 M1+L1    FAIL contact           rmse 0.279 wall 4s
+track 300704 combined lam 1.00 seed  2 fa0      FAIL missed_gate_2     rmse 0.806 wall 1s
+track 300704 combined lam 1.00 seed  2 fa1      FAIL missed_gate_2     rmse 0.493 wall 1s
+track 300704 combined lam 1.00 seed  2 fa2      FAIL contact           rmse 0.259 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16/laps_val_300704_combined.csv

@@ -1,0 +1,30 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 301152 mass_mult lam 0.25 seed  0 M1       OK 4.37                rmse 0.063 wall 17s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 301152 mass_mult lam 0.25 seed  0 M1+L1    OK 4.362               rmse 0.064 wall 17s
+track 301152 mass_mult lam 0.25 seed  0 fa0      FAIL contact           rmse 0.231 wall 1s
+track 301152 mass_mult lam 0.25 seed  0 fa1      OK 4.532               rmse 0.255 wall 2s
+track 301152 mass_mult lam 0.25 seed  0 fa2      OK 4.498               rmse 0.216 wall 2s
+track 301152 mass_mult lam 0.50 seed  0 M1       OK 4.373               rmse 0.074 wall 16s
+track 301152 mass_mult lam 0.50 seed  0 M1+L1    OK 4.364               rmse 0.071 wall 17s
+track 301152 mass_mult lam 0.50 seed  0 fa0      FAIL contact           rmse 0.225 wall 1s
+track 301152 mass_mult lam 0.50 seed  0 fa1      FAIL contact           rmse 0.309 wall 2s
+track 301152 mass_mult lam 0.50 seed  0 fa2      OK 4.49                rmse 0.213 wall 2s
+track 301152 mass_mult lam 0.75 seed  0 M1       FAIL contact           rmse 0.095 wall 13s
+track 301152 mass_mult lam 0.75 seed  0 M1+L1    FAIL contact           rmse 0.105 wall 14s
+track 301152 mass_mult lam 0.75 seed  0 fa0      FAIL contact           rmse 0.218 wall 1s
+track 301152 mass_mult lam 0.75 seed  0 fa1      FAIL contact           rmse 0.254 wall 2s
+track 301152 mass_mult lam 0.75 seed  0 fa2      OK 4.494               rmse 0.217 wall 2s
+track 301152 mass_mult lam 1.00 seed  0 M1       FAIL contact           rmse 0.126 wall 13s
+track 301152 mass_mult lam 1.00 seed  0 M1+L1    FAIL missed_gate_3     rmse 0.373 wall 17s
+track 301152 mass_mult lam 1.00 seed  0 fa0      OK 4.426               rmse 0.214 wall 2s
+track 301152 mass_mult lam 1.00 seed  0 fa1      FAIL contact           rmse 0.346 wall 2s
+track 301152 mass_mult lam 1.00 seed  0 fa2      OK 4.517               rmse 0.232 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16/laps_val_301152_mass_mult.csv

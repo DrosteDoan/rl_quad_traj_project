@@ -1,0 +1,43 @@
+22 tasks (22 tracks x 1 conditions), members ['s0', 's1', 's2', 'M1@0.7', 'M1+L1@0.7']
+[1/22] laps_val_300522_gate_shift: rc=0 in 0.6 min
+[2/22] laps_val_300267_gate_shift: rc=0 in 0.7 min
+[3/22] laps_val_300253_gate_shift: rc=0 in 0.8 min
+[4/22] laps_val_300037_gate_shift: rc=0 in 0.8 min
+[5/22] laps_val_300229_gate_shift: rc=0 in 0.8 min
+[6/22] laps_val_300162_gate_shift: rc=0 in 0.9 min
+[7/22] laps_val_300389_gate_shift: rc=0 in 0.9 min
+[8/22] laps_val_300553_gate_shift: rc=0 in 1.0 min
+[9/22] laps_val_300565_gate_shift: rc=0 in 0.7 min
+[10/22] laps_val_300624_gate_shift: rc=0 in 0.8 min
+[11/22] laps_val_300637_gate_shift: rc=0 in 0.8 min
+[12/22] laps_val_300808_gate_shift: rc=0 in 0.7 min
+[13/22] laps_val_300704_gate_shift: rc=0 in 0.8 min
+[14/22] laps_val_301236_gate_shift: rc=0 in 0.7 min
+[15/22] laps_val_301152_gate_shift: rc=0 in 0.8 min
+[16/22] laps_val_301284_gate_shift: rc=0 in 1.0 min
+[17/22] laps_val_301381_gate_shift: rc=0 in 0.7 min
+[18/22] laps_val_301702_gate_shift: rc=0 in 0.6 min
+[19/22] laps_val_301910_gate_shift: rc=0 in 0.6 min
+[20/22] laps_val_301566_gate_shift: rc=0 in 0.7 min
+[21/22] laps_val_301688_gate_shift: rc=0 in 0.7 min
+[22/22] laps_val_301524_gate_shift: rc=0 in 0.8 min
+
+base (completed at lambda=0, of 22 tracks): s0 0, s1 0, s2 0, M1@0.7 0, M1+L1@0.7 0
+
+== raw: completed laps / laps ==
+condition   member         lam=0.0      lam=0.25       lam=0.5      lam=0.75       lam=1.0
+gate_shift  s0              -        43/66   65%   30/66   45%   17/66   26%   11/66   17%
+gate_shift  s1              -        38/66   58%   24/66   36%   16/66   24%    5/66    8%
+gate_shift  s2              -        20/66   30%   14/66   21%    6/66    9%    1/66    2%
+gate_shift  M1@0.7          -        58/66   88%   51/66   77%   24/66   36%   10/66   15%
+gate_shift  M1+L1@0.7        -        59/66   89%   51/66   77%   27/66   41%   14/66   21%
+
+
+== retention: completed laps / laps ==
+condition   member         lam=0.0      lam=0.25       lam=0.5      lam=0.75       lam=1.0
+gate_shift  s0              -             -             -             -             -     
+gate_shift  s1              -             -             -             -             -     
+gate_shift  s2              -             -             -             -             -     
+gate_shift  M1@0.7          -             -             -             -             -     
+gate_shift  M1+L1@0.7        -             -             -             -             -     
+

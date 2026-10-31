@@ -1,0 +1,70 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 301524 wind_gust lam 0.25 seed  0 M1       OK 6.348               rmse 0.072 wall 19s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 301524 wind_gust lam 0.25 seed  0 M1+L1    OK 6.366               rmse 0.057 wall 19s
+track 301524 wind_gust lam 0.25 seed  0 fa0      OK 6.409               rmse 0.178 wall 2s
+track 301524 wind_gust lam 0.25 seed  0 fa1      FAIL contact           rmse 0.173 wall 1s
+track 301524 wind_gust lam 0.25 seed  0 fa2      FAIL contact           rmse 0.173 wall 2s
+track 301524 wind_gust lam 0.25 seed  1 M1       OK 6.345               rmse 0.076 wall 19s
+track 301524 wind_gust lam 0.25 seed  1 M1+L1    OK 6.364               rmse 0.058 wall 19s
+track 301524 wind_gust lam 0.25 seed  1 fa0      OK 6.395               rmse 0.186 wall 2s
+track 301524 wind_gust lam 0.25 seed  1 fa1      FAIL contact           rmse 0.176 wall 1s
+track 301524 wind_gust lam 0.25 seed  1 fa2      FAIL contact           rmse 0.175 wall 2s
+track 301524 wind_gust lam 0.25 seed  2 M1       OK 6.354               rmse 0.066 wall 20s
+track 301524 wind_gust lam 0.25 seed  2 M1+L1    OK 6.367               rmse 0.054 wall 19s
+track 301524 wind_gust lam 0.25 seed  2 fa0      OK 6.417               rmse 0.179 wall 3s
+track 301524 wind_gust lam 0.25 seed  2 fa1      FAIL contact           rmse 0.173 wall 2s
+track 301524 wind_gust lam 0.25 seed  2 fa2      FAIL contact           rmse 0.181 wall 2s
+track 301524 wind_gust lam 0.50 seed  0 M1       FAIL contact           rmse 0.087 wall 15s
+track 301524 wind_gust lam 0.50 seed  0 M1+L1    OK 6.364               rmse 0.067 wall 21s
+track 301524 wind_gust lam 0.50 seed  0 fa0      OK 6.41                rmse 0.182 wall 3s
+track 301524 wind_gust lam 0.50 seed  0 fa1      FAIL contact           rmse 0.176 wall 2s
+track 301524 wind_gust lam 0.50 seed  0 fa2      FAIL contact           rmse 0.180 wall 2s
+track 301524 wind_gust lam 0.50 seed  1 M1       OK 6.324               rmse 0.122 wall 19s
+track 301524 wind_gust lam 0.50 seed  1 M1+L1    OK 6.357               rmse 0.069 wall 20s
+track 301524 wind_gust lam 0.50 seed  1 fa0      OK 6.373               rmse 0.200 wall 2s
+track 301524 wind_gust lam 0.50 seed  1 fa1      FAIL contact           rmse 0.173 wall 1s
+track 301524 wind_gust lam 0.50 seed  1 fa2      FAIL contact           rmse 0.185 wall 2s
+track 301524 wind_gust lam 0.50 seed  2 M1       OK 6.341               rmse 0.104 wall 19s
+track 301524 wind_gust lam 0.50 seed  2 M1+L1    OK 6.366               rmse 0.061 wall 20s
+track 301524 wind_gust lam 0.50 seed  2 fa0      OK 6.409               rmse 0.180 wall 2s
+track 301524 wind_gust lam 0.50 seed  2 fa1      OK 6.412               rmse 0.201 wall 2s
+track 301524 wind_gust lam 0.50 seed  2 fa2      FAIL contact           rmse 0.197 wall 2s
+track 301524 wind_gust lam 0.75 seed  0 M1       FAIL contact           rmse 0.119 wall 16s
+track 301524 wind_gust lam 0.75 seed  0 M1+L1    OK 6.361               rmse 0.081 wall 20s
+track 301524 wind_gust lam 0.75 seed  0 fa0      FAIL contact           rmse 0.189 wall 2s
+track 301524 wind_gust lam 0.75 seed  0 fa1      FAIL contact           rmse 0.182 wall 2s
+track 301524 wind_gust lam 0.75 seed  0 fa2      FAIL contact           rmse 0.195 wall 2s
+track 301524 wind_gust lam 0.75 seed  1 M1       FAIL contact           rmse 0.168 wall 16s
+track 301524 wind_gust lam 0.75 seed  1 M1+L1    OK 6.344               rmse 0.090 wall 20s
+track 301524 wind_gust lam 0.75 seed  1 fa0      FAIL contact           rmse 0.217 wall 2s
+track 301524 wind_gust lam 0.75 seed  1 fa1      OK 6.395               rmse 0.243 wall 2s
+track 301524 wind_gust lam 0.75 seed  1 fa2      FAIL contact           rmse 0.206 wall 2s
+track 301524 wind_gust lam 0.75 seed  2 M1       OK 6.328               rmse 0.145 wall 20s
+track 301524 wind_gust lam 0.75 seed  2 M1+L1    OK 6.365               rmse 0.072 wall 20s
+track 301524 wind_gust lam 0.75 seed  2 fa0      OK 6.401               rmse 0.184 wall 2s
+track 301524 wind_gust lam 0.75 seed  2 fa1      OK 6.406               rmse 0.187 wall 2s
+track 301524 wind_gust lam 0.75 seed  2 fa2      FAIL contact           rmse 0.232 wall 2s
+track 301524 wind_gust lam 1.00 seed  0 M1       FAIL contact           rmse 0.152 wall 16s
+track 301524 wind_gust lam 1.00 seed  0 M1+L1    FAIL contact           rmse 0.107 wall 16s
+track 301524 wind_gust lam 1.00 seed  0 fa0      FAIL contact           rmse 0.205 wall 2s
+track 301524 wind_gust lam 1.00 seed  0 fa1      FAIL contact           rmse 0.176 wall 0s
+track 301524 wind_gust lam 1.00 seed  0 fa2      FAIL contact           rmse 0.216 wall 2s
+track 301524 wind_gust lam 1.00 seed  1 M1       FAIL contact           rmse 0.237 wall 5s
+track 301524 wind_gust lam 1.00 seed  1 M1+L1    FAIL contact           rmse 0.180 wall 5s
+track 301524 wind_gust lam 1.00 seed  1 fa0      FAIL contact           rmse 0.185 wall 0s
+track 301524 wind_gust lam 1.00 seed  1 fa1      FAIL contact           rmse 0.163 wall 0s
+track 301524 wind_gust lam 1.00 seed  1 fa2      FAIL contact           rmse 0.294 wall 2s
+track 301524 wind_gust lam 1.00 seed  2 M1       OK 6.315               rmse 0.187 wall 21s
+track 301524 wind_gust lam 1.00 seed  2 M1+L1    FAIL contact           rmse 0.151 wall 16s
+track 301524 wind_gust lam 1.00 seed  2 fa0      OK 6.393               rmse 0.191 wall 3s
+track 301524 wind_gust lam 1.00 seed  2 fa1      OK 6.409               rmse 0.189 wall 3s
+track 301524 wind_gust lam 1.00 seed  2 fa2      FAIL contact           rmse 0.301 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16/laps_val_301524_wind_gust.csv

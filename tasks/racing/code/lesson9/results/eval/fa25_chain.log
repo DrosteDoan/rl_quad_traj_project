@@ -1,0 +1,528 @@
+88 tasks (22 tracks x 4 held-out conditions), members ['fa0', 'M1', 'M1+L1']
+[1/88] laps_val_300037_lift: rc=0 in 1.7 min
+[2/88] laps_val_300162_lift: rc=0 in 1.9 min
+[3/88] laps_val_300037_light: rc=0 in 2.4 min
+[4/88] laps_val_300037_blackout: rc=0 in 2.4 min
+[5/88] laps_val_300037_step_wind: rc=0 in 2.5 min
+[6/88] laps_val_300162_step_wind: rc=0 in 2.5 min
+[7/88] laps_val_300162_light: rc=0 in 2.8 min
+[8/88] laps_val_300162_blackout: rc=0 in 2.8 min
+[9/88] laps_val_300229_lift: rc=0 in 1.7 min
+[10/88] laps_val_300253_lift: rc=0 in 1.7 min
+[11/88] laps_val_300229_light: rc=0 in 2.6 min
+[12/88] laps_val_300229_blackout: rc=0 in 2.3 min
+[13/88] laps_val_300253_blackout: rc=0 in 1.9 min
+[14/88] laps_val_300267_lift: rc=0 in 1.5 min
+[15/88] laps_val_300229_step_wind: rc=0 in 2.6 min
+[16/88] laps_val_300253_light: rc=0 in 2.9 min
+[17/88] laps_val_300253_step_wind: rc=0 in 2.7 min
+[18/88] laps_val_300267_blackout: rc=0 in 1.4 min
+[19/88] laps_val_300267_light: rc=0 in 2.4 min
+[20/88] laps_val_300267_step_wind: rc=0 in 2.2 min
+[21/88] laps_val_300522_lift: rc=0 in 1.3 min
+[22/88] laps_val_300389_lift: rc=0 in 2.2 min
+[23/88] laps_val_300389_step_wind: rc=0 in 2.3 min
+[24/88] laps_val_300389_light: rc=0 in 2.8 min
+[25/88] laps_val_300522_light: rc=0 in 1.8 min
+[26/88] laps_val_300389_blackout: rc=0 in 2.6 min
+[27/88] laps_val_300522_blackout: rc=0 in 1.6 min
+[28/88] laps_val_300522_step_wind: rc=0 in 1.7 min
+[29/88] laps_val_300565_lift: rc=0 in 1.3 min
+[30/88] laps_val_300553_lift: rc=0 in 2.6 min
+[31/88] laps_val_300565_light: rc=0 in 1.7 min
+[32/88] laps_val_300553_light: rc=0 in 3.1 min
+[33/88] laps_val_300565_blackout: rc=0 in 1.9 min
+[34/88] laps_val_300565_step_wind: rc=0 in 2.2 min
+[35/88] laps_val_300553_step_wind: rc=0 in 3.2 min
+[36/88] laps_val_300553_blackout: rc=0 in 3.1 min
+[37/88] laps_val_300624_lift: rc=0 in 1.9 min
+[38/88] laps_val_300624_light: rc=0 in 2.5 min
+[39/88] laps_val_300624_blackout: rc=0 in 1.9 min
+[40/88] laps_val_300624_step_wind: rc=0 in 2.3 min
+[41/88] laps_val_300637_lift: rc=0 in 2.2 min
+[42/88] laps_val_300704_lift: rc=0 in 1.4 min
+[43/88] laps_val_300637_step_wind: rc=0 in 2.2 min
+[44/88] laps_val_300637_light: rc=0 in 2.4 min
+[45/88] laps_val_300637_blackout: rc=0 in 2.2 min
+[46/88] laps_val_300704_light: rc=0 in 2.3 min
+[47/88] laps_val_300808_lift: rc=0 in 1.7 min
+[48/88] laps_val_300704_blackout: rc=0 in 2.1 min
+[49/88] laps_val_300704_step_wind: rc=0 in 2.3 min
+[50/88] laps_val_300808_step_wind: rc=0 in 2.0 min
+[51/88] laps_val_300808_blackout: rc=0 in 2.0 min
+[52/88] laps_val_300808_light: rc=0 in 2.2 min
+[53/88] laps_val_301152_lift: rc=0 in 1.8 min
+[54/88] laps_val_301236_lift: rc=0 in 1.4 min
+[55/88] laps_val_301236_blackout: rc=0 in 1.4 min
+[56/88] laps_val_301152_blackout: rc=0 in 2.1 min
+[57/88] laps_val_301152_step_wind: rc=0 in 2.3 min
+[58/88] laps_val_301152_light: rc=0 in 2.4 min
+[59/88] laps_val_301236_step_wind: rc=0 in 2.0 min
+[60/88] laps_val_301236_light: rc=0 in 2.4 min
+[61/88] laps_val_301284_lift: rc=0 in 2.6 min
+[62/88] laps_val_301381_lift: rc=0 in 1.5 min
+[63/88] laps_val_301284_light: rc=0 in 3.2 min
+[64/88] laps_val_301381_light: rc=0 in 2.5 min
+[65/88] laps_val_301381_blackout: rc=0 in 2.1 min
+[66/88] laps_val_301284_step_wind: rc=0 in 3.0 min
+[67/88] laps_val_301381_step_wind: rc=0 in 2.3 min
+[68/88] laps_val_301284_blackout: rc=0 in 3.2 min
+[69/88] laps_val_301524_lift: rc=0 in 2.3 min
+[70/88] laps_val_301566_lift: rc=0 in 1.4 min
+[71/88] laps_val_301524_light: rc=0 in 2.9 min
+[72/88] laps_val_301566_step_wind: rc=0 in 2.3 min
+[73/88] laps_val_301566_blackout: rc=0 in 2.0 min
+[74/88] laps_val_301524_step_wind: rc=0 in 2.7 min
+[75/88] laps_val_301566_light: rc=0 in 2.4 min
+[76/88] laps_val_301524_blackout: rc=0 in 2.8 min
+[77/88] laps_val_301688_lift: rc=0 in 1.9 min
+[78/88] laps_val_301910_lift: rc=0 in 1.1 min
+[79/88] laps_val_301702_lift: rc=0 in 1.5 min
+[80/88] laps_val_301688_light: rc=0 in 2.5 min
+[81/88] laps_val_301688_step_wind: rc=0 in 2.4 min
+[82/88] laps_val_301702_blackout: rc=0 in 1.5 min
+[83/88] laps_val_301702_step_wind: rc=0 in 2.0 min
+[84/88] laps_val_301702_light: rc=0 in 2.1 min
+[85/88] laps_val_301688_blackout: rc=0 in 2.4 min
+[86/88] laps_val_301910_light: rc=0 in 1.6 min
+[87/88] laps_val_301910_step_wind: rc=0 in 1.5 min
+[88/88] laps_val_301910_blackout: rc=0 in 1.6 min
+base (tracks completed at lambda = 0, of the val pool): fa0 0, M1 0, M1+L1 0
+
+== held-out conditions, raw: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa0       12/22   55%  10/22   45%   3/22   14%   0/22    0%
+lift        M1        19/22   86%  10/22   45%   0/22    0%   0/22    0%
+lift        M1+L1     21/22   95%  17/22   77%  10/22   45%   2/22    9%
+
+light       fa0       11/22   50%  13/22   59%  13/22   59%  14/22   64%
+light       M1        20/22   91%  20/22   91%  20/22   91%  20/22   91%
+light       M1+L1     20/22   91%  21/22   95%  22/22  100%  19/22   86%
+
+step_wind   fa0        8/22   36%   7/22   32%   7/22   32%   7/22   32%
+step_wind   M1        22/22  100%   9/22   41%   4/22   18%   2/22    9%
+step_wind   M1+L1     22/22  100%  22/22  100%  22/22  100%  17/22   77%
+
+blackout    fa0       11/22   50%  10/22   45%  10/22   45%   8/22   36%
+blackout    M1        20/22   91%  14/22   64%   9/22   41%   7/22   32%
+blackout    M1+L1     20/22   91%  12/22   55%   9/22   41%   7/22   32%
+
+
+== held-out conditions, retention: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa0        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+light       fa0        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+step_wind   fa0        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+blackout    fa0        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+== retention (%): analogue (in-distribution, lambda preview) -> held-out, same lambda ==
+held-out  analogue   member         lam=0.25        lam=0.5       lam=0.75        lam=1.0
+lift      payload    fa0          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+light     mass_mult  fa0          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+step_wind wind_const fa0          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+blackout  lighthouse fa0          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+== difference-in-differences: how many MORE points fa0 loses than an MPC member when the condition goes from its analogue to the held-out one ==
+held-out    lam       DiD vs M1    DiD vs M1+L1   cell
+lift        0.5            +nan            +nan   mixed
+lift        1.0            +nan            +nan   mixed
+light       0.5            +nan            +nan   mixed
+light       1.0            +nan            +nan   mixed
+step_wind   0.5            +nan            +nan   mixed
+step_wind   1.0            +nan            +nan   mixed
+blackout    0.5            +nan            +nan   mixed
+blackout    1.0            +nan            +nan   mixed
+
+tally over the 8 cells: {'overfit': 0, 'generalises': 0, 'mixed': 8}  ->  MIXED: reported per pair
+  threshold sensitivity: at 15 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 20 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 25 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+
+== difference-in-differences with a paired bootstrap over the 22 tracks (4,000 resamples): point [95% interval] ==
+held-out    lam                     vs M1                  vs M1+L1   reading
+/opt/venvs/main/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1396: RuntimeWarning: All-NaN slice encountered
+  return _nanquantile_unchecked(
+lift        0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+lift        1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+
+secondary (lift edge): fa0 retention fell +nan points from lambda 0.25 to 0.75 under lift, vs +nan under payload; pre-registered edge signature needs lift's drop to exceed payload's by >= 25 (here +nan)
+88 tasks (22 tracks x 4 held-out conditions), members ['fa1', 'M1', 'M1+L1']
+[1/88] laps_val_300037_lift: rc=0 in 1.5 min
+[2/88] laps_val_300162_lift: rc=0 in 1.8 min
+[3/88] laps_val_300037_light: rc=0 in 2.2 min
+[4/88] laps_val_300037_step_wind: rc=0 in 2.2 min
+[5/88] laps_val_300037_blackout: rc=0 in 2.3 min
+[6/88] laps_val_300162_step_wind: rc=0 in 2.4 min
+[7/88] laps_val_300162_light: rc=0 in 2.5 min
+[8/88] laps_val_300162_blackout: rc=0 in 2.5 min
+[9/88] laps_val_300229_lift: rc=0 in 1.5 min
+[10/88] laps_val_300253_lift: rc=0 in 1.4 min
+[11/88] laps_val_300229_light: rc=0 in 2.2 min
+[12/88] laps_val_300253_blackout: rc=0 in 1.6 min
+[13/88] laps_val_300229_blackout: rc=0 in 2.0 min
+[14/88] laps_val_300267_lift: rc=0 in 1.3 min
+[15/88] laps_val_300229_step_wind: rc=0 in 2.3 min
+[16/88] laps_val_300253_step_wind: rc=0 in 2.3 min
+[17/88] laps_val_300253_light: rc=0 in 2.5 min
+[18/88] laps_val_300267_blackout: rc=0 in 1.2 min
+[19/88] laps_val_300267_light: rc=0 in 2.1 min
+[20/88] laps_val_300267_step_wind: rc=0 in 2.0 min
+[21/88] laps_val_300522_lift: rc=0 in 1.2 min
+[22/88] laps_val_300389_lift: rc=0 in 2.0 min
+[23/88] laps_val_300389_step_wind: rc=0 in 2.2 min
+[24/88] laps_val_300389_light: rc=0 in 2.6 min
+[25/88] laps_val_300522_light: rc=0 in 1.8 min
+[26/88] laps_val_300389_blackout: rc=0 in 2.5 min
+[27/88] laps_val_300522_blackout: rc=0 in 1.5 min
+[28/88] laps_val_300522_step_wind: rc=0 in 1.7 min
+[29/88] laps_val_300565_lift: rc=0 in 1.2 min
+[30/88] laps_val_300553_lift: rc=0 in 2.4 min
+[31/88] laps_val_300565_light: rc=0 in 1.6 min
+[32/88] laps_val_300553_light: rc=0 in 2.8 min
+[33/88] laps_val_300565_blackout: rc=0 in 1.7 min
+[34/88] laps_val_300565_step_wind: rc=0 in 2.0 min
+[35/88] laps_val_300553_step_wind: rc=0 in 3.0 min
+[36/88] laps_val_300553_blackout: rc=0 in 2.9 min
+[37/88] laps_val_300624_lift: rc=0 in 1.7 min
+[38/88] laps_val_300624_light: rc=0 in 2.2 min
+[39/88] laps_val_300624_blackout: rc=0 in 1.8 min
+[40/88] laps_val_300624_step_wind: rc=0 in 2.2 min
+[41/88] laps_val_300637_lift: rc=0 in 2.0 min
+[42/88] laps_val_300704_lift: rc=0 in 1.4 min
+[43/88] laps_val_300637_step_wind: rc=0 in 2.0 min
+[44/88] laps_val_300637_light: rc=0 in 2.2 min
+[45/88] laps_val_300637_blackout: rc=0 in 2.1 min
+[46/88] laps_val_300704_light: rc=0 in 2.2 min
+[47/88] laps_val_300808_lift: rc=0 in 1.7 min
+[48/88] laps_val_300704_step_wind: rc=0 in 2.2 min
+[49/88] laps_val_300704_blackout: rc=0 in 2.1 min
+[50/88] laps_val_300808_step_wind: rc=0 in 2.0 min
+[51/88] laps_val_300808_light: rc=0 in 2.2 min
+[52/88] laps_val_300808_blackout: rc=0 in 1.9 min
+[53/88] laps_val_301152_lift: rc=0 in 1.7 min
+[54/88] laps_val_301236_lift: rc=0 in 1.4 min
+[55/88] laps_val_301236_blackout: rc=0 in 1.4 min
+[56/88] laps_val_301152_blackout: rc=0 in 2.0 min
+[57/88] laps_val_301152_light: rc=0 in 2.3 min
+[58/88] laps_val_301152_step_wind: rc=0 in 2.2 min
+[59/88] laps_val_301236_step_wind: rc=0 in 2.0 min
+[60/88] laps_val_301236_light: rc=0 in 2.3 min
+[61/88] laps_val_301284_lift: rc=0 in 2.5 min
+[62/88] laps_val_301381_lift: rc=0 in 1.4 min
+[63/88] laps_val_301381_light: rc=0 in 2.3 min
+[64/88] laps_val_301284_light: rc=0 in 2.9 min
+[65/88] laps_val_301284_step_wind: rc=0 in 2.7 min
+[66/88] laps_val_301381_step_wind: rc=0 in 2.2 min
+[67/88] laps_val_301381_blackout: rc=0 in 2.0 min
+[68/88] laps_val_301284_blackout: rc=0 in 2.9 min
+[69/88] laps_val_301524_lift: rc=0 in 2.2 min
+[70/88] laps_val_301566_lift: rc=0 in 1.4 min
+[71/88] laps_val_301524_light: rc=0 in 2.7 min
+[72/88] laps_val_301566_blackout: rc=0 in 1.9 min
+[73/88] laps_val_301524_step_wind: rc=0 in 2.6 min
+[74/88] laps_val_301566_step_wind: rc=0 in 2.2 min
+[75/88] laps_val_301566_light: rc=0 in 2.3 min
+[76/88] laps_val_301524_blackout: rc=0 in 2.7 min
+[77/88] laps_val_301688_lift: rc=0 in 1.9 min
+[78/88] laps_val_301910_lift: rc=0 in 1.1 min
+[79/88] laps_val_301688_light: rc=0 in 2.4 min
+[80/88] laps_val_301688_step_wind: rc=0 in 2.3 min
+[81/88] laps_val_301702_lift: rc=0 in 1.5 min
+[82/88] laps_val_301702_blackout: rc=0 in 1.5 min
+[83/88] laps_val_301702_step_wind: rc=0 in 1.9 min
+[84/88] laps_val_301688_blackout: rc=0 in 2.3 min
+[85/88] laps_val_301702_light: rc=0 in 2.1 min
+[86/88] laps_val_301910_light: rc=0 in 1.5 min
+[87/88] laps_val_301910_step_wind: rc=0 in 1.5 min
+[88/88] laps_val_301910_blackout: rc=0 in 1.6 min
+base (tracks completed at lambda = 0, of the val pool): fa1 0, M1 0, M1+L1 0
+
+== held-out conditions, raw: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa1        2/22    9%   0/22    0%   1/22    5%   0/22    0%
+lift        M1        19/22   86%  10/22   45%   0/22    0%   0/22    0%
+lift        M1+L1     21/22   95%  17/22   77%  10/22   45%   2/22    9%
+
+light       fa1        2/22    9%   2/22    9%   0/22    0%   1/22    5%
+light       M1        20/22   91%  20/22   91%  20/22   91%  20/22   91%
+light       M1+L1     20/22   91%  21/22   95%  22/22  100%  19/22   86%
+
+step_wind   fa1        2/22    9%   5/22   23%   5/22   23%   4/22   18%
+step_wind   M1        22/22  100%   9/22   41%   4/22   18%   2/22    9%
+step_wind   M1+L1     22/22  100%  22/22  100%  22/22  100%  17/22   77%
+
+blackout    fa1        3/22   14%   2/22    9%   3/22   14%   1/22    5%
+blackout    M1        20/22   91%  14/22   64%   9/22   41%   7/22   32%
+blackout    M1+L1     20/22   91%  12/22   55%   9/22   41%   7/22   32%
+
+
+== held-out conditions, retention: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa1        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+light       fa1        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+step_wind   fa1        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+blackout    fa1        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+== retention (%): analogue (in-distribution, lambda preview) -> held-out, same lambda ==
+held-out  analogue   member         lam=0.25        lam=0.5       lam=0.75        lam=1.0
+lift      payload    fa1          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+light     mass_mult  fa1          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+step_wind wind_const fa1          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+blackout  lighthouse fa1          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+== difference-in-differences: how many MORE points fa1 loses than an MPC member when the condition goes from its analogue to the held-out one ==
+held-out    lam       DiD vs M1    DiD vs M1+L1   cell
+lift        0.5            +nan            +nan   mixed
+lift        1.0            +nan            +nan   mixed
+light       0.5            +nan            +nan   mixed
+light       1.0            +nan            +nan   mixed
+step_wind   0.5            +nan            +nan   mixed
+step_wind   1.0            +nan            +nan   mixed
+blackout    0.5            +nan            +nan   mixed
+blackout    1.0            +nan            +nan   mixed
+
+tally over the 8 cells: {'overfit': 0, 'generalises': 0, 'mixed': 8}  ->  MIXED: reported per pair
+  threshold sensitivity: at 15 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 20 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 25 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+
+== difference-in-differences with a paired bootstrap over the 22 tracks (4,000 resamples): point [95% interval] ==
+held-out    lam                     vs M1                  vs M1+L1   reading
+/opt/venvs/main/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1396: RuntimeWarning: All-NaN slice encountered
+  return _nanquantile_unchecked(
+lift        0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+lift        1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+
+secondary (lift edge): fa1 retention fell +nan points from lambda 0.25 to 0.75 under lift, vs +nan under payload; pre-registered edge signature needs lift's drop to exceed payload's by >= 25 (here +nan)
+88 tasks (22 tracks x 4 held-out conditions), members ['fa2', 'M1', 'M1+L1']
+[1/88] laps_val_300037_lift: rc=0 in 1.5 min
+[2/88] laps_val_300162_lift: rc=0 in 1.7 min
+[3/88] laps_val_300037_light: rc=0 in 2.2 min
+[4/88] laps_val_300037_step_wind: rc=0 in 2.3 min
+[5/88] laps_val_300162_step_wind: rc=0 in 2.3 min
+[6/88] laps_val_300037_blackout: rc=0 in 2.3 min
+[7/88] laps_val_300162_light: rc=0 in 2.5 min
+[8/88] laps_val_300162_blackout: rc=0 in 2.5 min
+[9/88] laps_val_300229_lift: rc=0 in 1.6 min
+[10/88] laps_val_300253_lift: rc=0 in 1.4 min
+[11/88] laps_val_300229_light: rc=0 in 2.2 min
+[12/88] laps_val_300253_blackout: rc=0 in 1.6 min
+[13/88] laps_val_300229_blackout: rc=0 in 2.0 min
+[14/88] laps_val_300267_lift: rc=0 in 1.2 min
+[15/88] laps_val_300229_step_wind: rc=0 in 2.3 min
+[16/88] laps_val_300253_step_wind: rc=0 in 2.2 min
+[17/88] laps_val_300253_light: rc=0 in 2.5 min
+[18/88] laps_val_300267_blackout: rc=0 in 1.3 min
+[19/88] laps_val_300267_light: rc=0 in 2.1 min
+[20/88] laps_val_300522_lift: rc=0 in 1.2 min
+[21/88] laps_val_300267_step_wind: rc=0 in 2.0 min
+[22/88] laps_val_300389_lift: rc=0 in 2.0 min
+[23/88] laps_val_300389_step_wind: rc=0 in 2.2 min
+[24/88] laps_val_300389_light: rc=0 in 2.7 min
+[25/88] laps_val_300522_light: rc=0 in 1.7 min
+[26/88] laps_val_300389_blackout: rc=0 in 2.5 min
+[27/88] laps_val_300522_blackout: rc=0 in 1.5 min
+[28/88] laps_val_300522_step_wind: rc=0 in 1.7 min
+[29/88] laps_val_300565_lift: rc=0 in 1.2 min
+[30/88] laps_val_300553_lift: rc=0 in 2.5 min
+[31/88] laps_val_300565_light: rc=0 in 1.6 min
+[32/88] laps_val_300553_light: rc=0 in 2.9 min
+[33/88] laps_val_300565_blackout: rc=0 in 1.7 min
+[34/88] laps_val_300565_step_wind: rc=0 in 2.0 min
+[35/88] laps_val_300553_step_wind: rc=0 in 2.9 min
+[36/88] laps_val_300553_blackout: rc=0 in 2.9 min
+[37/88] laps_val_300624_lift: rc=0 in 1.8 min
+[38/88] laps_val_300624_light: rc=0 in 2.3 min
+[39/88] laps_val_300624_step_wind: rc=0 in 2.2 min
+[40/88] laps_val_300624_blackout: rc=0 in 1.8 min
+[41/88] laps_val_300637_lift: rc=0 in 2.0 min
+[42/88] laps_val_300704_lift: rc=0 in 1.4 min
+[43/88] laps_val_300637_light: rc=0 in 2.3 min
+[44/88] laps_val_300637_step_wind: rc=0 in 2.1 min
+[45/88] laps_val_300637_blackout: rc=0 in 2.2 min
+[46/88] laps_val_300704_light: rc=0 in 2.5 min
+[47/88] laps_val_300808_lift: rc=0 in 1.9 min
+[48/88] laps_val_300704_blackout: rc=0 in 2.3 min
+[49/88] laps_val_300704_step_wind: rc=0 in 2.4 min
+[50/88] laps_val_300808_blackout: rc=0 in 2.2 min
+[51/88] laps_val_300808_step_wind: rc=0 in 2.2 min
+[52/88] laps_val_300808_light: rc=0 in 2.4 min
+[53/88] laps_val_301152_lift: rc=0 in 2.0 min
+[54/88] laps_val_301236_lift: rc=0 in 1.6 min
+[55/88] laps_val_301236_blackout: rc=0 in 1.6 min
+[56/88] laps_val_301152_blackout: rc=0 in 2.4 min
+[57/88] laps_val_301152_step_wind: rc=0 in 2.6 min
+[58/88] laps_val_301152_light: rc=0 in 2.7 min
+[59/88] laps_val_301236_step_wind: rc=0 in 2.3 min
+[60/88] laps_val_301236_light: rc=0 in 2.7 min
+[61/88] laps_val_301284_lift: rc=0 in 2.9 min
+[62/88] laps_val_301381_lift: rc=0 in 1.6 min
+[63/88] laps_val_301381_light: rc=0 in 2.6 min
+[64/88] laps_val_301284_light: rc=0 in 3.4 min
+[65/88] laps_val_301284_step_wind: rc=0 in 3.1 min
+[66/88] laps_val_301381_step_wind: rc=0 in 2.5 min
+[67/88] laps_val_301381_blackout: rc=0 in 2.2 min
+[68/88] laps_val_301284_blackout: rc=0 in 3.4 min
+[69/88] laps_val_301524_lift: rc=0 in 2.4 min
+[70/88] laps_val_301566_lift: rc=0 in 1.6 min
+[71/88] laps_val_301524_light: rc=0 in 3.1 min
+[72/88] laps_val_301566_light: rc=0 in 2.6 min
+[73/88] laps_val_301566_blackout: rc=0 in 2.1 min
+[74/88] laps_val_301566_step_wind: rc=0 in 2.5 min
+[75/88] laps_val_301524_step_wind: rc=0 in 2.9 min
+[76/88] laps_val_301688_lift: rc=0 in 2.2 min
+[77/88] laps_val_301524_blackout: rc=0 in 3.1 min
+[78/88] laps_val_301910_lift: rc=0 in 1.2 min
+[79/88] laps_val_301702_lift: rc=0 in 1.8 min
+[80/88] laps_val_301688_light: rc=0 in 2.9 min
+[81/88] laps_val_301702_blackout: rc=0 in 1.8 min
+[82/88] laps_val_301688_step_wind: rc=0 in 2.8 min
+[83/88] laps_val_301702_step_wind: rc=0 in 2.3 min
+[84/88] laps_val_301702_light: rc=0 in 2.5 min
+[85/88] laps_val_301688_blackout: rc=0 in 2.8 min
+[86/88] laps_val_301910_light: rc=0 in 1.7 min
+[87/88] laps_val_301910_step_wind: rc=0 in 1.7 min
+[88/88] laps_val_301910_blackout: rc=0 in 1.7 min
+base (tracks completed at lambda = 0, of the val pool): fa2 0, M1 0, M1+L1 0
+
+== held-out conditions, raw: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa2       12/22   55%  10/22   45%   1/22    5%   0/22    0%
+lift        M1        19/22   86%  10/22   45%   0/22    0%   0/22    0%
+lift        M1+L1     21/22   95%  17/22   77%  10/22   45%   2/22    9%
+
+light       fa2        8/22   36%   7/22   32%   7/22   32%   7/22   32%
+light       M1        20/22   91%  20/22   91%  20/22   91%  20/22   91%
+light       M1+L1     20/22   91%  21/22   95%  22/22  100%  19/22   86%
+
+step_wind   fa2       11/22   50%   8/22   36%   3/22   14%   2/22    9%
+step_wind   M1        22/22  100%   9/22   41%   4/22   18%   2/22    9%
+step_wind   M1+L1     22/22  100%  22/22  100%  22/22  100%  17/22   77%
+
+blackout    fa2        9/22   41%  12/22   55%   9/22   41%   9/22   41%
+blackout    M1        20/22   91%  14/22   64%   9/22   41%   7/22   32%
+blackout    M1+L1     20/22   91%  12/22   55%   9/22   41%   7/22   32%
+
+
+== held-out conditions, retention: completed laps / laps ==
+condition   member       lam=0.25      lam=0.5     lam=0.75      lam=1.0
+lift        fa2        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+lift        M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+light       fa2        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+light       M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+step_wind   fa2        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+step_wind   M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+blackout    fa2        0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1         0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+blackout    M1+L1      0/0   nan%   0/0   nan%   0/0   nan%   0/0   nan%
+
+== retention (%): analogue (in-distribution, lambda preview) -> held-out, same lambda ==
+held-out  analogue   member         lam=0.25        lam=0.5       lam=0.75        lam=1.0
+lift      payload    fa2          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+lift      payload    M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+light     mass_mult  fa2          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+light     mass_mult  M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+step_wind wind_const fa2          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+step_wind wind_const M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+blackout  lighthouse fa2          nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1           nan -> nan     nan -> nan     nan -> nan     nan -> nan
+blackout  lighthouse M1+L1        nan -> nan     nan -> nan     nan -> nan     nan -> nan
+
+== difference-in-differences: how many MORE points fa2 loses than an MPC member when the condition goes from its analogue to the held-out one ==
+held-out    lam       DiD vs M1    DiD vs M1+L1   cell
+lift        0.5            +nan            +nan   mixed
+lift        1.0            +nan            +nan   mixed
+light       0.5            +nan            +nan   mixed
+light       1.0            +nan            +nan   mixed
+step_wind   0.5            +nan            +nan   mixed
+step_wind   1.0            +nan            +nan   mixed
+blackout    0.5            +nan            +nan   mixed
+blackout    1.0            +nan            +nan   mixed
+
+tally over the 8 cells: {'overfit': 0, 'generalises': 0, 'mixed': 8}  ->  MIXED: reported per pair
+  threshold sensitivity: at 15 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 20 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+  threshold sensitivity: at 25 points -> {'overfit': 0, 'generalises': 0, 'mixed': 8}
+
+== difference-in-differences with a paired bootstrap over the 22 tracks (4,000 resamples): point [95% interval] ==
+held-out    lam                     vs M1                  vs M1+L1   reading
+/opt/venvs/main/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1396: RuntimeWarning: All-NaN slice encountered
+  return _nanquantile_unchecked(
+lift        0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+lift        1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+light       1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+step_wind   1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    0.5        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+blackout    1.0        +nan [ +nan, +nan]        +nan [ +nan, +nan]   unresolved / unresolved
+
+secondary (lift edge): fa2 retention fell +nan points from lambda 0.25 to 0.75 under lift, vs +nan under payload; pre-registered edge signature needs lift's drop to exceed payload's by >= 25 (here +nan)

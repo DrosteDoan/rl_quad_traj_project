@@ -38,6 +38,7 @@ Held-out verdicts and difference-in-differences cells are read from the `summary
 
 ```bash
 python makefigs.py            # writes figures/fig_crossover_map.pdf and figures/fig_sensing_completion_rmse.pdf
+python trackfig.py            # writes figures/fig_tracks.pdf: the ten swept tracks, wind and gust directions
 ```
 
 Set `FIG_DIR` to write elsewhere.
@@ -48,7 +49,8 @@ Set `FIG_DIR` to write elsewhere.
 - `pairs.py`: laps both families complete, for RMSE and lap time.
 - `analysis.py`: every reported number, checked against the paper.
 - `boot.py`: seed-level bootstrap of the crossover counts on the stochastic channels.
-- `figdata.py`, `makefigs.py`: the two figures.
+- `figdata.py`, `makefigs.py`: the two result figures.
+- `trackfig.py`: the track figure (top view, path coloured by planned height, wind and gust directions).
 
 ## Definitions worth knowing
 

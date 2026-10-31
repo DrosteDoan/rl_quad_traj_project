@@ -1,0 +1,35 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300553 wind_const lam 0.00 seed  0 M1       OK 6.567               rmse 0.043 wall 21s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300553 wind_const lam 0.00 seed  0 M1+L1    OK 6.567               rmse 0.053 wall 20s
+track 300553 wind_const lam 0.00 seed  0 fa0      OK 6.616               rmse 0.188 wall 2s
+track 300553 wind_const lam 0.00 seed  0 fa1      OK 6.65                rmse 0.239 wall 2s
+track 300553 wind_const lam 0.00 seed  0 fa2      OK 6.62                rmse 0.212 wall 2s
+track 300553 wind_const lam 0.25 seed  0 M1       OK 6.549               rmse 0.079 wall 19s
+track 300553 wind_const lam 0.25 seed  0 M1+L1    OK 6.567               rmse 0.059 wall 21s
+track 300553 wind_const lam 0.25 seed  0 fa0      OK 6.604               rmse 0.184 wall 3s
+track 300553 wind_const lam 0.25 seed  0 fa1      OK 6.635               rmse 0.232 wall 3s
+track 300553 wind_const lam 0.25 seed  0 fa2      OK 6.611               rmse 0.230 wall 3s
+track 300553 wind_const lam 0.50 seed  0 M1       OK 6.531               rmse 0.134 wall 21s
+track 300553 wind_const lam 0.50 seed  0 M1+L1    OK 6.566               rmse 0.068 wall 21s
+track 300553 wind_const lam 0.50 seed  0 fa0      OK 6.597               rmse 0.189 wall 3s
+track 300553 wind_const lam 0.50 seed  0 fa1      OK 6.626               rmse 0.225 wall 3s
+track 300553 wind_const lam 0.50 seed  0 fa2      OK 6.602               rmse 0.255 wall 3s
+track 300553 wind_const lam 0.75 seed  0 M1       OK 6.514               rmse 0.192 wall 20s
+track 300553 wind_const lam 0.75 seed  0 M1+L1    OK 6.565               rmse 0.078 wall 21s
+track 300553 wind_const lam 0.75 seed  0 fa0      OK 6.597               rmse 0.206 wall 3s
+track 300553 wind_const lam 0.75 seed  0 fa1      FAIL contact           rmse 0.207 wall 1s
+track 300553 wind_const lam 0.75 seed  0 fa2      OK 6.591               rmse 0.290 wall 3s
+track 300553 wind_const lam 1.00 seed  0 M1       OK 6.496               rmse 0.252 wall 20s
+track 300553 wind_const lam 1.00 seed  0 M1+L1    OK 6.553               rmse 0.102 wall 21s
+track 300553 wind_const lam 1.00 seed  0 fa0      OK 6.603               rmse 0.235 wall 3s
+track 300553 wind_const lam 1.00 seed  0 fa1      FAIL contact           rmse 0.218 wall 1s
+track 300553 wind_const lam 1.00 seed  0 fa2      FAIL contact           rmse 0.348 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_lambda_fa16/laps_val_300553_wind_const.csv

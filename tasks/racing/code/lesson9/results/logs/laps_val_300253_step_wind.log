@@ -1,0 +1,88 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+CasADi - 2026-10-20 19:27:03 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+track 300253 step_wind lam 0.25 seed  0 M1       OK 4.805               rmse 0.077 wall 33s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+CasADi - 2026-10-20 19:27:17 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+CasADi - 2026-10-20 19:27:17 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:132]
+CasADi - 2026-10-20 19:27:18 WARNING("KeyboardInterruptException") [.../casadi/interfaces/ipopt/ipopt_nlp.cpp:196]
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 step_wind lam 0.25 seed  0 M1       OK 4.805               rmse 0.077 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 step_wind lam 0.25 seed  0 M1+L1    OK 4.784               rmse 0.070 wall 18s
+track 300253 step_wind lam 0.25 seed  0 fa0      OK 4.779               rmse 0.237 wall 2s
+track 300253 step_wind lam 0.50 seed  0 M1       OK 4.82                rmse 0.108 wall 19s
+track 300253 step_wind lam 0.50 seed  0 M1+L1    OK 4.786               rmse 0.069 wall 17s
+track 300253 step_wind lam 0.50 seed  0 fa0      FAIL contact           rmse 0.234 wall 1s
+track 300253 step_wind lam 0.75 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 0.75 seed  0 M1+L1    OK 4.789               rmse 0.095 wall 18s
+track 300253 step_wind lam 0.75 seed  0 fa0      FAIL contact           rmse 0.238 wall 1s
+track 300253 step_wind lam 1.00 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 1.00 seed  0 M1+L1    OK 4.802               rmse 0.101 wall 18s
+track 300253 step_wind lam 1.00 seed  0 fa0      FAIL contact           rmse 0.246 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s0/laps_val_300253_step_wind.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 step_wind lam 0.25 seed  0 M1       OK 4.805               rmse 0.077 wall 21s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 step_wind lam 0.25 seed  0 M1+L1    OK 4.784               rmse 0.070 wall 18s
+track 300253 step_wind lam 0.25 seed  0 fa1      FAIL contact           rmse 0.237 wall 1s
+track 300253 step_wind lam 0.50 seed  0 M1       OK 4.82                rmse 0.108 wall 20s
+track 300253 step_wind lam 0.50 seed  0 M1+L1    OK 4.786               rmse 0.069 wall 19s
+track 300253 step_wind lam 0.50 seed  0 fa1      FAIL contact           rmse 0.245 wall 1s
+track 300253 step_wind lam 0.75 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 0.75 seed  0 M1+L1    OK 4.789               rmse 0.095 wall 18s
+track 300253 step_wind lam 0.75 seed  0 fa1      FAIL contact           rmse 0.258 wall 1s
+track 300253 step_wind lam 1.00 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 1.00 seed  0 M1+L1    OK 4.802               rmse 0.101 wall 18s
+track 300253 step_wind lam 1.00 seed  0 fa1      FAIL contact           rmse 0.274 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s1/laps_val_300253_step_wind.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 300253 step_wind lam 0.25 seed  0 M1       OK 4.805               rmse 0.077 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=1,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 300253 step_wind lam 0.25 seed  0 M1+L1    OK 4.784               rmse 0.070 wall 18s
+track 300253 step_wind lam 0.25 seed  0 fa2      OK 4.794               rmse 0.223 wall 2s
+track 300253 step_wind lam 0.50 seed  0 M1       OK 4.82                rmse 0.108 wall 18s
+track 300253 step_wind lam 0.50 seed  0 M1+L1    OK 4.786               rmse 0.069 wall 17s
+track 300253 step_wind lam 0.50 seed  0 fa2      OK 4.815               rmse 0.233 wall 2s
+track 300253 step_wind lam 0.75 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 0.75 seed  0 M1+L1    OK 4.789               rmse 0.095 wall 17s
+track 300253 step_wind lam 0.75 seed  0 fa2      OK 4.857               rmse 0.250 wall 2s
+track 300253 step_wind lam 1.00 seed  0 M1       FAIL contact           rmse 0.067 wall 9s
+track 300253 step_wind lam 1.00 seed  0 M1+L1    OK 4.802               rmse 0.101 wall 18s
+track 300253 step_wind lam 1.00 seed  0 fa2      FAIL contact           rmse 0.231 wall 1s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/val_heldout_fa16_s2/laps_val_300253_step_wind.csv
