@@ -23,13 +23,13 @@ REPO = os.path.abspath(os.path.join(_L9, "..", "..", "..", ".."))
 PRIMARY = {757, 965, 989, 1089, 1145, 1250}         # tracks on which both families have a viable member
 ARENA = (-2.5, -1.5, 2.5, 1.5)                       # track_lib.ARENA_LOW / ARENA_HIGH
 WIND = np.array([1.0, 0.0]); GUST = np.array([1.0, 0.3]) / np.hypot(1.0, 0.3)   # knobs.NOMINAL
-height = LinearSegmentedColormap.from_list("height", ["#cfe2fa", "#9ec5f4", "#2a78d6", "#104281"])
+height = LinearSegmentedColormap.from_list("height", ["#b7d3f6", "#9ec5f4", "#2a78d6", "#104281"])
 norm = Normalize(0.0, 1.3)
 
 man = pd.read_csv(os.path.join(_L9, "tracks", "manifest_study.csv")).set_index("seed")
 order = sorted(TRACKS, key=lambda t: man.loc[t, "lap_stretched_s"])
 
-fig, axs = plt.subplots(2, 5, figsize=(7.0, 2.75))
+fig, axs = plt.subplots(2, 5, figsize=(7.0, 2.9))
 for ax, t in zip(axs.flat, order):
     trk = json.load(open(os.path.join(_L9, "tracks", "study", f"track_{t:04d}.json")))
     plan = pd.read_csv(os.path.join(REPO, trk["plan_csv"]))
@@ -59,7 +59,7 @@ for ax, t in zip(axs.flat, order):
 for ax in axs[1]: ax.set_xlabel("x [m]", labelpad=1)
 for ax in axs[:, 0]: ax.set_ylabel("y [m]", labelpad=1)
 
-fig.subplots_adjust(left=0.06, right=0.89, bottom=0.12, top=0.77, wspace=0.06, hspace=0.12)
+fig.subplots_adjust(left=0.06, right=0.89, bottom=0.115, top=0.745, wspace=0.06, hspace=0.12)
 
 # key: wind directions (same in every panel, world frame)
 key = fig.add_axes([0.06, 0.855, 0.30, 0.13]); key.set_xlim(0, 10); key.set_ylim(0, 2); key.axis("off")
@@ -72,8 +72,9 @@ for y, d, lbl, style in [(1.45, WIND, r"constant wind and gust mean: $+x$", "-|>
 h = [Line2D([], [], color=INK, lw=2.0, label="gate (0.4 m opening), arrow: pass direction"),
      Line2D([], [], marker="s", ms=3.5, color=INK, ls="none", label="ground start")]
 fig.legend(handles=h, loc="upper left", bbox_to_anchor=(0.40, 0.995), frameon=False, fontsize=6.5, handlelength=1.6)
-fig.text(0.40, 0.845, r"gates 1, 3 at 0.7 m and 2, 4 at 1.2 m height;  $^\dagger$ not raced by the primary policy",
-         fontsize=6.5, color=INK2, va="center")
+fig.text(0.40, 0.845, "gates 1, 3 at 0.7 m and 2, 4 at 1.2 m height", fontsize=6.5, color=INK2, va="center")
+fig.text(0.40, 0.805, r"$^\dagger$ primary policy not viable (does not complete the nominal lap)", fontsize=6.5,
+         color=INK2, va="center")
 
 cax = fig.add_axes([0.905, 0.17, 0.012, 0.55])
 cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=height), cax=cax)

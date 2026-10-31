@@ -10,7 +10,8 @@ INK2="#52514e"; GRID="#e4e3df"; BLUE="#2a78d6"; ORANGE="#eb6834"
 import os
 OUT = os.path.join(os.environ.get("FIG_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")), "")
 os.makedirs(OUT, exist_ok=True)
-LAP={1089:3.46,1145:3.70,1250:3.89,965:4.85,757:5.37,989:6.47}
+# planned lap time of the flown reference, from the same manifest trackfig.py reads (one source for every figure)
+LAP=pd.read_csv(os.path.join(os.path.dirname(TRACKDIR),"manifest_study.csv")).set_index("seed")["lap_stretched_s"]
 NAMES={"wind_const":"Constant wind","payload":"Steady downward force","mass_mult":"Mass error",
        "wind_gust":"Gust","lighthouse":"Sensing degradation","combined":"Combined"}
 cmap=LinearSegmentedColormap.from_list("div",["#9e2a2a","#e34948","#f3b8b2","#f0efec","#9ec5f4","#2a78d6","#104281"])
@@ -74,7 +75,7 @@ a2.text(0.03,med.rl.iloc[0]+0.012,"Learned",fontsize=6.3,ha="left")
 a2.text(0.03,med.mpc.iloc[0]-0.03,"MPC",fontsize=6.3,ha="left")
 a1.text(0.665,0.04,"nominal",rotation=90,fontsize=5.5,color=INK2,ha="right",va="bottom")
 a1.text(0.795,0.04,"edge",rotation=90,fontsize=5.5,color=INK2,ha="right",va="bottom")
-hh=[Line2D([],[],color=BLUE,lw=1.4,marker="o",ms=2.6,label="Learned (best seed)"),Line2D([],[],color=ORANGE,lw=1.4,ls=(0,(4,1.5)),marker="s",ms=2.6,label="MPC (best member)")]
+hh=[Line2D([],[],color=BLUE,lw=1.4,marker="o",ms=2.6,label="Learned (family maximum)"),Line2D([],[],color=ORANGE,lw=1.4,ls=(0,(4,1.5)),marker="s",ms=2.6,label="MPC (family maximum)")]
 fig.legend(handles=hh,loc="upper center",ncol=2,frameon=False,bbox_to_anchor=(0.55,1.0),fontsize=6.3)
 fig.subplots_adjust(left=0.1,right=0.98,bottom=0.22,top=0.80,wspace=0.32)
 fig.savefig(OUT+"fig_sensing_completion_rmse.pdf"); fig.savefig(OUT+"fig_sensing_completion_rmse.png",dpi=250)
