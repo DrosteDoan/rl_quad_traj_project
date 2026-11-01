@@ -1,8 +1,7 @@
-"""The study sweep (Lesson 9) -- the one pending experiment. Protocol frozen in METHODOLOGY.md's
-"SWEEP PROTOCOL" block (S1-S7) at the very top of that file; this script implements it exactly, and if
-the two ever disagree, METHODOLOGY.md is the source of truth (fix whichever is wrong and say why).
+"""The study sweep (Lesson 9, section 7): the frozen sweep protocol, run 2026-09-29 to 10-01; its laps are in
+results/eval/study_sweep/.
 
-NOT yet run. Four phases, in order, each resumable on its own CSVs (driver.py's own rule: a
+Four phases, in order, each resumable on its own CSVs (driver.py's own rule: a
 (lam, seed, member) row already on disk is skipped) so a later phase -- or a rerun after an interruption
 -- costs nothing already flown. Every (track, condition) cell is independent by design -- its own output
 file, its own flights -- so this is meant to be driven ONE TRACK AND ONE CONDITION AT A TIME (`--track`,
@@ -60,7 +59,7 @@ S7 (crossover, partially frozen): each chart also carries two bold derived lines
 the RL group's median seed (SENSITIVITY, dashed). Stated asymmetry: MPC's best-of-5 is the best of five
 distinct designs; RL's best-of-3 is the best of three seeds of one recipe -- an easier bar, favouring RL
 wherever the primary line shows a crossover. The single scalar crossover-location statistic (a margin,
-a tie-break rule) remains deferred, per METHODOLOGY.md S7 -- these are lines to look at, not a verdict.
+a tie-break rule) is computed by the analysis in analysis/ (lib.lam_star) -- these are lines to look at, not a verdict.
 """
 
 from __future__ import annotations

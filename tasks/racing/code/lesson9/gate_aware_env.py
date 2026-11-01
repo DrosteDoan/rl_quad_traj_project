@@ -22,7 +22,7 @@ makes that suggestive, not conclusive). v4 trains on the 3 dev tracks PLUS every
 its fixed `train` seed windows (200000..205999), drawn by the same generator and filters as the study tracks so the
 training distribution matches the study distribution by construction while every evaluated instance stays held
 out. A separate `val` pool (300000..301999) is never trained on; RL design decisions are judged on it from here on,
-not on study tracks (METHODOLOGY.md limitation 15). Mechanically nothing else changes: the pool is discovered from
+not on study tracks (Lesson 9 section 0). Mechanically nothing else changes: the pool is discovered from
 `tracks/train/`, `EPISODE_TIME` is computed from the longest pool track instead of hardcoded, and the contact
 check groups envs by track (at most `num_envs` groups, so at most 16 `pose_contacts` calls per step).
 
@@ -79,8 +79,7 @@ sys.path.insert(0, str(HERE))
 import contact as ct  # noqa: E402
 import driver as drv  # noqa: E402
 from contrast_env import ContrastTrackingEnv  # noqa: E402
-from lighthouse_batch import LambdaLighthouseSensorBatch  # noqa: E402
-from robust_env import DR_LAM_MAX, FREQ, RobustTrackingEnv  # noqa: E402
+from robust_env import RobustTrackingEnv  # noqa: E402
 from full_authority_env import FullAuthorityTrackingEnv  # noqa: E402
 
 from crazy_track.trajectories.freestyle import RaceGate  # noqa: E402
@@ -165,7 +164,7 @@ class GateAwareMixin:
         GateAwareTrackingEnv  = GateAwareMixin + RobustTrackingEnv    the matched-disturbance ("robust") group
         GateAwareContrastEnv  = GateAwareMixin + ContrastTrackingEnv  the vendored, unmatched-disturbance group
 
-    so the two groups differ in EXACTLY the disturbance training (METHODOLOGY.md section 5b) and share the same gate
+    so the two groups differ in EXACTLY the disturbance training (Lesson 9 section 4) and share the same gate
     logic by construction, not by copy. Put the mixin FIRST in the bases (its __init__/_sample_traj/step must win)."""
 
     def __init__(self, *args, episode_time: float = EPISODE_TIME, **kwargs):
@@ -271,26 +270,3 @@ class GateAwareContrastEnv(GateAwareMixin, ContrastTrackingEnv):
     """The contrast group: `ContrastTrackingEnv` (vendored +-3.5 m/s^2 force box, vendored Lighthouse noise SCALE in
     U(0, 1.5), no mass channel) with the SAME gate-aware recipe -- the one thing that differs from
     `GateAwareTrackingEnv` is what the policy is trained to be robust to."""
-
-
-class GateAwareForceContrastEnv(GateAwareMixin, ContrastTrackingEnv):
-    """The FORCE-ONLY ABLATION (NOT the study's control group -- it cannot show whether the RL policy is overfitted to the
-    study's task, because the sensing channel is trained exactly as in v4): the vendored +-3.5 m/s^2 force box (z halved) and NO mass channel, exactly as
-    `GateAwareContrastEnv`, but with the SAME lambda-coupled Lighthouse sensor `GateAwareTrackingEnv` trains on
-    (`LambdaLighthouseSensorBatch`, lambda ~ U(0, `dr_lam_max`), refresh interval shrinking to one step as lambda -> 0).
-
-    Why it exists (2026-09-25): the fully vendored contrast run sat on a plateau for ~5M steps and, 7M steps after
-    leaving it, was at 0.13 gates per episode against v4's 2.18 at the same age. The vendored sensor draws its refresh
-    interval from N(34 Hz, 18 Hz) independently of its noise scale, so every episode has held, stale position and
-    there is no easy-sensing episode to learn from. This variant holds the sensing curriculum equal to v4's, so it
-    differs from `GateAwareTrackingEnv` in the force and mass channels ONLY -- the narrower question of whether
-    matching those ranges buys anything. It cannot say anything about the lighthouse channel: that training is
-    identical to v4's by construction."""
-
-    def __init__(self, *args, dr_lam_max: float = DR_LAM_MAX, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.dr_lam_max = float(dr_lam_max)
-        if self.noisy_sensor:
-            self.sensor = LambdaLighthouseSensorBatch(self.num_envs, control_freq=FREQ, lam_max=self.dr_lam_max,
-                                                      seed=self.rng.integers(1 << 30))
-            self.sensor.reset()

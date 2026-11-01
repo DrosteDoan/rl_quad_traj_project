@@ -1,0 +1,6 @@
+track 25 wind_const lam 0.00 seed  0 open_space FAIL contact           rmse 0.271 wall 4s
+track 25 wind_const lam 0.00 seed  0 authority FAIL contact           rmse 0.215 wall 1s
+track 25 wind_const lam 0.00 seed  0 v1       FAIL contact           rmse 0.409 wall 0s
+track 25 wind_const lam 0.00 seed  0 v2       FAIL contact           rmse 0.283 wall 0s
+track 25 wind_const lam 0.00 seed  0 v3       FAIL contact           rmse 0.239 wall 0s
+rows in results/eval/_tmp_screen/study_25.csv

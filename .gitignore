@@ -21,9 +21,13 @@ tasks/*/models/*.pt
 # --- Racing task (vendored crazy_track) ---
 # Training/eval runs write into results/ inside the vendored source tree
 # (crazy_track's RunLogger resolves paths relative to its own repo root).
-tasks/racing/crazy_track/results/*
-# ...except the Lesson 9 study's training runs: METHODOLOGY.md cites these checkpoints as evidence.
-!tasks/racing/crazy_track/results/*_racing-gate-aware*/
+tasks/racing/crazy_track/results/
+# Plans and figures students generate stay out of git; the Lesson 9 study's own are kept
+tasks/racing/plans/*
+!tasks/racing/plans/lesson9/
+!tasks/racing/plans/ground_f0.85.csv
+tasks/racing/figures/*
+!tasks/racing/figures/lesson9/
 # Lesson 9 run logs are kept as evidence (the global *.log rule above would drop them)
 !tasks/racing/code/lesson9/results/**/*.log
 
@@ -31,5 +35,6 @@ tasks/racing/crazy_track/results/*
 .vscode/
 .idea/
 .DS_Store
-tasks/racing/code/lesson9/session_summary_2026-10-17.md
-tasks/racing/code/lesson9/study_methodology.txt
+
+# --- Lesson 9 working design log (kept locally, not published) ---
+tasks/racing/code/lesson9/METHODOLOGY.md

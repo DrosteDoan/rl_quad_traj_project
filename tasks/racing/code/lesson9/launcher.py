@@ -4,7 +4,7 @@
     launch([{"role": "dev", "track": 100023, "cond": "wind_gust", "lams": [0, 0.1], "seeds": 5,
              "scales": {"wind_gust": 8}, "out": "/workspace/.../laps.csv"}, ...], workers=8)
 
-Measured (METHODOLOGY.md section 9): 4 concurrent workers fly at the speed of one alone ONLY with
+Measured: 4 concurrent workers fly at the speed of one alone ONLY with
 `JAX_PLATFORMS=cpu` and single-thread limits; without them the same workers were 15x slower and hung at exit in
 the WSL GPU driver. A worker peaks at about 1.2 GB, so about 8-9 fit in 15 GB. Each task is one `driver.py`
 process, which is resumable on its own CSV, so a launch can simply be repeated after an interruption.

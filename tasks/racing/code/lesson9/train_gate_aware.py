@@ -16,26 +16,22 @@ longer training helps transfer or just fits the pool better (fly each checkpoint
 Checked by constructing `GateAwareTrackingEnv`, resetting it and stepping it (`test_gate_aware.py`), never by
 calling `.learn()`. Launching a real run is a separate, explicit decision.
 
-Judge it on `val`, not on study tracks (METHODOLOGY.md limitation 15): every RL design decision so far was made on
+Judge it on `val`, not on study tracks (Lesson 9 section 0): every RL design decision so far was made on
 the 6-track selection set, which the MPC family was never tuned on. The 10 untouched study tracks stay unflown until
 the recipe is frozen.
 
-TWO GROUPS, three seeds each (the study design, METHODOLOGY.md sections 5a/5b), sharing every gate-aware element:
+TWO GROUPS, three seeds each (the study design, Lesson 9 section 4), sharing every gate-aware element:
 
     --group robust    GateAwareTrackingEnv   disturbance training matched to 0.8x the study's frozen ceilings
                       (this is the saved v4 recipe at seed 0; seeds 1 and 2 are the same recipe)
     --group contrast  GateAwareContrastEnv   the vendored, unmatched ranges: +-3.5 m/s^2 force box, Lighthouse noise
                       scale U(0, 1.5) uncoupled from the update rate, NO mass channel
-    --group contrast_force  GateAwareForceContrastEnv   an ABLATION, not a control group: the vendored force box and no mass channel, but v4's
-                      lambda-coupled Lighthouse sensor: differs from `robust` in the force and mass channels ONLY.
-                      Added 2026-09-25 after the fully vendored contrast run failed to learn in 16M steps
-                      (METHODOLOGY.md section 5c).
 
 The two differ in exactly the disturbance training (`GateAwareMixin` holds the gate logic, so it is shared by
 construction, and the refactor is tested bit-identical to the saved v4 code). Why the contrast group exists: v4 was
 trained on ranges matched to the same ceilings the study measures against, so its lambda > 0 robustness cannot be
-told apart from "trained on the exam"; the contrast group is what can (METHODOLOGY.md section 5b). Judge both on the
-`val` pool, not on study tracks (limitation 15).
+told apart from "trained on the exam"; the contrast group is what can . Judge both on the
+`val` pool, not on study tracks (Lesson 9 section 0).
 
 What `GateAwareTrackingEnv` (`gate_aware_env.py`) adds on top of `RobustTrackingEnv`:
   * references are the pool tracks flown from a real ground start, 100% of episodes, drawn uniformly per episode;
@@ -61,7 +57,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gate_aware_env import (DEV_SEEDS, EPISODE_TIME, FLOOR_PENALTY, FLOOR_Z, GATE_PENALTY, POOL_SPEC,  # noqa: E402
-                            GateAwareContrastEnv, GateAwareForceContrastEnv, GateAwareFullAuthorityEnv, GateAwareTrackingEnv, summarise_gate_stats)
+                            GateAwareContrastEnv, GateAwareFullAuthorityEnv, GateAwareTrackingEnv, summarise_gate_stats)
 from robust_env import DR_LAM_MAX, FORCE_XY_MAX, FORCE_Z_HI, FORCE_Z_LO, FREQ, WINDOW_DT  # noqa: E402
 
 from crazy_track.eval.runlog import RunLogger  # noqa: E402
@@ -74,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--ckpt-every", type=int, default=2_000_000,
                    help="save ckpt/ppo_<steps>_steps.zip every this many env steps (0 = off)")
     p.add_argument("--n-envs", type=int, default=16)
-    p.add_argument("--group", choices=["robust", "robust_full", "contrast", "contrast_force"], default="robust",
+    p.add_argument("--group", choices=["robust", "robust_full", "contrast"], default="robust",
                    help="which disturbance training the gate-aware recipe sits on (see the module docstring)")
     p.add_argument("--seed", type=int, default=0, choices=[0, 1, 2],
                    help="the study's three seeds per group; seed 0 of `robust` is the saved v4 run")
@@ -109,12 +105,11 @@ def main() -> None:
     from monitored_adapter import MonitoredSB3Adapter
 
     tag = args.tag or {"robust": "racing-gate-aware-train", "contrast": "racing-gate-aware-contrast-train",
-                       "contrast_force": "racing-gate-aware-contrast-force-train",
                        "robust_full": "racing-gate-aware-full-authority-train"}[args.group]
     log = RunLogger(tag=tag, reason=args.reason,
                     config={**vars(args), "floor_z": FLOOR_Z, "gate_penalty": GATE_PENALTY, "floor_penalty": FLOOR_PENALTY,
                             "recipe": "racing-gate-aware-v4-pool" + {"robust": "", "contrast": "-contrast",
-                                                          "contrast_force": "-contrast-force", "robust_full": "-full-authority"}[args.group],
+                                                          "robust_full": "-full-authority"}[args.group],
                             "group": args.group, "episode_time": EPISODE_TIME,
                             "pool_size": len(POOL_SPEC), "pool_train_seeds": [x for r, x in POOL_SPEC if r == "train"],
                             "freq": FREQ, "window_dt": WINDOW_DT,
@@ -127,9 +122,6 @@ def main() -> None:
         env_cls = GateAwareTrackingEnv if args.group == "robust" else GateAwareFullAuthorityEnv
         raw_env = env_cls(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
                        perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max)
-    elif args.group == "contrast_force":
-        raw_env = GateAwareForceContrastEnv(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
-                                            perturb=not args.no_perturb, dr_lam_max=args.dr_lam_max)
     else:
         raw_env = GateAwareContrastEnv(num_envs=args.n_envs, seed=env_seed, v3=True, v5=True,
                                        perturb=not args.no_perturb)

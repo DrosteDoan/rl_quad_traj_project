@@ -1,6 +1,6 @@
 """Checks for MonitoredSB3Adapter (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_monitored_adapter.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_monitored_adapter.py        # no pytest needed
 
 MECHANICS ONLY -- constructs a tiny env, steps it, checks the `episode` info key appears on done and that
 reward/length accumulate correctly. No `.learn()` anywhere.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 from contrast_env import ContrastTrackingEnv  # noqa: E402
 from monitored_adapter import MonitoredSB3Adapter  # noqa: E402
 

@@ -1,8 +1,8 @@
 """Checks for the lambda knobs (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_knobs.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_knobs.py        # no pytest needed
 
-The regression anchor of METHODOLOGY.md section 4: at lam_eff = 1 (Lesson 7's value; lam = 0.5 with the starting
+The regression anchor of the disturbance scaling (Lesson 9 section 3): at lam_eff = 1 (Lesson 7's value; lam = 0.5 with the starting
 scale of 2) the constant forces and the gust are IDENTICAL to `crazy_track.disturbances`, and the Lighthouse sensor
 has the same distributions as `crazy_track.sensors.LighthouseSensor`. Plus the design properties: lam = 0 is no
 object, one seed is the same draw at every lam, the latency is one step and the gyro is not delayed.
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import knobs as kb  # noqa: E402
 
 from crazy_track.disturbances import ConstantWind, GustWind, Payload  # noqa: E402

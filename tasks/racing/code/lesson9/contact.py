@@ -14,7 +14,7 @@ Those give Lesson 8 section 1's thresholds for a LEVEL drone: a post is touched 
 0.13 m at a gate whose normal is world-aligned (G3, G4) and 0.101 m at a 45-degree gate (G1, G2), a rail at
 0.18 m vertical. test_contact.py derives them and cross-checks the whole test against MuJoCo itself.
 
-Poles are out of the study (METHODOLOGY.md), so only gate frames are checked. Overlap is the exact
+Poles are out of the study (Lesson 9 section 2), so only gate frames are checked. Overlap is the exact
 separating-axis test for two oriented boxes; the path is swept: the segment between consecutive samples is
 subdivided to <= `sub` metres (a 100 Hz sample is up to 5 cm of travel at 5 m/s; the frame is 2 cm thick).
 

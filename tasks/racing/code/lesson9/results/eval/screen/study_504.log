@@ -1,0 +1,6 @@
+track 504 wind_const lam 0.00 seed  0 open_space OK 5.253               rmse 0.205 wall 4s
+track 504 wind_const lam 0.00 seed  0 authority FAIL contact           rmse 0.178 wall 1s
+track 504 wind_const lam 0.00 seed  0 v1       FAIL contact           rmse 0.345 wall 1s
+track 504 wind_const lam 0.00 seed  0 v2       FAIL contact           rmse 0.176 wall 0s
+track 504 wind_const lam 0.00 seed  0 v3       FAIL contact           rmse 0.233 wall 1s
+rows in results/eval/_tmp_screen/study_504.csv

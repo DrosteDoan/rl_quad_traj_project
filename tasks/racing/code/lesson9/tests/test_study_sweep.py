@@ -1,7 +1,7 @@
 """Checks for `study_sweep.py`'s task construction and `launcher.py`'s CLI plumbing (main venv, in the
 container; pure logic, no real flights, runs in under a second):
 
-    python tasks/racing/code/lesson9/test_study_sweep.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_study_sweep.py        # no pytest needed
 
 Covers the fix found 2026-09-30: `driver.py`'s lam=0 seed-count shortcut has no notion of per-member
 escalation, so `study_sweep.py`'s own escalated (mppi_l1) sub-task must explicitly opt back in via
@@ -14,7 +14,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import launcher  # noqa: E402
 import study_sweep as ss  # noqa: E402
 

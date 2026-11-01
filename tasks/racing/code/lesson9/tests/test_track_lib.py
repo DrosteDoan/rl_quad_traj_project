@@ -1,7 +1,6 @@
 """Checks for the Lesson 9 track library (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_track_lib.py        # no pytest needed
-    python -m pytest tasks/racing/code/lesson9/test_track_lib.py -q
+    python tasks/racing/code/lesson9/tests/test_track_lib.py        # no pytest needed
 """
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import track_lib as tl  # noqa: E402
 
 UPSTREAM_TUBE = tl.ROOT / "tasks" / "racing" / "crazy_track" / "configs" / "togt" / "lsy_level2_tube.yaml"

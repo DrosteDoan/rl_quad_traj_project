@@ -7,7 +7,7 @@ Runs in the MAIN venv, in the container. One process flies every member over one
 keeps ONE crazyflow Sim and one controller per member alive across laps (`sim.reset()` between laps), because
 most of a lap's wall time in a fresh process is JIT compilation.
 
-What one lap is (METHODOLOGY.md sections 3, 4, 7):
+What one lap is (Lesson 9 sections 2 and 3):
   * the plan of the track's JSON, stretched by its `stretch`, on the GROUND clock: `GroundStartTrajectory`
     with the 0.2 s hold (Lesson 8 section 3); race_time = t = 0 -> last-gate crossing;
   * the disturbance and the sensor of `knobs.make_conditions(cond, lam, seed)` (None at lam = 0);

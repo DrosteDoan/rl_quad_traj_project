@@ -1,6 +1,6 @@
 """Checks for the gate-frame contact test (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_contact.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_contact.py        # no pytest needed
 
 Three independent checks: (1) Lesson 8 section 1's thresholds fall out of the geometry, (2) the whole
 test agrees with MuJoCo's own collision on lsy's real gate XML for thousands of random poses, (3) a fast
@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import contact as ct  # noqa: E402
 import track_lib as tl  # noqa: E402
 

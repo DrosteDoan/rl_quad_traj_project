@@ -6,9 +6,9 @@
 all, so a run is bit-identical to one without the knob), lam = 1 is the ceiling. The ceiling of every
 disturbance is `SCALES[name]` times Lesson 7's value (`NOMINAL`), so lesson 7's condition is lam = 1/scale:
 with the starting scale of 2 it is lam = 0.5. Phase 5 calibrates the scales on the dev tracks and freezes them
-in `maxima.json` (METHODOLOGY.md section 4); this module reads that file if it exists.
+in `maxima.json` (Lesson 9 section 3); this module reads that file if it exists.
 
-What lam scales (METHODOLOGY.md section 4), with lam_eff = lam * scale, so lam_eff = 1 is Lesson 7's value:
+What lam scales (Lesson 9 section 3), with lam_eff = lam * scale, so lam_eff = 1 is Lesson 7's value:
     wind_const   the steady force along +x
     payload      the downward force, extra_mass * g
     wind_gust    mean push, sinusoid amplitude and turbulence sigma together (0.7 Hz and tau = 0.5 s stay fixed)

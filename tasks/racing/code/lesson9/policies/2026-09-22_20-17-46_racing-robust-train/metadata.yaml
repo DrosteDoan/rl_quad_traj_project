@@ -1,0 +1,26 @@
+datetime: 2026-09-22_20-17-46
+tag: racing-robust-train
+reason: 'Lesson 9: hyperparameter screen, robust seed 0'
+git_commit: d91dff4
+config:
+  timesteps: 8000000
+  n_envs: 16
+  seed: 0
+  reason: 'Lesson 9: hyperparameter screen, robust seed 0'
+  vel_max: 5.0
+  acc_max: 15.0
+  seg_min: 1.0
+  seg_max: 2.5
+  dr_lam_max: 0.8
+  no_perturb: false
+  gamma: 0.99
+  n_steps: 512
+  batch_size: 2048
+  tag: racing-robust-train
+  recipe: racing-robust-v5
+  freq: 100
+  window_dt: 0.08
+  force_xy_max: 4.4
+  force_z:
+  - -3.6
+  - 1.8

@@ -12,6 +12,40 @@ source*, edit it, and see the effect.
 
 ---
 
+## Study: "Where the Crossover Is"
+
+This repository holds the code, data and trained policies behind *Where the Crossover Is: Learned versus
+Reference-Tracking Model-Based Quadrotor Racing under Graded Perturbation* (Trung-Hieu Le, Minh-Duc Doan,
+Tien-Thanh Nguyen), in its conference and extended (thesis) versions. The study is Lesson 9 of the racing task;
+everything else in this repository is the teaching course it grew out of.
+
+| What | Where |
+|---|---|
+| Sweep driver, perturbation models, contact test, training environments and their tests | [`tasks/racing/code/lesson9/`](tasks/racing/code/lesson9/) |
+| Track definitions and manifests (every rejected candidate with its reasons) | [`tasks/racing/code/lesson9/tracks/`](tasks/racing/code/lesson9/tracks/) |
+| Time-optimal reference plans the controllers fly | [`tasks/racing/plans/lesson9/`](tasks/racing/plans/lesson9/) |
+| Per-lap results of the sweep, one row per lap (148,503 laps) | [`tasks/racing/code/lesson9/results/eval/study_sweep/`](tasks/racing/code/lesson9/results/eval/study_sweep/) |
+| Validation, held-out and calibration results | [`tasks/racing/code/lesson9/results/`](tasks/racing/code/lesson9/results/) |
+| Trained policies: primary line `fa0`–`fa2` (`ckpt/ppo_16000000_steps.zip`) | [`tasks/racing/code/lesson9/policies/`](tasks/racing/code/lesson9/policies/)`*_racing-gate-aware-fa-s{0,1,2}/` |
+| Trained policies: 0.7 rad line `s0`–`s2` (`datt_ppo_final.zip`) | [`tasks/racing/code/lesson9/policies/`](tasks/racing/code/lesson9/policies/)`*_racing-gate-aware-train{,-s1,-s2}/`; `s0` is also in [`lesson9/saved/gate_aware_v4/`](tasks/racing/code/lesson9/saved/gate_aware_v4/) |
+| Scripts that recompute every reported number and figure | [`tasks/racing/code/lesson9/analysis/`](tasks/racing/code/lesson9/analysis/) |
+
+**Reproducing the numbers and figures** needs only Python 3.10+ with `numpy`, `pandas`, `scipy` and `matplotlib`,
+not the Docker environment: the analysis reads the stored laps and flies nothing.
+
+```bash
+cd tasks/racing/code/lesson9/analysis
+python analysis.py           # the conference paper's numbers, each checked against the paper (PASS / CHECK)
+python thesis_numbers.py     # the numbers the thesis adds
+python makefigs.py           # figures; see the analysis README for the rest
+```
+
+**Re-flying laps or retraining** needs the full environment below (Quickstart), then the racing task's setup in
+[`tasks/racing/README.md`](tasks/racing/README.md); the commands are in
+[Lesson 9](tasks/racing/lessons/09-crossover-under-disturbance.md).
+
+---
+
 ## What's inside
 
 The container is a **toolbox** (CUDA, compilers, Python). The actual code lives

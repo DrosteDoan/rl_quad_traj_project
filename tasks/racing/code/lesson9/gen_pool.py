@@ -2,6 +2,8 @@
 
     python tasks/racing/code/lesson9/gen_pool.py            # in the container, main venv
 
+It takes no arguments: it starts at once and writes the train and val pools into tracks/.
+
 WHY. The gate-aware screen (train_gate_aware.py v3) learned its 3 dev tracks (train full-lap rate 0.535, 2/3 in
 the harness) but scored 1/6 on unseen tracks, level with the open-space baseline: a transfer gap with a 3-track
 pool. This builds a larger pool from the SAME generator and filters as the study tracks (so the training
@@ -17,7 +19,7 @@ Every accepted track in a window is kept -- no truncation to a target count, no 
 whatever the fixed seed windows yield (~1.1 % of candidates pass, per the study/dev batches). Every candidate and
 its reject reasons go to tracks/manifest_<role>.csv (merged from the per-window part files). Each window is one
 `gen_tracks.py` process, run with the launcher's environment (JAX on CPU, single-thread limits: the combination
-measured in METHODOLOGY.md section 9 to let concurrent workers run at the speed of one).
+measured to let concurrent workers run at the speed of one).
 """
 
 from __future__ import annotations

@@ -76,7 +76,7 @@ bash scripts/smoke_test.sh           # the RACING/RACE sections must be all ok
 | 6 | [Plan faster, track tighter: the TOGT planner and MPC](lessons/06-togt-planner-and-mpc.md) | 3 h + compute | A (plan × tracker) benchmark on both clocks — the parent project's and the leaderboard's — with pre-registered verdicts |
 | 7 | [The final benchmark: MPC versions vs RL trackers, under disturbance and noise](lessons/07-final-benchmark.md) | 3 h + compute | The conditions matrix (wind, gusts, payload, Lighthouse noise) on the leaderboard clock, a racing-envelope policy trained in one run, and the 20-episode race tables that say which tracker ranks — and why the fastest one does not |
 | 8 | [Closing the gap: diagnose, identify, replan, adapt](lessons/08-closing-the-gap.md) | 4 h + compute | 1.2 s off this course's best lap without changing the controller — a failure anatomy, your own system identification of the simulator, a ground-start plan, and the Level-1 randomisation that actually decides the laps |
-| 9 | [Where the crossover is: learned vs model-based racing under graded disturbance](lessons/09-crossover-under-disturbance.md) — **in progress** | 5+ h + compute | A random-track library, a graded disturbance coefficient with five conditions calibrated to a shared rule, a box contact model, and a robust-vs-contrast RL pair that separates "matched training" from "learned control" |
+| 9 | [Where the crossover is: learned vs model-based racing under graded disturbance](lessons/09-crossover-under-disturbance.md) | 3 h + days of compute | Pre-register a crossover rule, build a random-track library in separate pools, calibrate six graded disturbance channels on the model-based family, train a gate-aware learned racer, and sweep both families to find where, and whether, the ranking changes |
 
 Lessons 1–3 are guided (2b is a concept interlude — read, don't code).
 **Lesson 4 is where you do research.** Lesson 5 gives you the plots and tables
@@ -111,9 +111,19 @@ tasks/racing/
 │   ├── mpc_dev.py           ← the MPC with switches: model, cost, horizon, adaptation  [Lesson 8]
 │   ├── race_probe.py        ← identification probes flown in the race environment   [Lesson 8]
 │   ├── probe_fit.py         ← fits the probes: attitude, thrust, drag, spin-up       [Lesson 8]
-│   └── race_runner.py       ← 20-episode race cells with the sampled mass logged     [Lesson 8]
-├── plans/               ← TOGT plans you generate (git-ignored)
-└── lessons/             ← 01..08, plus interlude 2b — the actual course
+│   ├── race_runner.py       ← 20-episode race cells with the sampled mass logged     [Lesson 8]
+│   └── lesson9/             ← the crossover study                                   [Lesson 9]
+│       ├── *.py             ← tracks, disturbances, the lap driver, the runners, the learned recipe
+│       ├── tests/           ← checks for the above (run each as a script, main venv)
+│       ├── tracks/          ← the track library and manifests (every candidate, with reasons)
+│       ├── maxima.json      ← the frozen disturbance ceilings
+│       ├── results/         ← every lap flown, one CSV row each (see its README)
+│       ├── policies/        ← the study's trained policies, one folder per training run
+│       ├── saved/           ← a frozen training run; never edit (see its README)
+│       └── analysis/        ← recomputes the study's numbers and figures from results/
+├── plans/               ← TOGT plans you generate (git-ignored, except plans/lesson9/ and ground_f0.85.csv)
+├── figures/             ← figures you generate (lesson9/ holds the track overviews)
+└── lessons/             ← 01..09, plus interlude 2b — the actual course
 ```
 
 The **LSY race environment** is *not* vendored — it is public and cloned into
@@ -200,6 +210,23 @@ From measured failures in the parent project — each cost real days.
   pre-compensated for *that* tracker's systematic error, so if a student changes
   the tracker the gate shifts are no longer right — which is the lesson's last
   finding, not a bug.
+* **Lesson 9 adds no new dependency** — it runs in the `main` venv, which
+  already has the `pandas` and `scipy` its analysis needs. All its code lives in
+  `code/lesson9/`; it builds on `race_refs.py`, `race_eval.py`, `mpc_dev.py`,
+  `togt_plan.py` and `train_racing.py` without modifying them. Three things to
+  tell students before they start:
+  - **The reference run ships in the default output folders**
+    (`code/lesson9/results/`, `tracks/`, `plans/lesson9/`, and the policies in
+    `code/lesson9/policies/`), and every runner skips laps
+    already on disk. A student's own run needs its own `--tag`, or a fresh copy
+    of the repository, or it silently reads the reference instead of flying.
+  - **The compute is real:** about 6 h per learned seed (16M steps), and days
+    on 8 workers for the full sweep. Start the long runs early; a single track
+    of the sweep is a reasonable assignment.
+  - **`code/lesson9/saved/` is a frozen training run.** Never edit it:
+    `tests/test_gate_aware.py` executes its code to show the live training
+    environment is unchanged. The tests run as plain scripts
+    (`python tasks/racing/code/lesson9/tests/test_<name>.py`, main venv).
 
 ## Credits
 

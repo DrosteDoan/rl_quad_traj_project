@@ -1,9 +1,9 @@
 """Checks for `train_gate_aware.py`'s CLI-exposed PPO hyperparameters (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_train_scripts_cli.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_train_scripts_cli.py        # no pytest needed
 
 MECHANICS ONLY: argparse-level checks that the corrected defaults (2026-09-23, after the pre-gate-aware
-rounds 1-3 flew weak across both groups -- METHODOLOGY.md sections 5a/5b) are what `train_gate_aware.py`
+rounds 1-3 flew weak across both groups) are what `train_gate_aware.py`
 actually ships, for every `--group`, and that they keep the PPO minibatch structure (4 minibatches/epoch)
 the recipe was tuned around. No env is built, no model is constructed, no `.learn()` anywhere.
 
@@ -17,12 +17,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import train_gate_aware as tga  # noqa: E402
 
 
 def test_corrected_defaults():
-    for g in ("robust", "robust_full", "contrast", "contrast_force"):
+    for g in ("robust", "robust_full", "contrast"):
         args = tga.build_parser().parse_args(["--reason", "test", "--group", g])
         assert (args.gamma, args.n_steps, args.batch_size) == (0.99, 512, 2048), g
 

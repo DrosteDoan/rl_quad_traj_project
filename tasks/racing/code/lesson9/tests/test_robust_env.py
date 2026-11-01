@@ -1,6 +1,6 @@
 """Checks for the robust training environment (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_robust_env.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_robust_env.py        # no pytest needed
 
 MECHANICS ONLY. Every test constructs `RobustTrackingEnv`, resets it, and steps it a handful of times --
 never `.learn()`. No training happens here. `RobustTrackingEnv` is trained via `train_gate_aware.py --group robust`.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import knobs as kb  # noqa: E402
 from lighthouse_batch import LambdaLighthouseSensorBatch  # noqa: E402
 from robust_env import DR_LAM_MAX, FORCE_XY_MAX, FORCE_Z_HI, FORCE_Z_LO, FREQ, WINDOW_DT, RobustTrackingEnv  # noqa: E402
@@ -145,7 +145,7 @@ def test_lighthouse_channel_is_active_and_lambda_bounded():
 
 def test_the_three_channels_are_drawn_independently():
     """Not perfectly correlated, not perfectly anti-correlated: three separate RNG streams, matching the
-    'independent per-episode draws' decision (METHODOLOGY.md section 5a)."""
+    'independent per-episode draws' decision (Lesson 9 section 4)."""
     env = _make_env(num_envs=500)
     env.reset()
     force_mag = np.linalg.norm(env.perturb_force, axis=1)

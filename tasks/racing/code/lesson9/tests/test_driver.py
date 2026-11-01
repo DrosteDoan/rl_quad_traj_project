@@ -1,6 +1,6 @@
 """Checks for the driver (main venv, in the container; about 4-6 minutes, mostly M1 laps):
 
-    python tasks/racing/code/lesson9/test_driver.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_driver.py        # no pytest needed
 
 The point of these tests: the driver's loop is the vendored `rollout` loop plus contact / finish / miss stops and
 a reused Sim, so at Lesson 7's disturbance values the flown path must be IDENTICAL to the vendored harness's.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import driver as dr  # noqa: E402
 import knobs as kb  # noqa: E402
 import track_lib as tl  # noqa: E402
@@ -28,7 +28,8 @@ TRACK = dr.level2_track()
 
 
 def _zip() -> str | None:
-    zs = sorted((tl.ROOT / "tasks" / "racing" / "crazy_track" / "results").glob("*/datt_ppo_final.zip"))
+    roots = (tl.ROOT / "tasks" / "racing" / "crazy_track" / "results", tl.ROOT / "tasks" / "racing" / "code" / "lesson9" / "policies")
+    zs = sorted((z for r in roots for z in r.glob("*/datt_ppo_final.zip")), key=lambda z: z.parent.name)
     return str(zs[-1]) if zs else None
 
 

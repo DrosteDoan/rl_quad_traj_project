@@ -5,7 +5,7 @@
     ok, why = run_togt(yaml, "name", csv)    # TOGT driver from Lesson 6 (needs `bash togt/build.sh` once)
     diag    = diagnose_plan(csv, gates)      # what a tracker will have to fly, and whether it can
 
-The verdict is about the PLAN, never about a controller (METHODOLOGY.md section 3): a track is rejected
+The verdict is about the PLAN, never about a controller (Lesson 9 section 2): a track is rejected
 for structural reasons only (TOGT fails, a gate is missed, the path goes through a frame, the crossing is
 too oblique, the path leaves the arena). The speed stretch s = max(1, v_peak / V_CAP) is computed here and
 applied at run time through SampledRaceTrajectory(time_scale=s).
@@ -37,7 +37,7 @@ from crazy_track.trajectories.freestyle import (  # noqa: E402
 )
 from crazy_track.trajectories.sampled import SampledRaceTrajectory  # noqa: E402
 
-# ---- the fixed part of every track (METHODOLOGY.md section 3) ------------------------------------
+# ---- the fixed part of every track (Lesson 9 section 2) ------------------------------------
 GROUND_START = (-1.5, 0.75, 0.05)      # where the race puts the drone; Lesson 8 section 3
 GATES_Z = (0.7, 1.2, 0.7, 1.2)         # lsy: tall and short gates alternate; height is never randomised
 OBSTACLES_Z = (1.55, 1.55, 1.55, 1.55)  # the generator needs them; we ignore the poles it places

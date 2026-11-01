@@ -1,6 +1,6 @@
 """Checks for the gate-aware viability screen, version 4 (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_gate_aware.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_gate_aware.py        # no pytest needed
 
 MECHANICS ONLY, like every other lesson9 env test. Never `.learn()` -- no training happens here or anywhere
 in Lesson 9 yet (train_gate_aware.py v4 has not been run). Version 2 flies the dev tracks from a REAL ground
@@ -17,10 +17,10 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 import driver as drv  # noqa: E402
 from gate_aware_env import (DEV_SEEDS, EPISODE_TIME, FLOOR_PENALTY, FLOOR_Z, GATE_PENALTY, MISS_WINDOW,  # noqa: E402
-                            POOL_SPEC, POOL_TRAJS, GateAwareContrastEnv, GateAwareForceContrastEnv, GateAwareTrackingEnv,
+                            POOL_SPEC, POOL_TRAJS, GateAwareContrastEnv, GateAwareTrackingEnv,
                             gate_contacts, gate_progress,
                             summarise_gate_stats,
                             train_seeds)
@@ -113,7 +113,7 @@ def test_sample_traj_reaches_every_pool_track():
 
 
 def _seeds(role):
-    return {int(p.stem.split("_")[1]) for p in (Path(__file__).resolve().parent / "tracks" / role).glob("track_*.json")}
+    return {int(p.stem.split("_")[1]) for p in (Path(__file__).resolve().parent.parent / "tracks" / role).glob("track_*.json")}
 
 
 def test_pool_is_larger_than_the_three_dev_tracks():
@@ -306,7 +306,7 @@ def _load_saved_v4():
     `tracks/` dir (loading it from saved/ would silently give it an empty train pool)."""
     import types
 
-    here = Path(__file__).resolve().parent
+    here = Path(__file__).resolve().parent.parent   # lesson9/
     src = (here / "saved" / "gate_aware_v4" / "code" / "gate_aware_env.py").read_text()
     mod = types.ModuleType("gate_aware_env_v4_saved")
     mod.__file__ = str(here / "gate_aware_env.py")
@@ -345,7 +345,7 @@ def test_refactored_robust_env_is_bit_identical_under_the_trained_policy():
     import torch
     from stable_baselines3 import PPO
 
-    here = Path(__file__).resolve().parent
+    here = Path(__file__).resolve().parent.parent   # lesson9/
     model = PPO.load(str(here / "saved" / "gate_aware_v4" / "ckpt" / "datt_ppo_final.zip"), device="cpu")
     torch.manual_seed(0)
     old = _load_saved_v4()
@@ -435,39 +435,6 @@ def test_train_script_cli_selects_the_group_and_allows_the_studys_three_seeds():
             raise AssertionError(f"{bad} should be rejected")
         except SystemExit:
             pass
-
-
-def test_force_only_contrast_differs_from_robust_in_force_and_mass_only():
-    from crazy_track.envs.datt_env import PERTURB_ACC_MAX
-    from lighthouse_batch import LambdaLighthouseSensorBatch
-
-    f = GateAwareForceContrastEnv(num_envs=300, seed=0, v3=True, v5=True)
-    r = GateAwareTrackingEnv(num_envs=300, seed=0, v3=True, v5=True)
-    f.reset(); r.reset()
-    # same gate logic by construction, same sensing curriculum as the robust group
-    assert GateAwareForceContrastEnv.step is GateAwareTrackingEnv.step
-    assert isinstance(f.sensor, LambdaLighthouseSensorBatch) and isinstance(r.sensor, LambdaLighthouseSensorBatch)
-    assert f.sensor.lam_max == r.sensor.lam_max == 0.8 and f.sensor.lam_eff.max() > 0
-    assert abs(f.sensor.lam_eff.max() - r.sensor.lam_eff.max()) < 0.1 * r.sensor.lam_eff.max()
-    # ... but the vendored force box and no mass channel
-    acc = f.perturb_force / 0.04338
-    assert acc.max() <= PERTURB_ACC_MAX + 1e-6 and acc.min() >= -PERTURB_ACC_MAX - 1e-6
-    assert acc[:, 2].max() < 0.6 * PERTURB_ACC_MAX, "vendored z halving"
-    assert np.abs(r.perturb_force / 0.04338).max() > PERTURB_ACC_MAX, "the robust box is wider than the vendored one"
-    assert not hasattr(f, "_mass_rng")
-    np.testing.assert_allclose(np.asarray(f.sim.data.params.mass), np.asarray(f.sim.default_data.params.mass))
-    assert (np.asarray(r.sim.data.params.mass) > np.asarray(r.sim.default_data.params.mass) + 1e-9).any()
-    # and it steps
-    for _ in range(10):
-        obs, rew, crashed, trunc, info = f.step(np.zeros((300, 4), dtype=np.float32))
-    assert np.all(np.isfinite(obs)) and np.all(np.isfinite(rew))
-
-
-def test_train_script_offers_the_force_only_contrast_group():
-    import train_gate_aware as tga
-
-    a = tga.build_parser().parse_args(["--reason", "t", "--group", "contrast_force", "--seed", "0"])
-    assert a.group == "contrast_force" and a.dr_lam_max == 0.8
 
 
 def test_full_authority_group_differs_from_v4_only_in_the_tilt_scale():

@@ -1,6 +1,6 @@
 """Checks for `full_authority_env.py` (main venv, in the container):
 
-    python tasks/racing/code/lesson9/test_full_authority.py        # no pytest needed
+    python tasks/racing/code/lesson9/tests/test_full_authority.py        # no pytest needed
 
 MECHANICS ONLY, like test_robust_env.py/test_contrast_env.py. Never `.learn()`. Also checks driver.py's
 `robust_full:` spec routing, without constructing a PPO model. `train_full_authority.py` (the pre-gate-aware
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # the lesson9 modules
 from full_authority_env import RPY_SCALE, FullAuthorityTrackingEnv  # noqa: E402
 from robust_env import RobustTrackingEnv  # noqa: E402
 

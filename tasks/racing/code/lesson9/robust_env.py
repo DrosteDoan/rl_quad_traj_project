@@ -1,9 +1,9 @@
 """The robust-RL training environment (Lesson 9 phase 6): `train_racing.py`'s racing envelope, plus a
-per-episode domain-randomization box matched to the frozen ceilings (METHODOLOGY.md section 5a), plus the
+per-episode domain-randomization box matched to the frozen ceilings (Lesson 9 section 4), plus the
 preview-window and training-frequency changes agreed with the user on 2026-09-22.
 
 Three independent per-episode channels, each its own RNG stream (mirroring how the vendored recipe already
-keeps force and Lighthouse noise independent -- METHODOLOGY.md section 5a), all set to 0.8 x the frozen
+keeps force and Lighthouse noise independent), all set to 0.8 x the frozen
 ceiling:
 
     force        x, y: +-4.4 m/s^2 (0.8 x wind_const's 1.5x-of-Lesson-7 ceiling, unioned with wind_gust's)

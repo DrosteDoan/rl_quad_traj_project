@@ -1,4 +1,4 @@
-"""Phase 5: calibrate the disturbance ceilings on the DEV tracks (METHODOLOGY.md section 4).
+"""Phase 5: calibrate the disturbance ceilings on the DEV tracks (Lesson 9 section 3).
 
     python tasks/racing/code/lesson9/calibrate.py run --workers 8      # flies the scan (about 30-40 min)
     python tasks/racing/code/lesson9/calibrate.py report               # tables + a PROPOSED maxima.json
@@ -13,7 +13,7 @@ freezing is copying it to `maxima.json` after the user approves.
 
 Only the MPC family exists at this point (the robust RL seeds are trained on the frozen ceilings), so the rule is
 applied to those four members; re-check it once the policies exist. `latency_only` is the delay-only check for the
-fixed 1-step Lighthouse latency (METHODOLOGY.md section 4).
+fixed 1-step Lighthouse latency.
 """
 
 from __future__ import annotations

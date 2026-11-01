@@ -7,13 +7,13 @@
 
 Runs in the MAIN venv, in the container (needs the TOGT driver: bash tasks/racing/code/togt/build.sh).
 For each candidate seed it builds the lsy level-3 layout, plans a TOGT ground-start tube, and applies
-`track_lib.diagnose_plan` (METHODOLOGY.md section 3: a verdict on the PLAN, never on a controller). It
+`track_lib.diagnose_plan` (Lesson 9 section 2: a verdict on the PLAN, never on a controller). It
 writes
 
     tasks/racing/code/lesson9/tracks/<role>/track_<seed>.json   passing tracks (small, tracked in git)
     tasks/racing/code/lesson9/tracks/manifest_<role>.csv        EVERY candidate, pass or reject, with reasons
-    tasks/racing/plans/lesson9/<role>_<seed>.csv                the TOGT plan (git-ignored, regenerable)
-    tasks/racing/figures/lesson9/tracks_<role>.png              top view of the accepted tracks (git-ignored)
+    tasks/racing/plans/lesson9/<role>_<seed>.csv                the TOGT plan (regenerable)
+    tasks/racing/figures/lesson9/tracks_<role>.png              top view of the accepted tracks
 
 Selection is by seed order, so it cannot be cherry-picked; every reject and its reason is in the manifest.
 """

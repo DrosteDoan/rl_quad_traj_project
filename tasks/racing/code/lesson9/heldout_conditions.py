@@ -4,7 +4,7 @@
 
 Flies v4 (the RL member, first `--member`), M1 and M1+L1 on the 22 `val` tracks under `knobs.HELD_OUT` -- lift, light,
 step_wind, blackout -- at lambda in {0.25, 0.5, 0.75, 1.0}, one seed (all four are deterministic), then computes the
-quantities pre-registered in METHODOLOGY.md section 5c: retention (over the tracks each member completed at lambda = 0)
+quantities pre-registered in Lesson 9 section 6: retention (over the tracks each member completed at lambda = 0)
 for each held-out condition and its nearest in-distribution ANALOGUE (read from `results/eval/val_lambda`, the lambda
 preview), and the difference-in-differences
     DiD(v4 vs X) = (v4_heldout - v4_analogue) - (X_heldout - X_analogue)         (points, same lambda)
@@ -29,7 +29,7 @@ from launcher import launch  # noqa: E402
 
 LAMS = [0.25, 0.5, 0.75, 1.0]
 ANALOGUE = {"lift": "payload", "light": "mass_mult", "step_wind": "wind_const", "blackout": "lighthouse"}
-THRESHOLD = 20.0          # points; METHODOLOGY.md section 5c
+THRESHOLD = 20.0          # points; the pre-registered threshold (Lesson 9 section 6)
 VERDICT_CELLS = 5         # of 8
 
 
