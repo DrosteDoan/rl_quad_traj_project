@@ -50,7 +50,10 @@ def launch(tasks: list[dict], workers: int = 8, log_dir: Path | None = None) -> 
     order = sorted(tasks, key=lambda t: -(len(t["lams"]) * (t["seeds"] if t["cond"] in ("wind_gust", "lighthouse", "combined") else 1)))
 
     def run(t: dict) -> tuple[dict, int, float]:
-        log = log_dir / (Path(t["out"]).stem + ".log")
+        # a task may name its own log (study_sweep.py --mpc-set cap07 does: every sweep cell writes `laps.csv`, so
+        # the default <out stem>.log would put all cells into one shared file); default unchanged
+        log = Path(t["log"]) if t.get("log") else log_dir / (Path(t["out"]).stem + ".log")
+        log.parent.mkdir(parents=True, exist_ok=True)
         t0 = time.time()
         with open(log, "a") as fh:
             rc = subprocess.run(task_cmd(t), stdout=fh, stderr=subprocess.STDOUT, env=env).returncode

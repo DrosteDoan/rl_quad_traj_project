@@ -60,6 +60,18 @@ the RL group's median seed (SENSITIVITY, dashed). Stated asymmetry: MPC's best-o
 distinct designs; RL's best-of-3 is the best of three seeds of one recipe -- an easier bar, favouring RL
 wherever the primary line shows a crossover. The single scalar crossover-location statistic (a margin,
 a tie-break rule) is computed by the analysis in analysis/ (lib.lam_star) -- these are lines to look at, not a verdict.
+
+`--mpc-set cap07` (the matched 0.7 rad extension, pre-registered in Lesson 9 section 10, 2026-11-15): the same four
+phases and the same rules, for the five roll/pitch-capped MPC twins (`M1@0.7`, ..., `mppi_l1@0.7`) only.
+  * Output: results/eval/study_sweep_cap07/ (its own determinism file, one laps.csv per cell). Nothing under
+    results/eval/study_sweep/ is written; each member's laps live in exactly ONE folder.
+  * The 0.7 rad seeds are NOT flown: their stored laps in study_sweep/ are the comparison. `--sensitivity-member`
+    still names them (labels only, for the charts); `--member` is accepted and ignored, so the same $M string works.
+  * coarse: the capped members fly every lambda the ORIGINAL cell has (coarse grid plus its midpoints), so they
+    have data wherever the 0.7 rad seeds do. midpoints: added only where a CAPPED member's own coarse-grid
+    completion jumps by >= 0.2, and only the capped members fly them.
+  * Logs: results/logs/study_sweep_cap07/, one file per task, so nothing is appended to the original sweep's logs.
+  * charts: chart_matched07_<stat>.png per cell, capped members from study_sweep_cap07/, s0-s2 from study_sweep/.
 """
 
 from __future__ import annotations
@@ -89,6 +101,21 @@ DET_CHECK_TRACK_LAM = 0.5                # the one cell the determinism phase re
 DET_CHECK_SEEDS = 2
 SHOW_FAMILY_LINES = False   # the S7 best-of/median-of overlay; OFF for now, user request 2026-09-27
 MPC_LABELS = tuple(drv.DEFAULT_MEMBERS)   # M1, M1+ESO, M1+L1, M1+mass, mppi_l1
+CAP07_LABELS = tuple(f"{k}@{drv.RP_MAX_EQ}" for k in MPC_LABELS)   # the capped twins, same order
+assert set(CAP07_LABELS) <= set(drv.RP_MAX_MEMBERS), "every capped label must be flyable through driver --only"
+
+
+class SweepSet:
+    """Which MPC roster a run flies, where its laps and logs go, and whether it flies the RL members too."""
+
+    def __init__(self, name: str, root: Path, mpc_labels: tuple[str, ...], fly_rl: bool, log_dir: Path | None):
+        self.name, self.root, self.mpc_labels, self.fly_rl, self.log_dir = name, root, mpc_labels, fly_rl, log_dir
+
+
+ORIGINAL = SweepSet("original", OUT_ROOT, MPC_LABELS, fly_rl=True, log_dir=None)   # log_dir None = launcher default
+CAP07 = SweepSet("cap07", HERE / "results" / "eval" / "study_sweep_cap07", CAP07_LABELS, fly_rl=False,
+                 log_dir=HERE / "results" / "logs" / "study_sweep_cap07")
+SETS = {s.name: s for s in (ORIGINAL, CAP07)}
 
 # Chart colors (found 2026-10-01: `plt.cm.autumn(linspace(0.15, 0.75, 5))` packed the 5 MPC members into a
 # ~36 degree hue sliver -- autumn only varies its green channel, so samples that close together read as
@@ -113,23 +140,43 @@ def parse_members(pairs: list[str]) -> dict[str, str]:
 
 
 # ---- phase: determinism -------------------------------------------------------------------------------------------
-def determinism_path() -> Path:
-    return OUT_ROOT / "determinism.json"
+def determinism_path(sset: SweepSet = ORIGINAL) -> Path:
+    return sset.root / "determinism.json"
 
 
-def run_determinism(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str]) -> None:
+def _set_members(sset: SweepSet, rl_members: dict[str, str]) -> tuple[tuple[str, ...], dict[str, str]]:
+    """(labels to fly, extra --member specs) for a set: the cap07 set flies its capped MPC twins only (they are
+    reachable through driver --only), never the RL members."""
+    if sset.fly_rl:
+        return sset.mpc_labels + tuple(rl_members), rl_members
+    return sset.mpc_labels, {}
+
+
+def _with_log(task: dict, sset: SweepSet) -> dict:
+    """Give a task its own log file when the set has its own log folder (cap07): every cell writes `laps.csv`, so
+    the launcher's default name (<out stem>.log) would put every cell into one shared log."""
+    if sset.log_dir is not None:
+        out = Path(task["out"])
+        name = out.stem if out.parent == sset.root else f"{out.parent.parent.name}_{out.parent.name}"
+        task["log"] = sset.log_dir / f"{name}.log"
+    return task
+
+
+def run_determinism(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str],
+                    sset: SweepSet = ORIGINAL) -> None:
     det_conds = [c for c in conditions if c in DETERMINISTIC]
     if not det_conds:
         print("no deterministic condition in --condition's scope -- nothing to check (escalation is a "
               "property of the controller, not the stochastic conditions, so this is a no-op, not an error)")
         return
-    labels = MPC_LABELS + tuple(rl_members)
+    labels, members = _set_members(sset, rl_members)
+    sset.root.mkdir(parents=True, exist_ok=True)
     # one file PER CONDITION -- concurrent tasks must never share an output file (driver.py writes its own
     # header on first open; two processes racing to create the same file corrupt it, as val_lambda_cap07's
     # laps_val_300162_wind_const.csv did earlier in this study)
-    outs = {c: OUT_ROOT / f"determinism_check_{c}.csv" for c in det_conds}
-    tasks = [{"role": "study", "track": tracks[0], "cond": c, "lams": [DET_CHECK_TRACK_LAM],
-              "seeds": DET_CHECK_SEEDS, "members": rl_members, "only": ",".join(labels), "out": outs[c]}
+    outs = {c: sset.root / f"determinism_check_{c}.csv" for c in det_conds}
+    tasks = [_with_log({"role": "study", "track": tracks[0], "cond": c, "lams": [DET_CHECK_TRACK_LAM],
+                        "seeds": DET_CHECK_SEEDS, "members": members, "only": ",".join(labels), "out": outs[c]}, sset)
              for c in det_conds]
     launch(tasks, workers=workers)
 
@@ -145,7 +192,7 @@ def run_determinism(tracks: list[int], rl_members: dict[str, str], workers: int,
         differs = a["completed"] != b["completed"] or abs(float(a["rmse_3d"] or 0) - float(b["rmse_3d"] or 0)) > 1e-9
         if differs:
             found.append(label)
-    p = determinism_path()
+    p = determinism_path(sset)
     p.parent.mkdir(parents=True, exist_ok=True)
     prior = json.load(open(p)) if p.exists() else {"escalated": [], "checked_conditions": []}
     # ACCUMULATE: a --condition-restricted run must not erase an earlier run's findings
@@ -156,8 +203,8 @@ def run_determinism(tracks: list[int], rl_members: dict[str, str], workers: int,
     print(f"escalated to 3 seeds on deterministic conditions: {escalated or '(none)'} -- wrote {p}")
 
 
-def load_escalated() -> list[str]:
-    p = determinism_path()
+def load_escalated(sset: SweepSet = ORIGINAL) -> list[str]:
+    p = determinism_path(sset)
     if not p.exists():
         raise SystemExit(f"{p} does not exist -- run --phase determinism first (S4 needs its answer "
                           f"before any deterministic-condition cell can be flown)")
@@ -165,14 +212,28 @@ def load_escalated() -> list[str]:
 
 
 # ---- shared task-building for coarse and midpoints ------------------------------------------------------------------
-def cell_out(track: int, cond: str) -> Path:
-    d = OUT_ROOT / f"track_{track}" / cond
-    d.mkdir(parents=True, exist_ok=True)
-    return d / "laps.csv"
+def cell_csv(track: int, cond: str, sset: SweepSet = ORIGINAL) -> Path:
+    """A cell's laps file, WITHOUT creating anything (for reading another set's cell)."""
+    return sset.root / f"track_{track}" / cond / "laps.csv"
+
+
+def cell_out(track: int, cond: str, sset: SweepSet = ORIGINAL) -> Path:
+    p = cell_csv(track, cond, sset)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def original_cell_lams(track: int, cond: str) -> list[float]:
+    """Every lambda the ORIGINAL sweep flew in a cell (coarse grid plus its midpoints). The cap07 set flies all of
+    them, so the capped members have data wherever the 0.7 rad seeds do."""
+    p = cell_csv(track, cond, ORIGINAL)
+    if not p.exists():
+        raise SystemExit(f"{p} does not exist -- the cap07 extension flies against the original sweep's cells")
+    return sorted({round(float(r["lam"]), 6) for r in csv.DictReader(open(p))})
 
 
 def cell_tasks(track: int, cond: str, lams: list[float], rl_members: dict[str, str],
-               escalated: list[str]) -> tuple[list[dict], list[dict]]:
+               escalated: list[str], sset: SweepSet = ORIGINAL) -> tuple[list[dict], list[dict]]:
     """Returns (batch1, batch2) -- two lists to `launch()` ONE AFTER THE OTHER, never together. A
     deterministic cell's "regular" (1 seed) and "escalated" (3 seed) sub-tasks target the SAME output
     file (cell_out), so if both ran in the same `launch()` call they could race to create/append it
@@ -182,26 +243,28 @@ def cell_tasks(track: int, cond: str, lams: list[float], rl_members: dict[str, s
     within each batch."""
     if not lams:
         return [], []
-    out = cell_out(track, cond)
-    all_labels = MPC_LABELS + tuple(rl_members)
+    out = cell_out(track, cond, sset)
+    all_labels, members = _set_members(sset, rl_members)
     if cond in STOCHASTIC:
-        return [{"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": STOCHASTIC_SEEDS,
-                  "members": rl_members, "only": ",".join(all_labels), "out": out}], []
+        return [_with_log({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": STOCHASTIC_SEEDS,
+                           "members": members, "only": ",".join(all_labels), "out": out}, sset)], []
     esc = [x for x in all_labels if x in escalated]
     reg = [x for x in all_labels if x not in escalated]
     batch1, batch2 = [], []
     if reg:
-        batch1.append({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": 1,
-                        "members": rl_members, "only": ",".join(reg), "out": out})
+        batch1.append(_with_log({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": 1,
+                                 "members": members, "only": ",".join(reg), "out": out}, sset))
     if esc:
-        batch2.append({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": 3,
-                        "members": rl_members, "only": ",".join(esc), "out": out, "full_seeds_at_zero": True})
+        batch2.append(_with_log({"role": "study", "track": track, "cond": cond, "lams": lams, "seeds": 3,
+                                 "members": members, "only": ",".join(esc), "out": out,
+                                 "full_seeds_at_zero": True}, sset))
     return batch1, batch2
 
 
 # ---- phase: coarse -------------------------------------------------------------------------------------------------
-def run_coarse(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str]) -> None:
-    escalated = load_escalated() if any(c in DETERMINISTIC for c in conditions) else []
+def run_coarse(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str],
+               sset: SweepSet = ORIGINAL) -> None:
+    escalated = load_escalated(sset) if any(c in DETERMINISTIC for c in conditions) else []
     batch1: list[dict] = []
     batch2: list[dict] = []
     for track in tracks:
@@ -210,7 +273,8 @@ def run_coarse(tracks: list[int], rl_members: dict[str, str], workers: int, cond
             # stand alone for --track/--condition to invoke independently); it also is NOT assumed noise-free for
             # an escalated member, since e.g. mppi_l1 samples internally regardless of whether an external
             # disturbance is active, so its own seed-to-seed variance can appear even at lambda = 0
-            b1, b2 = cell_tasks(track, cond, COARSE_LAMS, rl_members, escalated)
+            lams = COARSE_LAMS if sset.fly_rl else sorted(set(COARSE_LAMS) | set(original_cell_lams(track, cond)))
+            b1, b2 = cell_tasks(track, cond, lams, rl_members, escalated, sset)
             batch1 += b1
             batch2 += b2
     print(f"{len(batch1) + len(batch2)} coarse tasks across {len(tracks)} tracks x {len(conditions)} "
@@ -239,21 +303,24 @@ def needed_midpoints(csv_path: Path, all_labels: tuple[str, ...]) -> list[float]
     return sorted(needed)
 
 
-def run_midpoints(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str]) -> None:
-    escalated = load_escalated() if any(c in DETERMINISTIC for c in conditions) else []
-    all_labels = MPC_LABELS + tuple(rl_members)
+def run_midpoints(tracks: list[int], rl_members: dict[str, str], workers: int, conditions: list[str],
+                  sset: SweepSet = ORIGINAL) -> None:
+    escalated = load_escalated(sset) if any(c in DETERMINISTIC for c in conditions) else []
+    all_labels, _ = _set_members(sset, rl_members)
     batch1: list[dict] = []
     batch2: list[dict] = []
     report = []
     for track in tracks:
         for cond in conditions:
-            out = cell_out(track, cond)
+            out = cell_csv(track, cond, sset)
             if not out.exists():
                 continue   # coarse hasn't been flown for this cell yet; nothing to escalate from
             mids = needed_midpoints(out, all_labels)
+            if not sset.fly_rl:   # cap07: the original cell's own midpoints were already flown in its coarse phase
+                mids = [m for m in mids if m not in set(original_cell_lams(track, cond))]
             if mids:
                 report.append((track, cond, mids))
-                b1, b2 = cell_tasks(track, cond, mids, rl_members, escalated)
+                b1, b2 = cell_tasks(track, cond, mids, rl_members, escalated, sset)
                 batch1 += b1
                 batch2 += b2
     for track, cond, mids in report:
@@ -327,23 +394,27 @@ def _family_series(csv_path: Path, labels: tuple[str, ...], how: str, stat: Stat
 
 
 def _render(ax_title: str, out_png: Path, csv_path: Path, stat: Stat,
-            mpc_labels: tuple[str, ...], rl_labels: tuple[str, ...]) -> None:
+            mpc_labels: tuple[str, ...], rl_labels: tuple[str, ...], rl_csv: Path | None = None) -> None:
+    """`rl_csv`: where the RL members' laps are, when not in `csv_path` (cap07: MPC twins in study_sweep_cap07/,
+    the 0.7 rad seeds in study_sweep/). Default: both from `csv_path`, as in the original sweep."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    rl_csv = rl_csv or csv_path
     fig, ax = plt.subplots(figsize=(6, 5))
     colors = MPC_COLORS[:len(mpc_labels)] + RL_COLORS[:len(rl_labels)]
     styles = MPC_LINESTYLES[:len(mpc_labels)] + ("-",) * len(rl_labels)
+    sources = (csv_path,) * len(mpc_labels) + (rl_csv,) * len(rl_labels)
     all_y: list[float] = []
-    for lab, colour, style in zip(mpc_labels + rl_labels, colors, styles):
-        lams, vals = _mean_series(csv_path, lab, stat)
+    for lab, colour, style, src in zip(mpc_labels + rl_labels, colors, styles, sources):
+        lams, vals = _mean_series(src, lab, stat)
         if not lams:
             continue
         ax.plot(lams, vals, color=colour, ls=style, lw=1.6, alpha=0.9, label=lab)
         all_y += vals
         if stat.key != "completion":   # S6: continuous stats get a band; completion never does (S6a)
-            _, lo, hi = _band_series(csv_path, lab, stat)
+            _, lo, hi = _band_series(src, lab, stat)
             ax.fill_between(lams, lo, hi, color=colour, alpha=0.12, lw=0)
             all_y += lo + hi
     if SHOW_FAMILY_LINES:   # OFF for now (user request 2026-09-27: "just a look at the raw controller
@@ -352,10 +423,10 @@ def _render(ax_title: str, out_png: Path, csv_path: Path, stat: Stat,
         lams, vals = _family_series(csv_path, mpc_labels, "best", stat)
         if lams:
             ax.plot(lams, vals, color="firebrick", lw=2.5, label=f"MPC {best_label} (primary)"); all_y += vals
-        lams, vals = _family_series(csv_path, rl_labels, "best", stat)
+        lams, vals = _family_series(rl_csv, rl_labels, "best", stat)
         if lams:
             ax.plot(lams, vals, color="navy", lw=2.5, label=f"RL {best_label} (primary)"); all_y += vals
-        lams, vals = _family_series(csv_path, rl_labels, "median", stat)
+        lams, vals = _family_series(rl_csv, rl_labels, "median", stat)
         if lams:
             ax.plot(lams, vals, color="navy", lw=2.5, ls="--", label="RL median (sensitivity)"); all_y += vals
     ax.set_xlabel("lambda")
@@ -374,8 +445,22 @@ def _render(ax_title: str, out_png: Path, csv_path: Path, stat: Stat,
 
 
 def run_charts(tracks: list[int], rl_members: dict[str, str], sens_members: dict[str, str],
-               conditions: list[str]) -> None:
+               conditions: list[str], sset: SweepSet = ORIGINAL) -> None:
     rl_labels, sens_labels = tuple(rl_members), tuple(sens_members)
+    if not sset.fly_rl:   # cap07: capped twins (this set's cells) against the 0.7 rad seeds (the original cells)
+        n = 0
+        for track in tracks:
+            for cond in conditions:
+                csv_path, rl_csv = cell_csv(track, cond, sset), cell_csv(track, cond, ORIGINAL)
+                if not csv_path.exists() or not rl_csv.exists():
+                    continue
+                for key, stat in STATS.items():
+                    _render(f"track {track} -- {cond} -- matched 0.7 rad -- {stat.unit}",
+                            csv_path.parent / f"chart_matched07_{key}.png", csv_path, stat, sset.mpc_labels,
+                            sens_labels, rl_csv=rl_csv)
+                n += 1
+        print(f"charts written under {sset.root} ({n} cells x 3 statistics, matched 0.7 rad)")
+        return
     for track in tracks:
         for cond in conditions:
             csv_path = cell_out(track, cond)
@@ -394,10 +479,14 @@ def run_charts(tracks: list[int], rl_members: dict[str, str], sens_members: dict
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--phase", required=True, choices=["determinism", "coarse", "midpoints", "charts", "all"])
-    ap.add_argument("--member", action="append", default=[], metavar="LABEL=SPEC", required=True,
-                    help="repeat 3x: the full-authority RL seeds (the primary line)")
+    ap.add_argument("--member", action="append", default=[], metavar="LABEL=SPEC",
+                    help="repeat 3x: the full-authority RL seeds (the primary line); required for --mpc-set "
+                         "original, accepted and ignored for cap07")
     ap.add_argument("--sensitivity-member", action="append", default=[], metavar="LABEL=SPEC", required=True,
-                    help="repeat 3x: the 0.7-authority RL seeds (the sensitivity line)")
+                    help="repeat 3x: the 0.7-authority RL seeds (the sensitivity line; for cap07, chart labels only)")
+    ap.add_argument("--mpc-set", choices=sorted(SETS), default="original",
+                    help="original (default): the frozen sweep. cap07: the matched 0.7 rad extension -- the five "
+                         "capped MPC twins only, into results/eval/study_sweep_cap07/ (module docstring)")
     ap.add_argument("--track", type=int, default=None,
                     help="restrict to ONE track seed, to run track by track (default: all 10 untouched tracks)")
     ap.add_argument("--condition", choices=kb.CONDITIONS, default=None,
@@ -407,23 +496,29 @@ def main() -> None:
 
     tracks = [args.track] if args.track is not None else untouched_study_tracks()
     conditions = [args.condition] if args.condition else list(kb.CONDITIONS)
+    sset = SETS[args.mpc_set]
     rl_members = parse_members(args.member)
     sens_members = parse_members(args.sensitivity_member)
-    if len(rl_members) != 3 or len(sens_members) != 3:
-        raise SystemExit("expected exactly 3 --member (full authority) and 3 --sensitivity-member (0.7 authority)")
-    OUT_ROOT.mkdir(parents=True, exist_ok=True)
+    if len(sens_members) != 3 or (sset.fly_rl and len(rl_members) != 3):
+        raise SystemExit("expected exactly 3 --member (full authority) and 3 --sensitivity-member (0.7 authority); "
+                         "--mpc-set cap07 needs only the 3 --sensitivity-member labels")
+    if not sset.fly_rl:
+        print(f"--mpc-set {sset.name}: flying {', '.join(sset.mpc_labels)} only, into {sset.root}; the RL members "
+              f"are not flown (their stored laps in {OUT_ROOT} are the comparison)", flush=True)
+        rl_members = {}     # never flown, never charted in this set: --member is ignored
+    sset.root.mkdir(parents=True, exist_ok=True)
 
     phases = ["determinism", "coarse", "midpoints", "charts"] if args.phase == "all" else [args.phase]
     for phase in phases:
         print(f"=== phase: {phase} ===", flush=True)
         if phase == "determinism":
-            run_determinism(tracks, {**rl_members, **sens_members}, args.workers, conditions)
+            run_determinism(tracks, {**rl_members, **sens_members}, args.workers, conditions, sset)
         elif phase == "coarse":
-            run_coarse(tracks, {**rl_members, **sens_members}, args.workers, conditions)
+            run_coarse(tracks, {**rl_members, **sens_members}, args.workers, conditions, sset)
         elif phase == "midpoints":
-            run_midpoints(tracks, {**rl_members, **sens_members}, args.workers, conditions)
+            run_midpoints(tracks, {**rl_members, **sens_members}, args.workers, conditions, sset)
         elif phase == "charts":
-            run_charts(tracks, rl_members, sens_members, conditions)
+            run_charts(tracks, rl_members, sens_members, conditions, sset)
 
 
 if __name__ == "__main__":

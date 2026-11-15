@@ -39,18 +39,20 @@ def near(a, b, tol):
 # ---------------------------------------------------------------------------------------------------------------
 # Crossover rule (Problem Formulation): lambda*, room, retention
 # ---------------------------------------------------------------------------------------------------------------
-def power_and_cross(cond, rl_mem, rl_how="max", mpc_how="max", delta=0.2, tracks=None, u=0.8):
+def power_and_cross(cond, rl_mem, rl_how="max", mpc_how="max", delta=0.2, tracks=None, u=0.8, mpc=MPC, roots=None):
     """Room: best MPC below 1 - delta at some lambda <= u. Retention: learned line >= 0.5 at one of those
-    lambdas. A crossover is lambda*(u) existing (first lambda with Delta > delta, never below -delta after)."""
-    tracks = tracks if tracks is not None else entering_tracks(cond, rl_mem)
+    lambdas. A crossover is lambda*(u) existing (first lambda with Delta > delta, never below -delta after).
+    `mpc`/`roots`: another MPC roster and the folders to read (the matched 0.7 rad extension: mpc=lib.CAP07,
+    roots=lib.BOTH); the defaults are the paper's."""
+    tracks = tracks if tracks is not None else entering_tracks(cond, rl_mem, mpc, roots)
     lams_u = [l for l in COARSE if l <= u + 1e-9]
     out = dict(n=len(tracks), room=0, ret=0, cross_pow=0, cross_all=0, lam_star={}, lam_star_full={})
     for t in tracks:
-        mpc, rl = family_lines(cond, t, rl_mem, rl_how, mpc_how)
-        room_l = [l for l in lams_u if mpc[l] < 1 - delta]
+        mpc_line, rl = family_lines(cond, t, rl_mem, rl_how, mpc_how, mpc=mpc, roots=roots)
+        room_l = [l for l in lams_u if mpc_line[l] < 1 - delta]
         has_room = bool(room_l)
         has_ret = has_room and any(rl[l] >= 0.5 for l in room_l)
-        ls, ls1 = lam_star(rl - mpc, u, delta), lam_star(rl - mpc, 1.0, delta)
+        ls, ls1 = lam_star(rl - mpc_line, u, delta), lam_star(rl - mpc_line, 1.0, delta)
         out["room"] += has_room; out["ret"] += has_ret
         out["cross_all"] += ls is not None; out["cross_pow"] += (ls is not None) and has_ret
         out["lam_star"][t], out["lam_star_full"][t] = ls, ls1

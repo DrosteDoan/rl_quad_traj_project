@@ -295,3 +295,126 @@ mn = np.mean([ms.loc[t, "frame_margin_m"] for t in TRACKS if t not in P6]) * 100
 check("mean frame margin, viable vs not", "4.1 vs 3.6 cm", f"{mv:.1f} vs {mn:.1f}", (round(mv, 1), round(mn, 1)) == (4.1, 3.6))
 
 print(f"\n{sum(results)} of {len(results)} checks pass.")
+
+
+# =================================================================================================================
+# Matched 0.7 rad extension (Lesson 9 section 10, pre-registered 2026-11-15): the five capped MPC twins (stored in
+# results/eval/study_sweep_cap07/) against the 0.7 rad seeds s0-s2 (stored in results/eval/study_sweep/). These
+# are RESULTS, not checks against published values, so they do not enter the count above. The only check is that the
+# frozen H3 cell list reproduces from the original laps; it has its own count.
+# =================================================================================================================
+H3_CELLS = {"wind_const": [747, 757, 837, 965, 989, 1089, 1145, 1250, 1318],
+            "payload": [747, 757, 837, 965, 989, 1089, 1145, 1250, 1318],
+            "mass_mult": [747, 757, 837, 965, 989, 1089, 1145, 1250, 1318],
+            "wind_gust": [757, 965, 989, 1089, 1318],
+            "lighthouse": [965]}
+UNSCORED = {"wind_gust": [837, 1250], "combined": [837, 1318]}
+WIN = [l for l in COARSE if l <= 0.8 + 1e-9]
+cap_checks = []
+
+
+def lam_room(line):
+    """First coarse lambda <= 0.8 where a family's best viable member completes < 80% (None if never)."""
+    return next((l for l in WIN if line[l] < 0.8), None)
+
+
+def best_line(c, t, members, roots=BOTH):
+    v = viable_members(c, t, members, roots)
+    return curve(c, t, v, "max", roots=roots) if v else None
+
+
+section("Matched 0.7 rad extension: H3 cell set reproduces from the original sweep (Lesson 9 section 10)")
+got_h3, got_un = collections.defaultdict(list), collections.defaultdict(list)
+for c in CONDS:
+    for t in entering_tracks(c, S7):
+        m, r = best_line(c, t, MPC, None), best_line(c, t, S7, None)
+        room = [l for l in WIN if m[l] < 0.8]
+        if not room and any(r[l] >= 0.5 for l in WIN[1:]):
+            got_h3[c].append(t)
+        elif room and not any(r[l] >= 0.5 for l in room):
+            got_un[c].append(t)
+ok = dict(got_h3) == H3_CELLS and dict(got_un) == UNSCORED
+cap_checks.append(ok)
+print(f"  [{'PASS' if ok else 'CHECK'}] H3 cells {sum(map(len, H3_CELLS.values()))} and unscored cells "
+      f"{sum(map(len, UNSCORED.values()))} as pre-registered | computed {dict(got_h3)} / {dict(got_un)}")
+
+cap_files = glob.glob(f"{ROOT_CAP07}/track_*/*/laps.csv")
+section("Matched 0.7 rad extension: results")
+if not cap_files:
+    print(f"  no capped laps under {ROOT_CAP07} yet -- nothing to report")
+else:
+    dc = load(BOTH)                                   # raises if any lap is stored in both folders
+    n_cap = int(dc.member.isin(CAP07).sum())
+    print(f"  laps: {len(load()):,} in study_sweep/, {n_cap:,} capped in study_sweep_cap07/ "
+          f"({len(dc) - len(load()) - n_cap} other rows there); cells present {len(cap_files)} of {len(TRACKS) * len(CONDS)}")
+    if len(cap_files) < len(TRACKS) * len(CONDS):
+        print("  PARTIAL: the hypotheses below are provisional until every cell is flown")
+
+    print("  viability at lambda = 0 (members completing >= 50%), capped family:")
+    for c in CONDS:
+        row = {t: len(viable_members(c, t, CAP07, BOTH)) for t in TRACKS}
+        mp = sum(1 for t in TRACKS if "mppi_l1@0.7" in viable_members(c, t, CAP07, BOTH))
+        print(f"    {c:11} members viable per track {row}; mppi_l1@0.7 viable on {mp} of {len(TRACKS)}")
+
+    # H1: capped lambda_room <= uncapped lambda_room; wrong if later on more than 1 in 10 comparable pairs
+    pairs_, later = 0, []
+    for c in CONDS:
+        for t in TRACKS:
+            mc, mu = best_line(c, t, CAP07), best_line(c, t, MPC)
+            if mc is None or mu is None:
+                continue
+            pairs_ += 1
+            lc, lu = lam_room(mc), lam_room(mu)
+            if (lc is None and lu is not None) or (lc is not None and lu is not None and lc > lu):
+                later.append((c, t, lc, lu))
+    print(f"  H1 earlier failure: capped later than uncapped on {len(later)} of {pairs_} pairs "
+          f"-> {'holds' if len(later) <= 0.1 * pairs_ else 'WRONG (more than 1 in 10)'}; later pairs (channel, track, capped, uncapped): {later}")
+
+    # H2: every track that allows a crossover crosses; wrong if any channel has an allowing track without one
+    h2_bad = []
+    print("  H2 crossovers, s0-s2 against the capped family (delta 0.2, window 0.8):")
+    for c in CONDS:
+        p = power_and_cross(c, S7, mpc=CAP07, roots=BOTH)
+        allow = []
+        for t in entering_tracks(c, S7, CAP07, BOTH):
+            m, r = family_lines(c, t, S7, mpc=CAP07, roots=BOTH)
+            room = [l for l in WIN if m[l] < 0.8]
+            if room and any(r[l] >= 0.5 for l in room):
+                allow.append(t)
+        uncrossed = [t for t in allow if p["lam_star"][t] is None]
+        h2_bad += [(c, t) for t in uncrossed]
+        lam = {t: v for t, v in p["lam_star"].items() if v is not None}
+        print(f"    {c:11} entering {p['n']}, room {p['room']}, allowing {p['ret']}, crossing {p['cross_pow']} of them "
+              f"(all crossings {p['cross_all']}); lambda* {lam}; allowing but uncrossed {uncrossed}")
+    print(f"  H2 -> {'holds' if not h2_bad else 'WRONG: allowing tracks without a crossover ' + str(h2_bad)}")
+
+    # H3: the 33 frozen cells; wrong if fewer than 7 of the 14 wind_const + wind_gust cells cross
+    crossed, dropped = {}, []
+    for c, ts in H3_CELLS.items():
+        p = power_and_cross(c, S7, mpc=CAP07, roots=BOTH)
+        for t in ts:
+            if t not in p["lam_star"]:
+                dropped.append((c, t))                  # capped family (or the seeds) not viable there
+            else:
+                crossed[(c, t)] = p["lam_star"][t]
+    n = lambda chans: sum(1 for (c, t), v in crossed.items() if c in chans and v is not None)
+    main, sec = n({"wind_const", "wind_gust"}), n({"payload", "mass_mult"})
+    print(f"  H3 cells crossing: wind_const + wind_gust {main} of 14 -> {'holds' if main >= 7 else 'WRONG (fewer than 7)'}; "
+          f"payload + mass_mult {sec} of 18 (secondary expectation: at most 4); lighthouse 965 "
+          f"{crossed.get(('lighthouse', 965), 'dropped')}; dropped (capped not viable) {dropped}")
+    print(f"    per cell lambda*: { {k: v for k, v in crossed.items()} }")
+
+    # the four unscored cells: reported without a prediction
+    for c, ts in UNSCORED.items():
+        p = power_and_cross(c, S7, mpc=CAP07, roots=BOTH)
+        print(f"  unscored {c}: " + ", ".join(f"{t}: lambda* {p['lam_star'].get(t, 'not entering')}" for t in ts))
+
+    # the authority-corner rows (Table 3 layout): sensing family max / median seed / covered-channel crossovers
+    for name, mem in (("0.7 rad seeds vs capped MPC (matched)", S7), ("full authority vs capped MPC", FA)):
+        b = power_and_cross("lighthouse", mem, mpc=CAP07, roots=BOTH)
+        md = power_and_cross("lighthouse", mem, "median", mpc=CAP07, roots=BOTH)
+        cov = sum(power_and_cross(c, mem, mpc=CAP07, roots=BOTH)["cross_all"] for c in ["wind_const", "payload", "mass_mult"])
+        print(f"  Table 3 row, {name}: sensing {b['cross_pow']} of {b['ret']} / median seed {md['cross_pow']} of "
+              f"{md['ret']} / covered-channel crossovers {cov}")
+
+print(f"\nmatched 0.7 rad extension: {sum(cap_checks)} of {len(cap_checks)} consistency checks pass.")

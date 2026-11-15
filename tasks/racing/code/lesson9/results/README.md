@@ -21,7 +21,26 @@ midpoints at +0.05 where any member's completion changed by 0.2 or more, all ele
 the five MPC members, the primary seeds `fa0`–`fa2` and the 0.7 rad seeds `s0`–`s2`. One folder per
 track and channel holds `laps.csv` and its completion charts. `determinism.json` and
 `determinism_check_*.csv` are the repeated cell that decided which members fly one lap per cell on the
-deterministic channels.
+deterministic channels. The `chart_sensitivity_*` charts put the 0.7 rad seeds against the **uncapped**
+MPC members (each family at its own bound); the both-capped comparison is in `study_sweep_cap07/`.
+Every cell of this sweep logged into one shared file, `logs/laps.log`.
+
+## `eval/study_sweep_cap07/` — the matched 0.7 rad extension (status: study, pre-registered 2026-11-15)
+
+The five MPC members with roll/pitch capped at 0.7 rad (`M1@0.7`, `M1+ESO@0.7`, `M1+L1@0.7`,
+`M1+mass@0.7`, `mppi_l1@0.7`) on the same ten tracks and six channels, under the same rules
+(`study_sweep.py --mpc-set cap07`; hypotheses in Lesson 9 §10). **Each member's laps live in exactly one
+folder:** this folder holds only the five capped members, and the 0.7 rad seeds `s0`–`s2` they are compared
+with stay in `study_sweep/`, never re-flown or copied. An analysis reading both folders must find every
+(track, channel, λ, seed, member) once.
+
+The capped members fly every λ the original cell has (coarse grid plus its midpoints), so they have data
+wherever the seeds do: at least 4 × 13,401 laps for the deterministic MPC members plus 14,493 for
+`mppi_l1@0.7` if the determinism check finds it stochastic, as it found `mppi_l1`. That makes 68,097 laps
+before any new midpoint. New midpoints come only from jumps of 0.2 or more in a capped member's completion,
+and only the capped members fly them, so at those λ the seeds have no laps; the charts join the seeds' points
+across them. Each cell holds `laps.csv` and `chart_matched07_*` charts, which read the capped members from
+here and the seeds from `study_sweep/`. Logs are in `logs/study_sweep_cap07/`, one per cell.
 
 ## `eval/` — validation pool
 

@@ -415,7 +415,25 @@ the original sweep (which defines the H3 cells and the unscored cells) and the v
 runs (which inform the secondary expectation). The capped laps on the study tracks were not.
 Anything decided after the first capped lap goes in the "chosen after" column.
 
-The commands for this extension are added here once `study_sweep.py` supports it.
+**Running it.** The same four phases with `--mpc-set cap07`, one track and one channel at a time. Only
+the three 0.7 rad labels are needed, for the charts: their specs are not flown, and `--member` is ignored,
+so the `$M` string of §7 also works.
+
+```bash
+S='--sensitivity-member s0=robust:x --sensitivity-member s1=robust:x --sensitivity-member s2=robust:x'
+
+docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --mpc-set cap07 --phase determinism $S"
+docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
+  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --mpc-set cap07 --phase coarse $S \
+  --track 1089 --condition lighthouse --workers 8"
+# then midpoints and charts for the same track and channel; repeat for every track and channel
+```
+
+The capped members fly every λ the original cell already has, and new midpoints come only from their own
+jumps. Laps go to `results/eval/study_sweep_cap07/` and logs to `results/logs/study_sweep_cap07/`. Nothing
+under `results/eval/study_sweep/` is written. At about 14 s per MPC lap, expect roughly 230 core-hours,
+a little over a day on 8 workers.
 
 ---
 
