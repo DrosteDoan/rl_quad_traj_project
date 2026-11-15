@@ -337,6 +337,86 @@ filter limits every geometry claim to the population it kept; ceilings move with
 and anything you decided after seeing the sweep is consistency with your account, not confirmation of
 it. The only test that confirms is one whose rule was written before its data.
 
+## 10. Extension: the matched 0.7 rad corner (pre-registered 2026-11-15)
+
+The reference sweep flew the 0.7 rad recipe (`s0`–`s2`) as its sensitivity line, but against the
+**uncapped** MPC family: each side at its own bound (§4). The matched corner, both at 0.7 rad, was flown
+only on the validation pool (`val_lambda_cap07`, `val_heldout_cap07_*`). This extension flies it on the
+study tracks. It was written down and dated **before any lap of it was flown**, and it changes nothing
+about the original sweep or its results.
+
+**Question.** With roll and pitch bounded at 0.7 rad, the MPC family has a smaller margin to correct a
+disturbance. Does it then fail at lower λ, and do crossovers against the 0.7 rad learned recipe appear
+where the uncapped family used to dominate?
+
+**Roster.** Five capped twins of the original MPC members, against the three 0.7 rad seeds:
+
+| member | spec | how the bound is applied |
+|---|---|---|
+| `M1@0.7` | `mpcdev:…,rp_max=0.7` | hard bound in the optimal-control problem |
+| `M1+ESO@0.7` | `…,dist=eso,rp_max=0.7` | same |
+| `M1+L1@0.7` | `…,dist=l1,rp_max=0.7` | same |
+| `M1+mass@0.7` | `…,mass=1,rp_max=0.7` | same |
+| `mppi_l1@0.7` | `mppi_l1,rp_max=0.7` | the **sampled** roll/pitch inputs are clipped at 0.7 (`CappedMPPIL1Controller` in `driver.py`), so every rollout the planner scores is one the capped drone can fly |
+| `s0`, `s1`, `s2` | `robust:<zip>` | trained at 0.7 rad; **not re-flown**: their stored laps are used |
+
+Before anything was flown, the capped class at a bound of 1.0 rad was checked against the original
+`mppi_l1`. It matched bit for bit in unit tests, and on every non-timing column of 42 closed-loop laps
+(3 tracks × wind_const, wind_gust and lighthouse, with completions, contacts and missed gates among them).
+Those laps also matched the stored sweep rows exactly, so the driver still reproduces the original sweep.
+
+**Rules: the original ones, unchanged.**
+- Tracks: the same 10 untouched study tracks.
+- Viability: a member counts on a track if it completes at least half of its λ = 0 laps. Each family is
+  scored by its best viable member. Viability results are reported whatever they are, including for
+  `mppi_l1@0.7`.
+- Crossover: δ = 0.2, window λ ≤ 0.8, λ\* on the coarse grid only; room and retention as in §1.
+- Grid and seeds: a `determinism` phase for the five new members first. Then the coarse grid
+  λ ∈ {0, 0.1, …, 1} plus every midpoint the original cell already has, with 25 seeds on the stochastic
+  channels and 1 seed on the deterministic ones (3 for members the determinism phase finds stochastic).
+  New midpoints are triggered only by the capped members' own jumps of 0.2 or more, and only they fly
+  them.
+- Data: **each member's laps live in exactly one folder.** `results/eval/study_sweep/` holds the original
+  11 members and is not touched. `results/eval/study_sweep_cap07/` holds only the five `@0.7` members.
+  The analysis reads both and refuses to run if any (track, channel, λ, seed, member) appears twice.
+
+**Hypotheses and what would make each wrong.** Define λ_room as the first coarse λ ≤ 0.8 at which a
+family's best viable member completes less than 80% of its laps (none if it never does).
+
+- **H1, earlier failure.** On every track and channel where both the capped and the uncapped family are
+  viable, the capped λ_room is at or below the uncapped one. *Wrong if* the capped family fails later on
+  more than 1 in 10 of those pairs. Every later pair is listed either way.
+- **H2, a crossover wherever one is possible.** For `s0`–`s2` against the capped family, every track
+  that allows a crossover (room and retention, §1) crosses. *Wrong if* any channel has an allowing track
+  without a crossover. The count per channel is reported either way.
+- **H3, crossovers where the uncapped family dominated.** 33 track–channel cells were fixed from the
+  original sweep before this extension: both families viable, the best uncapped MPC member at or above
+  80% at every λ ≤ 0.8 (no room), and the best 0.7 rad seed at or above 50% at some λ in [0.1, 0.8].
+
+  | channel | cells |
+  |---|---|
+  | wind_const | 747, 757, 837, 965, 989, 1089, 1145, 1250, 1318 |
+  | payload | the same nine |
+  | mass_mult | the same nine |
+  | wind_gust | 757, 965, 989, 1089, 1318 |
+  | lighthouse | 965 |
+
+  Prediction: capping opens a window in these cells and a crossover follows. *Wrong if* fewer than half
+  of the 14 wind_const and wind_gust cells (7) cross. Secondary expectation, from `val_lambda_cap07`,
+  where capped M1+L1 held 95% under payload up to λ = 0.75: payload and mass_mult cross rarely, in at
+  most 4 of their 18 cells. A cell drops out if the capped family is not viable there, and is reported.
+- **Not scored.** Four cells where the uncapped family already left room and the learned seeds did not
+  hold (wind_gust 837 and 1250, combined 837 and 1318). Capping the MPC cannot give the learned seeds
+  retention, so these cells are reported without a prediction. Track 834 enters no comparison: no
+  0.7 rad seed is viable on it.
+
+**Fixed before, chosen after.** All of the above is fixed before. Its inputs were *seen* before:
+the original sweep (which defines the H3 cells and the unscored cells) and the validation-pool capped
+runs (which inform the secondary expectation). The capped laps on the study tracks were not.
+Anything decided after the first capped lap goes in the "chosen after" column.
+
+The commands for this extension are added here once `study_sweep.py` supports it.
+
 ---
 
 ## 🛠️ Before you move on

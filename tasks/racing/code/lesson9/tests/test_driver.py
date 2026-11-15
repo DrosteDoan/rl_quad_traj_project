@@ -20,6 +20,8 @@ import knobs as kb  # noqa: E402
 import track_lib as tl  # noqa: E402
 from race_eval import make_race_controller  # noqa: E402
 
+from crazy_track.controllers.mppi_l1 import MPPIL1Controller  # noqa: E402
+from crazy_track.controllers.utils import THRUST_MAX, THRUST_MIN  # noqa: E402
 from crazy_track.disturbances import ConstantWind, GustWind, Payload  # noqa: E402
 from crazy_track.envs.rollout import make_sim, rollout  # noqa: E402
 from crazy_track.eval.freestyle_eval import gate_crossing_metrics  # noqa: E402
@@ -236,6 +238,111 @@ def test_gate_shift_scores_against_the_displaced_gates_and_leaves_the_plan_alone
     off = [g["offset"] for g in b["_path"]["gates"]]
     exp = [g["offset"] for g in gate_crossing_metrics(b["_path"]["pos"], b["_path"]["t"], dr._TrueGates(traj, true))]
     assert off == exp, "the row's gate metrics are the ones against the displaced gates"
+
+
+# ---- the roll/pitch-capped mppi twin (dr.CappedMPPIL1Controller, spec `mppi_l1,rp_max=<rad>`) ----------------------
+# Unit level: `act()` is fed hand-made level states along a real study-track reference, no simulator.
+_CAP_TRACK, _CAP_STEPS = 747, 60          # any accepted study track (only its reference is used); 0.6 s at 100 Hz
+
+
+def _cap_traj():
+    return dr.build_traj(dr.load_track("study", _CAP_TRACK))
+
+
+def _cap_kwargs(seed=0):
+    return dict(horizon=dr.MPPI_HORIZON, dt_plan=dr.MPPI_DTP, control_freq=dr.FREQ, seed=seed)
+
+
+def _cap_states(traj, offset=np.zeros(3), n=_CAP_STEPS):
+    out = []
+    for i in range(n):
+        t = 0.3 + i / dr.FREQ
+        pos = np.asarray(traj.pos(np.array([t])))[0] + offset
+        vel = np.asarray(traj.vel(np.array([t])))[0]
+        out.append((np.concatenate([pos, vel, [0.0, 0.0, 0.0, 1.0], np.zeros(3)]), t))
+    return out
+
+
+def _cap_run(ctrl, traj, states):
+    ctrl.reset(traj)
+    return np.array([ctrl.act(s, t) for s, t in states])
+
+
+def test_capped_mppi_at_1_is_bit_identical_to_vendored():
+    traj = _cap_traj()
+    for offset in (np.zeros(3), np.array([0.6, -0.6, 0.2])):    # tracking, and a large error that saturates
+        states = _cap_states(traj, offset)
+        a_ref = _cap_run(MPPIL1Controller(**_cap_kwargs()), traj, states)
+        a_cap = _cap_run(dr.CappedMPPIL1Controller(**_cap_kwargs(), rp_max=1.0), traj, states)
+        assert np.array_equal(a_ref, a_cap), f"offset {offset}: max |diff| {np.abs(a_ref - a_cap).max()}"
+
+
+def test_capped_mppi_at_1_matches_vendored_internal_state():
+    traj = _cap_traj()
+    states = _cap_states(traj, np.array([0.3, 0.2, 0.0]))
+    ref, cap = MPPIL1Controller(**_cap_kwargs(3)), dr.CappedMPPIL1Controller(**_cap_kwargs(3), rp_max=1.0)
+    _cap_run(ref, traj, states), _cap_run(cap, traj, states)
+    for attr in ("u_mean", "v_hat", "sigma_hat", "sigma_f"):
+        assert np.array_equal(getattr(ref, attr), getattr(cap, attr)), attr
+    assert np.array_equal(ref.rng.normal(size=8), cap.rng.normal(size=8)), "rng streams diverged"
+
+
+def test_capped_mppi_cap_binds_and_is_respected():
+    """At a large tracking error the vendored controller commands more than 0.7 rad (so the test is not vacuous),
+    and the capped one never does -- neither in its actions nor anywhere in its planned mean sequence."""
+    traj = _cap_traj()
+    states = _cap_states(traj, np.array([1.0, -1.0, 0.0]))
+    a_ref = _cap_run(MPPIL1Controller(**_cap_kwargs()), traj, states)
+    assert np.abs(a_ref[:, :2]).max() > 0.7, "scenario too gentle: vendored never exceeds 0.7, cap untested"
+    cap = dr.CappedMPPIL1Controller(**_cap_kwargs(), rp_max=0.7)
+    cap.reset(traj)
+    for s, t in states:
+        a = cap.act(s, t)
+        assert np.abs(a[:2]).max() <= 0.7 + 1e-12, a
+        assert np.abs(cap.u_mean[:, :2]).max() <= 0.7 + 1e-12
+    assert cap._u_lo[2:].tolist() == [-0.5, THRUST_MIN] and cap._u_hi[2:].tolist() == [0.5, THRUST_MAX]
+
+
+def test_capped_mppi_reset_and_reseed_reproduce_a_lap():
+    """What Flyer does between laps (reseed ctrl.rng, ctrl.reset(traj)) makes a lap independent of the one before."""
+    traj = _cap_traj()
+    cap = dr.CappedMPPIL1Controller(**_cap_kwargs(), rp_max=0.7)
+    states = _cap_states(traj, np.array([0.4, 0.0, 0.1]))
+    cap.rng = np.random.default_rng(5)
+    first = _cap_run(cap, traj, states)
+    _cap_run(cap, traj, _cap_states(traj, np.array([-0.5, 0.5, 0.0])))      # an unrelated lap in between
+    cap.rng = np.random.default_rng(5)
+    assert np.array_equal(first, _cap_run(cap, traj, states))
+
+
+def test_capped_mppi_rejects_bad_rp_max():
+    for bad in (0.0, -0.1, 1.2):
+        try:
+            dr.CappedMPPIL1Controller(**_cap_kwargs(), rp_max=bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"rp_max={bad} accepted")
+
+
+def test_capped_mppi_spec_routing():
+    ctrl, mode, freq = dr.make_race_controller("mppi_l1,rp_max=0.7", seed=0)
+    assert isinstance(ctrl, dr.CappedMPPIL1Controller) and (mode, freq) == ("attitude", dr.FREQ)
+    assert (ctrl.H, ctrl.dtp, ctrl.rp_max) == (dr.MPPI_HORIZON, dr.MPPI_DTP, 0.7)
+    plain, _, _ = dr.make_race_controller("mppi_l1", seed=0)
+    assert type(plain) is MPPIL1Controller                      # the original member is untouched
+    for bad in ("mppi_l1,rp_max=0.7,foo=1", "mppi_l1,horizon=20"):
+        try:
+            dr.make_race_controller(bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"{bad!r} accepted")
+
+
+def test_capped_member_tables():
+    assert dr.RP_MAX_MEMBERS["mppi_l1@0.7"] == "mppi_l1,rp_max=0.7"
+    assert set(dr.RP_MAX_MEMBERS) == {f"{k}@0.7" for k in dr.DEFAULT_MEMBERS}   # all five twinned
+    assert list(dr.DEFAULT_MEMBERS) == ["M1", "M1+ESO", "M1+L1", "M1+mass", "mppi_l1"]   # defaults unchanged
+    assert not any("@" in k for k in dr.DEFAULT_MEMBERS)
 
 
 if __name__ == "__main__":

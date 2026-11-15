@@ -45,6 +45,8 @@ import track_lib as tl  # noqa: E402
 from race_eval import make_race_controller as _vendored_make_controller  # noqa: E402
 from race_refs import RACE_START, GroundStartTrajectory  # noqa: E402
 
+from crazy_track.controllers.mppi_l1 import MPPIL1Controller  # noqa: E402
+from crazy_track.controllers.utils import THRUST_MAX, THRUST_MIN  # noqa: E402
 from crazy_track.envs.rollout import apply_force, get_state, make_sim, set_drone_state  # noqa: E402
 from crazy_track.eval.freestyle_eval import gate_crossing_metrics  # noqa: E402
 from crazy_track.trajectories.freestyle import RaceGate  # noqa: E402
@@ -65,14 +67,89 @@ DEFAULT_MEMBERS = {"M1": M1, "M1+ESO": M1 + ",dist=eso", "M1+L1": M1 + ",dist=l1
 # Roll/pitch-authority equalisation (user, 2026-09-26): the RL policies cap roll/pitch at 0.7 x RPY_MAX (vendored
 # convention, robust_policy.py) while M1 optimises under rp_max = 1.0. These are ADDITIVE, opt-in twins of the MPC
 # members (`--only M1@0.7,M1+L1@0.7`; kept out of DEFAULT_MEMBERS so default runs are unchanged), with the rp_max cap in the label so no result can be mistaken for the
-# uncapped member; the original labels and every result already flown are unchanged. mppi_l1 has no spec-string
-# rp_max and is not twinned.
+# uncapped member; the original labels and every result already flown are unchanged. mppi_l1 is twinned too since
+# 2026-11-15 (matched-authority extension): its vendored class has no rp_max argument, so `mppi_l1,rp_max=X` is
+# routed to CappedMPPIL1Controller below (roll/pitch bound applied to the sampled inputs; see its docstring).
 RP_MAX_EQ = 0.7
-RP_MAX_MEMBERS = {f"{k}@{RP_MAX_EQ}": f"{v},rp_max={RP_MAX_EQ}" for k, v in DEFAULT_MEMBERS.items() if v.startswith("mpcdev:")}
+RP_MAX_MEMBERS = {f"{k}@{RP_MAX_EQ}": f"{v},rp_max={RP_MAX_EQ}" for k, v in DEFAULT_MEMBERS.items()
+                  if v.startswith("mpcdev:") or v == "mppi_l1"}
+
+
+class CappedMPPIL1Controller(MPPIL1Controller):
+    """`mppi_l1` with a configurable roll/pitch bound: the MPPI twin of `mpcdev:...,rp_max=0.7` (matched-authority
+    extension of the study sweep, 2026-11-15; spec `mppi_l1,rp_max=<rad>`).
+
+    The vendored `MPPIL1Controller.act()` hard-codes its input box as lo = [-1.0, -1.0, -0.5, THRUST_MIN],
+    hi = [1.0, 1.0, 0.5, THRUST_MAX] (roll, pitch, yaw, thrust) with no argument to change it, so `act()` is
+    overridden here: the vendored body line for line, with ONE change, marked CHANGED -- the roll/pitch entries of
+    the box come from `self.rp_max` instead of the literal 1.0. Yaw and thrust are untouched. The vendored file is
+    not edited.
+
+    The bound is applied to the SAMPLED input sequences before they are rolled out, which is how MPPI enforces
+    input limits: every rollout the planner scores is one the capped drone can fly, the counterpart of `rp_max` as
+    a hard bound in M1's optimal-control problem. The committed action is a weighted average of clipped samples,
+    so it lies inside the bound without further clipping. Clipping only the OUTPUT would plan with 1.0 rad and then
+    be handed 0.7 -- a model mismatch that handicaps the controller, not an authority limit -- so it is not done.
+
+    At rp_max = 1.0 this class reproduces the vendored controller bit for bit; tests/test_driver.py checks that, so
+    a change to the vendored `act()` fails a test instead of this copy drifting silently."""
+
+    YAW_MAX = 0.5   # rad: the vendored box's yaw entry, kept as is
+
+    def __init__(self, *args, rp_max: float = 1.0, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not 0.0 < rp_max <= 1.0:
+            raise ValueError(f"rp_max must be in (0, 1.0] rad (1.0 = the vendored bound), got {rp_max}")
+        self.rp_max = float(rp_max)
+        self._u_lo = np.array([-self.rp_max, -self.rp_max, -self.YAW_MAX, THRUST_MIN])
+        self._u_hi = np.array([self.rp_max, self.rp_max, self.YAW_MAX, THRUST_MAX])
+
+    def act(self, state: np.ndarray, t: float) -> np.ndarray:
+        # ---- vendored MPPIL1Controller.act(), verbatim except the clip bounds (marked) ----
+        from scipy.spatial.transform import Rotation as R
+
+        pos, vel, quat, omega = state[:3], state[3:6], state[6:10], state[10:13]
+        rpy = R.from_quat(quat).as_euler("xyz")
+        # body rates -> rpy rates (E^-1(rpy) @ omega)
+        cr, sr = np.cos(rpy[0]), np.sin(rpy[0])
+        cp, tp = np.cos(rpy[1]), np.tan(rpy[1])
+        E_inv = np.array([[1, sr * tp, cr * tp], [0, cr, -sr], [0, sr / cp, cr / cp]])
+        drpy = E_inv @ omega
+
+        x0 = np.concatenate([pos, rpy, vel, drpy])
+        ref = self._traj.pos(t + self.dtp * np.arange(1, self.H + 1))
+        ref_v = self._traj.vel(t + self.dtp * np.arange(1, self.H + 1))
+
+        eps = self.rng.normal(size=(self.N, self.H, 4)) * self.sigma
+        if self.beta > 0:  # temporally correlated (smooth) exploration noise
+            for k in range(1, self.H):
+                eps[:, k] = self.beta * eps[:, k - 1] + np.sqrt(1 - self.beta**2) * eps[:, k]
+        u = np.clip(self.u_mean[None] + eps, self._u_lo, self._u_hi)   # CHANGED: roll/pitch bound = self.rp_max
+        x = np.tile(x0, (self.N, 1))
+        cost = np.zeros(self.N)
+        for k in range(self.H):
+            x = self._model_step(x, u[:, k], self.sigma_f)
+            cost += 100.0 * np.sum((x[:, 0:3] - ref[k]) ** 2, axis=1)
+            cost += 1.0 * np.sum((x[:, 6:9] - ref_v[k]) ** 2, axis=1)
+            cost += 0.1 * np.sum(u[:, k, 0:3] ** 2, axis=1)
+        cost += self.lam * np.sum(eps * (self.u_mean[None] / self.sigma**2), axis=(1, 2))
+
+        w = np.exp(-(cost - cost.min()) / self.lam)
+        w /= w.sum()
+        self.u_mean = np.einsum("n,nhk->hk", w, u)
+        action = self.u_mean[0].copy()
+
+        # receding horizon: shift mean for warm start
+        self.u_mean = np.roll(self.u_mean, -1, axis=0)
+        self.u_mean[-1] = np.array([0.0, 0.0, 0.0, self.hover_thrust])
+
+        self._l1_update(vel, quat, action[3])
+        return action
 
 
 def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
-    """The vendored spec table, with `mppi_l1` reconfigured to an 0.8 s preview horizon (see MPPI_HORIZON above),
+    """The vendored spec table, with `mppi_l1` reconfigured to an 0.8 s preview horizon (see MPPI_HORIZON above)
+    and its roll/pitch-capped twin `mppi_l1,rp_max=<rad>` (CappedMPPIL1Controller above),
     a `robust:<path>` spec for a RobustTrackingEnv-trained policy (0.8 s window, freq=100 -- NOT the same as
     `datt:<path>`, which loads through the vendored DATTPolicyController and its 0.6 s window; using `datt:`
     on a robust model would silently feed it the wrong reference window), and a `robust_full:<path>` spec for
@@ -83,6 +160,15 @@ def make_race_controller(spec: str, seed: int = 0, control_freq: int = FREQ):
         from crazy_track.controllers.mppi_l1 import MPPIL1Controller
 
         return (MPPIL1Controller(horizon=MPPI_HORIZON, dt_plan=MPPI_DTP, control_freq=control_freq, seed=seed),
+                "attitude", control_freq)
+    if spec.startswith("mppi_l1,"):
+        # `mppi_l1,rp_max=X`: the same 0.8 s configuration as `mppi_l1` above, with roll/pitch bounded at X rad
+        # (CappedMPPIL1Controller above). rp_max is the only option; anything else is rejected, not silently ignored.
+        opts = dict(kv.split("=", 1) for kv in spec.split(",")[1:])
+        if set(opts) != {"rp_max"}:
+            raise ValueError(f"{spec!r}: mppi_l1 takes only 'rp_max=<rad>', got options {sorted(opts)}")
+        return (CappedMPPIL1Controller(horizon=MPPI_HORIZON, dt_plan=MPPI_DTP, control_freq=control_freq,
+                                       seed=seed, rp_max=float(opts["rp_max"])),
                 "attitude", control_freq)
     if spec.startswith("robust_full:"):
         from full_authority_policy import FullAuthorityPolicyController
