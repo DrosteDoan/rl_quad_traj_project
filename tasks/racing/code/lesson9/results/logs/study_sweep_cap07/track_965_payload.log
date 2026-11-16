@@ -1,0 +1,152 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 965 payload lam 0.00 seed  0 M1@0.7   OK 5.062               rmse 0.045 wall 23s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.00 seed  0 M1+ESO@0.7 OK 5.063               rmse 0.047 wall 21s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.00 seed  0 M1+L1@0.7 OK 5.062               rmse 0.055 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.00 seed  0 M1+mass@0.7 OK 5.062               rmse 0.046 wall 19s
+track 965 payload lam 0.05 seed  0 M1@0.7   OK 5.06                rmse 0.048 wall 19s
+track 965 payload lam 0.05 seed  0 M1+ESO@0.7 OK 5.063               rmse 0.047 wall 21s
+track 965 payload lam 0.05 seed  0 M1+L1@0.7 OK 5.061               rmse 0.055 wall 25s
+track 965 payload lam 0.05 seed  0 M1+mass@0.7 OK 5.059               rmse 0.049 wall 23s
+track 965 payload lam 0.10 seed  0 M1@0.7   OK 5.058               rmse 0.052 wall 22s
+track 965 payload lam 0.10 seed  0 M1+ESO@0.7 OK 5.062               rmse 0.047 wall 23s
+track 965 payload lam 0.10 seed  0 M1+L1@0.7 OK 5.06                rmse 0.055 wall 22s
+track 965 payload lam 0.10 seed  0 M1+mass@0.7 OK 5.057               rmse 0.052 wall 22s
+track 965 payload lam 0.15 seed  0 M1@0.7   OK 5.057               rmse 0.057 wall 23s
+track 965 payload lam 0.15 seed  0 M1+ESO@0.7 OK 5.061               rmse 0.047 wall 22s
+track 965 payload lam 0.15 seed  0 M1+L1@0.7 OK 5.06                rmse 0.055 wall 22s
+track 965 payload lam 0.15 seed  0 M1+mass@0.7 OK 5.055               rmse 0.056 wall 23s
+track 965 payload lam 0.20 seed  0 M1@0.7   OK 5.056               rmse 0.062 wall 22s
+track 965 payload lam 0.20 seed  0 M1+ESO@0.7 OK 5.061               rmse 0.047 wall 21s
+track 965 payload lam 0.20 seed  0 M1+L1@0.7 OK 5.06                rmse 0.056 wall 21s
+track 965 payload lam 0.20 seed  0 M1+mass@0.7 OK 5.053               rmse 0.060 wall 22s
+track 965 payload lam 0.30 seed  0 M1@0.7   OK 5.054               rmse 0.073 wall 22s
+track 965 payload lam 0.30 seed  0 M1+ESO@0.7 OK 5.06                rmse 0.048 wall 22s
+track 965 payload lam 0.30 seed  0 M1+L1@0.7 OK 5.059               rmse 0.056 wall 21s
+track 965 payload lam 0.30 seed  0 M1+mass@0.7 OK 5.05                rmse 0.068 wall 22s
+track 965 payload lam 0.35 seed  0 M1@0.7   OK 5.054               rmse 0.078 wall 22s
+track 965 payload lam 0.35 seed  0 M1+ESO@0.7 OK 5.06                rmse 0.048 wall 22s
+track 965 payload lam 0.35 seed  0 M1+L1@0.7 OK 5.059               rmse 0.056 wall 21s
+track 965 payload lam 0.35 seed  0 M1+mass@0.7 OK 5.049               rmse 0.072 wall 21s
+track 965 payload lam 0.40 seed  0 M1@0.7   OK 5.053               rmse 0.084 wall 20s
+track 965 payload lam 0.40 seed  0 M1+ESO@0.7 OK 5.06                rmse 0.048 wall 22s
+track 965 payload lam 0.40 seed  0 M1+L1@0.7 OK 5.059               rmse 0.057 wall 22s
+track 965 payload lam 0.40 seed  0 M1+mass@0.7 OK 5.048               rmse 0.075 wall 22s
+track 965 payload lam 0.50 seed  0 M1@0.7   OK 5.052               rmse 0.095 wall 22s
+track 965 payload lam 0.50 seed  0 M1+ESO@0.7 OK 5.06                rmse 0.049 wall 22s
+track 965 payload lam 0.50 seed  0 M1+L1@0.7 OK 5.058               rmse 0.058 wall 23s
+track 965 payload lam 0.50 seed  0 M1+mass@0.7 OK 5.046               rmse 0.083 wall 22s
+track 965 payload lam 0.60 seed  0 M1@0.7   OK 5.051               rmse 0.106 wall 22s
+track 965 payload lam 0.60 seed  0 M1+ESO@0.7 OK 5.059               rmse 0.050 wall 21s
+track 965 payload lam 0.60 seed  0 M1+L1@0.7 OK 5.058               rmse 0.059 wall 20s
+track 965 payload lam 0.60 seed  0 M1+mass@0.7 OK 5.044               rmse 0.090 wall 20s
+track 965 payload lam 0.65 seed  0 M1@0.7   OK 5.05                rmse 0.111 wall 19s
+track 965 payload lam 0.65 seed  0 M1+ESO@0.7 OK 5.059               rmse 0.051 wall 19s
+track 965 payload lam 0.65 seed  0 M1+L1@0.7 OK 5.057               rmse 0.060 wall 19s
+track 965 payload lam 0.65 seed  0 M1+mass@0.7 OK 5.043               rmse 0.094 wall 20s
+track 965 payload lam 0.70 seed  0 M1@0.7   OK 5.049               rmse 0.117 wall 19s
+track 965 payload lam 0.70 seed  0 M1+ESO@0.7 OK 5.058               rmse 0.052 wall 19s
+track 965 payload lam 0.70 seed  0 M1+L1@0.7 OK 5.057               rmse 0.062 wall 19s
+track 965 payload lam 0.70 seed  0 M1+mass@0.7 OK 5.043               rmse 0.098 wall 20s
+track 965 payload lam 0.80 seed  0 M1@0.7   OK 5.048               rmse 0.130 wall 20s
+track 965 payload lam 0.80 seed  0 M1+ESO@0.7 OK 5.057               rmse 0.058 wall 19s
+track 965 payload lam 0.80 seed  0 M1+L1@0.7 OK 5.055               rmse 0.068 wall 19s
+track 965 payload lam 0.80 seed  0 M1+mass@0.7 OK 5.042               rmse 0.108 wall 19s
+track 965 payload lam 0.90 seed  0 M1@0.7   OK 5.048               rmse 0.143 wall 19s
+track 965 payload lam 0.90 seed  0 M1+ESO@0.7 OK 5.056               rmse 0.066 wall 18s
+track 965 payload lam 0.90 seed  0 M1+L1@0.7 OK 5.053               rmse 0.079 wall 17s
+track 965 payload lam 0.90 seed  0 M1+mass@0.7 OK 5.041               rmse 0.118 wall 18s
+track 965 payload lam 1.00 seed  0 M1@0.7   OK 5.054               rmse 0.167 wall 17s
+track 965 payload lam 1.00 seed  0 M1+ESO@0.7 OK 5.049               rmse 0.081 wall 18s
+track 965 payload lam 1.00 seed  0 M1+L1@0.7 OK 5.052               rmse 0.097 wall 18s
+track 965 payload lam 1.00 seed  0 M1+mass@0.7 OK 5.042               rmse 0.132 wall 20s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_965/payload/laps.csv
+track 965 payload lam 0.00 seed  0 mppi_l1@0.7 OK 5.055               rmse 0.098 wall 10s
+track 965 payload lam 0.00 seed  1 mppi_l1@0.7 OK 5.062               rmse 0.100 wall 9s
+track 965 payload lam 0.00 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.204 wall 9s
+track 965 payload lam 0.05 seed  0 mppi_l1@0.7 OK 5.077               rmse 0.069 wall 10s
+track 965 payload lam 0.05 seed  1 mppi_l1@0.7 OK 5.056               rmse 0.083 wall 9s
+track 965 payload lam 0.05 seed  2 mppi_l1@0.7 OK 5.061               rmse 0.083 wall 9s
+track 965 payload lam 0.10 seed  0 mppi_l1@0.7 OK 5.059               rmse 0.072 wall 9s
+track 965 payload lam 0.10 seed  1 mppi_l1@0.7 OK 5.053               rmse 0.073 wall 9s
+track 965 payload lam 0.10 seed  2 mppi_l1@0.7 OK 5.055               rmse 0.103 wall 9s
+track 965 payload lam 0.15 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.086 wall 7s
+track 965 payload lam 0.15 seed  1 mppi_l1@0.7 OK 5.07                rmse 0.074 wall 9s
+track 965 payload lam 0.15 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.155 wall 7s
+track 965 payload lam 0.20 seed  0 mppi_l1@0.7 OK 5.046               rmse 0.079 wall 9s
+track 965 payload lam 0.20 seed  1 mppi_l1@0.7 OK 5.056               rmse 0.082 wall 8s
+track 965 payload lam 0.20 seed  2 mppi_l1@0.7 OK 5.041               rmse 0.073 wall 8s
+track 965 payload lam 0.30 seed  0 mppi_l1@0.7 OK 5.04                rmse 0.082 wall 8s
+track 965 payload lam 0.30 seed  1 mppi_l1@0.7 OK 5.043               rmse 0.078 wall 8s
+track 965 payload lam 0.30 seed  2 mppi_l1@0.7 OK 5.045               rmse 0.068 wall 8s
+track 965 payload lam 0.35 seed  0 mppi_l1@0.7 OK 5.053               rmse 0.066 wall 8s
+track 965 payload lam 0.35 seed  1 mppi_l1@0.7 OK 5.047               rmse 0.061 wall 8s
+track 965 payload lam 0.35 seed  2 mppi_l1@0.7 OK 5.033               rmse 0.072 wall 8s
+track 965 payload lam 0.40 seed  0 mppi_l1@0.7 OK 5.044               rmse 0.062 wall 8s
+track 965 payload lam 0.40 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.069 wall 6s
+track 965 payload lam 0.40 seed  2 mppi_l1@0.7 OK 5.042               rmse 0.051 wall 8s
+track 965 payload lam 0.50 seed  0 mppi_l1@0.7 OK 5.051               rmse 0.062 wall 8s
+track 965 payload lam 0.50 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.197 wall 6s
+track 965 payload lam 0.50 seed  2 mppi_l1@0.7 OK 5.035               rmse 0.066 wall 7s
+track 965 payload lam 0.60 seed  0 mppi_l1@0.7 OK 5.029               rmse 0.076 wall 7s
+track 965 payload lam 0.60 seed  1 mppi_l1@0.7 OK 5.038               rmse 0.065 wall 7s
+track 965 payload lam 0.60 seed  2 mppi_l1@0.7 OK 5.046               rmse 0.063 wall 7s
+track 965 payload lam 0.65 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.122 wall 5s
+track 965 payload lam 0.65 seed  1 mppi_l1@0.7 OK 5.031               rmse 0.070 wall 7s
+track 965 payload lam 0.65 seed  2 mppi_l1@0.7 OK 5.045               rmse 0.067 wall 7s
+track 965 payload lam 0.70 seed  0 mppi_l1@0.7 OK 5.039               rmse 0.097 wall 7s
+track 965 payload lam 0.70 seed  1 mppi_l1@0.7 OK 5.035               rmse 0.084 wall 7s
+track 965 payload lam 0.70 seed  2 mppi_l1@0.7 OK 5.046               rmse 0.065 wall 7s
+track 965 payload lam 0.80 seed  0 mppi_l1@0.7 OK 5.041               rmse 0.105 wall 7s
+track 965 payload lam 0.80 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.116 wall 7s
+track 965 payload lam 0.80 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.133 wall 8s
+track 965 payload lam 0.90 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.243 wall 2s
+track 965 payload lam 0.90 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.129 wall 6s
+track 965 payload lam 0.90 seed  2 mppi_l1@0.7 FAIL missed_gate_4     rmse 0.222 wall 8s
+track 965 payload lam 1.00 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.288 wall 2s
+track 965 payload lam 1.00 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.258 wall 2s
+track 965 payload lam 1.00 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.238 wall 2s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_965/payload/laps.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 965 payload lam 0.55 seed  0 M1@0.7   OK 5.051               rmse 0.100 wall 20s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.55 seed  0 M1+ESO@0.7 OK 5.059               rmse 0.050 wall 18s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.55 seed  0 M1+L1@0.7 OK 5.058               rmse 0.058 wall 18s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 965 payload lam 0.55 seed  0 M1+mass@0.7 OK 5.045               rmse 0.087 wall 18s
+track 965 payload lam 0.75 seed  0 M1@0.7   OK 5.049               rmse 0.123 wall 19s
+track 965 payload lam 0.75 seed  0 M1+ESO@0.7 OK 5.058               rmse 0.055 wall 18s
+track 965 payload lam 0.75 seed  0 M1+L1@0.7 OK 5.056               rmse 0.065 wall 18s
+track 965 payload lam 0.75 seed  0 M1+mass@0.7 OK 5.042               rmse 0.103 wall 19s
+track 965 payload lam 0.85 seed  0 M1@0.7   OK 5.048               rmse 0.137 wall 19s
+track 965 payload lam 0.85 seed  0 M1+ESO@0.7 OK 5.056               rmse 0.062 wall 18s
+track 965 payload lam 0.85 seed  0 M1+L1@0.7 OK 5.055               rmse 0.072 wall 18s
+track 965 payload lam 0.85 seed  0 M1+mass@0.7 OK 5.041               rmse 0.113 wall 19s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_965/payload/laps.csv
+track 965 payload lam 0.55 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.051 wall 11s
+track 965 payload lam 0.55 seed  1 mppi_l1@0.7 OK 5.04                rmse 0.070 wall 9s
+track 965 payload lam 0.55 seed  2 mppi_l1@0.7 OK 5.037               rmse 0.067 wall 9s
+track 965 payload lam 0.75 seed  0 mppi_l1@0.7 OK 5.036               rmse 0.084 wall 9s
+track 965 payload lam 0.75 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.111 wall 7s
+track 965 payload lam 0.75 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.129 wall 9s
+track 965 payload lam 0.85 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.205 wall 2s
+track 965 payload lam 0.85 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.151 wall 10s
+track 965 payload lam 0.85 seed  2 mppi_l1@0.7 FAIL missed_gate_3     rmse 0.401 wall 9s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_965/payload/laps.csv

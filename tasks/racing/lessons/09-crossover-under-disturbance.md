@@ -415,25 +415,27 @@ the original sweep (which defines the H3 cells and the unscored cells) and the v
 runs (which inform the secondary expectation). The capped laps on the study tracks were not.
 Anything decided after the first capped lap goes in the "chosen after" column.
 
-**Running it.** The same four phases with `--mpc-set cap07`, one track and one channel at a time. Only
-the three 0.7 rad labels are needed, for the charts: their specs are not flown, and `--member` is ignored,
-so the `$M` string of §7 also works.
+**Running it.** The same four phases with `--mpc-set cap07`, each over **all cells at once**. Only the
+three 0.7 rad labels are needed, for the charts: their specs are not flown, and `--member` is ignored, so
+the `$M` string of §7 also works.
 
 ```bash
 S='--sensitivity-member s0=robust:x --sensitivity-member s1=robust:x --sensitivity-member s2=robust:x'
+RUN="cd /workspace && export JAX_PLATFORMS=cpu && /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --mpc-set cap07"
 
-docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --mpc-set cap07 --phase determinism $S"
-docker exec -it rl_quad_traj bash -lc "cd /workspace && export JAX_PLATFORMS=cpu && \
-  /opt/venvs/main/bin/python tasks/racing/code/lesson9/study_sweep.py --mpc-set cap07 --phase coarse $S \
-  --track 1089 --condition lighthouse --workers 8"
-# then midpoints and charts for the same track and channel; repeat for every track and channel
+docker exec -it rl_quad_traj bash -lc "$RUN --phase determinism $S"
+docker exec -it rl_quad_traj bash -lc "$RUN --phase coarse $S --workers 8"
+docker exec -it rl_quad_traj bash -lc "$RUN --phase midpoints $S --workers 8"
+docker exec -it rl_quad_traj bash -lc "$RUN --phase charts $S"
 ```
 
-The capped members fly every λ the original cell already has, and new midpoints come only from their own
-jumps. Laps go to `results/eval/study_sweep_cap07/` and logs to `results/logs/study_sweep_cap07/`. Nothing
-under `results/eval/study_sweep/` is written. At about 14 s per MPC lap, expect roughly 230 core-hours,
-a little over a day on 8 workers.
+Queue every cell in one call rather than one track and channel at a time: a stochastic cell is a single
+process that flies all five members through about 450 laps each, so a one-cell call keeps one worker busy
+for hours and leaves the rest idle. The capped members fly every λ the original cell already has, and new
+midpoints come only from their own jumps. Laps go to `results/eval/study_sweep_cap07/` and logs to
+`results/logs/study_sweep_cap07/`; nothing under `results/eval/study_sweep/` is written. Expect about a
+day and a half on 8 workers. Every phase resumes from the laps on disk, so after an interruption, run the
+same command again.
 
 ---
 

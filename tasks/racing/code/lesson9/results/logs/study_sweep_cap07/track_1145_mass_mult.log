@@ -1,0 +1,173 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 1145 mass_mult lam 0.00 seed  0 M1@0.7   OK 3.897               rmse 0.062 wall 17s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.00 seed  0 M1+ESO@0.7 OK 3.893               rmse 0.058 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.00 seed  0 M1+L1@0.7 OK 3.882               rmse 0.069 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.00 seed  0 M1+mass@0.7 OK 3.896               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.05 seed  0 M1@0.7   OK 3.897               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.05 seed  0 M1+ESO@0.7 OK 3.896               rmse 0.061 wall 16s
+track 1145 mass_mult lam 0.05 seed  0 M1+L1@0.7 OK 3.883               rmse 0.068 wall 16s
+track 1145 mass_mult lam 0.05 seed  0 M1+mass@0.7 OK 3.896               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.10 seed  0 M1@0.7   OK 3.898               rmse 0.063 wall 16s
+track 1145 mass_mult lam 0.10 seed  0 M1+ESO@0.7 OK 3.9                 rmse 0.065 wall 16s
+track 1145 mass_mult lam 0.10 seed  0 M1+L1@0.7 OK 3.883               rmse 0.067 wall 16s
+track 1145 mass_mult lam 0.10 seed  0 M1+mass@0.7 OK 3.896               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.15 seed  0 M1@0.7   OK 3.898               rmse 0.063 wall 16s
+track 1145 mass_mult lam 0.15 seed  0 M1+ESO@0.7 OK 3.903               rmse 0.070 wall 16s
+track 1145 mass_mult lam 0.15 seed  0 M1+L1@0.7 OK 3.888               rmse 0.067 wall 16s
+track 1145 mass_mult lam 0.15 seed  0 M1+mass@0.7 OK 3.896               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.20 seed  0 M1@0.7   OK 3.898               rmse 0.064 wall 16s
+track 1145 mass_mult lam 0.20 seed  0 M1+ESO@0.7 OK 3.905               rmse 0.071 wall 16s
+track 1145 mass_mult lam 0.20 seed  0 M1+L1@0.7 OK 3.889               rmse 0.066 wall 16s
+track 1145 mass_mult lam 0.20 seed  0 M1+mass@0.7 OK 3.897               rmse 0.062 wall 16s
+track 1145 mass_mult lam 0.25 seed  0 M1@0.7   OK 3.898               rmse 0.065 wall 15s
+track 1145 mass_mult lam 0.25 seed  0 M1+ESO@0.7 OK 3.907               rmse 0.076 wall 16s
+track 1145 mass_mult lam 0.25 seed  0 M1+L1@0.7 OK 3.891               rmse 0.064 wall 16s
+track 1145 mass_mult lam 0.25 seed  0 M1+mass@0.7 OK 3.897               rmse 0.063 wall 16s
+track 1145 mass_mult lam 0.30 seed  0 M1@0.7   OK 3.899               rmse 0.066 wall 15s
+track 1145 mass_mult lam 0.30 seed  0 M1+ESO@0.7 OK 3.909               rmse 0.076 wall 16s
+track 1145 mass_mult lam 0.30 seed  0 M1+L1@0.7 OK 3.894               rmse 0.060 wall 16s
+track 1145 mass_mult lam 0.30 seed  0 M1+mass@0.7 OK 3.897               rmse 0.063 wall 16s
+track 1145 mass_mult lam 0.35 seed  0 M1@0.7   OK 3.899               rmse 0.068 wall 16s
+track 1145 mass_mult lam 0.35 seed  0 M1+ESO@0.7 OK 3.91                rmse 0.085 wall 16s
+track 1145 mass_mult lam 0.35 seed  0 M1+L1@0.7 OK 3.894               rmse 0.065 wall 16s
+track 1145 mass_mult lam 0.35 seed  0 M1+mass@0.7 OK 3.898               rmse 0.064 wall 16s
+track 1145 mass_mult lam 0.40 seed  0 M1@0.7   OK 3.899               rmse 0.069 wall 15s
+track 1145 mass_mult lam 0.40 seed  0 M1+ESO@0.7 OK 3.912               rmse 0.088 wall 16s
+track 1145 mass_mult lam 0.40 seed  0 M1+L1@0.7 FAIL contact           rmse 0.113 wall 12s
+track 1145 mass_mult lam 0.40 seed  0 M1+mass@0.7 OK 3.898               rmse 0.064 wall 16s
+track 1145 mass_mult lam 0.45 seed  0 M1@0.7   OK 3.9                 rmse 0.071 wall 15s
+track 1145 mass_mult lam 0.45 seed  0 M1+ESO@0.7 OK 3.913               rmse 0.091 wall 16s
+track 1145 mass_mult lam 0.45 seed  0 M1+L1@0.7 FAIL contact           rmse 0.142 wall 12s
+track 1145 mass_mult lam 0.45 seed  0 M1+mass@0.7 OK 3.899               rmse 0.065 wall 16s
+track 1145 mass_mult lam 0.50 seed  0 M1@0.7   OK 3.9                 rmse 0.073 wall 15s
+track 1145 mass_mult lam 0.50 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.097 wall 12s
+track 1145 mass_mult lam 0.50 seed  0 M1+L1@0.7 FAIL contact           rmse 0.144 wall 12s
+track 1145 mass_mult lam 0.50 seed  0 M1+mass@0.7 OK 3.899               rmse 0.066 wall 16s
+track 1145 mass_mult lam 0.55 seed  0 M1@0.7   OK 3.9                 rmse 0.076 wall 15s
+track 1145 mass_mult lam 0.55 seed  0 M1+ESO@0.7 OK 3.922               rmse 0.087 wall 16s
+track 1145 mass_mult lam 0.55 seed  0 M1+L1@0.7 OK 3.945               rmse 0.073 wall 16s
+track 1145 mass_mult lam 0.55 seed  0 M1+mass@0.7 OK 3.9                 rmse 0.067 wall 16s
+track 1145 mass_mult lam 0.60 seed  0 M1@0.7   OK 3.9                 rmse 0.079 wall 15s
+track 1145 mass_mult lam 0.60 seed  0 M1+ESO@0.7 OK 3.933               rmse 0.093 wall 16s
+track 1145 mass_mult lam 0.60 seed  0 M1+L1@0.7 OK 3.913               rmse 0.063 wall 16s
+track 1145 mass_mult lam 0.60 seed  0 M1+mass@0.7 OK 3.9                 rmse 0.069 wall 16s
+track 1145 mass_mult lam 0.65 seed  0 M1@0.7   OK 3.901               rmse 0.083 wall 15s
+track 1145 mass_mult lam 0.65 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.102 wall 12s
+track 1145 mass_mult lam 0.65 seed  0 M1+L1@0.7 OK 3.908               rmse 0.065 wall 16s
+track 1145 mass_mult lam 0.65 seed  0 M1+mass@0.7 OK 3.9                 rmse 0.071 wall 16s
+track 1145 mass_mult lam 0.70 seed  0 M1@0.7   OK 3.901               rmse 0.088 wall 15s
+track 1145 mass_mult lam 0.70 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.112 wall 12s
+track 1145 mass_mult lam 0.70 seed  0 M1+L1@0.7 OK 3.923               rmse 0.080 wall 16s
+track 1145 mass_mult lam 0.70 seed  0 M1+mass@0.7 OK 3.9                 rmse 0.073 wall 16s
+track 1145 mass_mult lam 0.80 seed  0 M1@0.7   FAIL contact           rmse 0.090 wall 12s
+track 1145 mass_mult lam 0.80 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.122 wall 12s
+track 1145 mass_mult lam 0.80 seed  0 M1+L1@0.7 OK 3.969               rmse 0.119 wall 17s
+track 1145 mass_mult lam 0.80 seed  0 M1+mass@0.7 OK 3.901               rmse 0.078 wall 16s
+track 1145 mass_mult lam 0.85 seed  0 M1@0.7   FAIL contact           rmse 0.092 wall 11s
+track 1145 mass_mult lam 0.85 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.128 wall 12s
+track 1145 mass_mult lam 0.85 seed  0 M1+L1@0.7 FAIL contact           rmse 0.109 wall 12s
+track 1145 mass_mult lam 0.85 seed  0 M1+mass@0.7 OK 3.902               rmse 0.082 wall 16s
+track 1145 mass_mult lam 0.90 seed  0 M1@0.7   FAIL contact           rmse 0.096 wall 12s
+track 1145 mass_mult lam 0.90 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.137 wall 12s
+track 1145 mass_mult lam 0.90 seed  0 M1+L1@0.7 FAIL contact           rmse 0.124 wall 12s
+track 1145 mass_mult lam 0.90 seed  0 M1+mass@0.7 OK 3.905               rmse 0.086 wall 16s
+track 1145 mass_mult lam 0.95 seed  0 M1@0.7   FAIL contact           rmse 0.100 wall 12s
+track 1145 mass_mult lam 0.95 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.143 wall 12s
+track 1145 mass_mult lam 0.95 seed  0 M1+L1@0.7 FAIL contact           rmse 0.141 wall 12s
+track 1145 mass_mult lam 0.95 seed  0 M1+mass@0.7 OK 3.91                rmse 0.092 wall 16s
+track 1145 mass_mult lam 1.00 seed  0 M1@0.7   FAIL contact           rmse 0.104 wall 12s
+track 1145 mass_mult lam 1.00 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.149 wall 12s
+track 1145 mass_mult lam 1.00 seed  0 M1+L1@0.7 FAIL contact           rmse 0.166 wall 12s
+track 1145 mass_mult lam 1.00 seed  0 M1+mass@0.7 OK 3.903               rmse 0.100 wall 16s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_1145/mass_mult/laps.csv
+track 1145 mass_mult lam 0.00 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.107 wall 10s
+track 1145 mass_mult lam 0.00 seed  1 mppi_l1@0.7 OK 3.91                rmse 0.078 wall 7s
+track 1145 mass_mult lam 0.00 seed  2 mppi_l1@0.7 OK 3.911               rmse 0.092 wall 7s
+track 1145 mass_mult lam 0.05 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.103 wall 5s
+track 1145 mass_mult lam 0.05 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.104 wall 7s
+track 1145 mass_mult lam 0.05 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.107 wall 7s
+track 1145 mass_mult lam 0.10 seed  0 mppi_l1@0.7 OK 3.869               rmse 0.105 wall 7s
+track 1145 mass_mult lam 0.10 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.098 wall 3s
+track 1145 mass_mult lam 0.10 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.143 wall 5s
+track 1145 mass_mult lam 0.15 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.135 wall 6s
+track 1145 mass_mult lam 0.15 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.114 wall 7s
+track 1145 mass_mult lam 0.15 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.123 wall 3s
+track 1145 mass_mult lam 0.20 seed  0 mppi_l1@0.7 FAIL missed_gate_4     rmse 0.346 wall 8s
+track 1145 mass_mult lam 0.20 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.128 wall 7s
+track 1145 mass_mult lam 0.20 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.148 wall 7s
+track 1145 mass_mult lam 0.25 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.070 wall 3s
+track 1145 mass_mult lam 0.25 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.161 wall 5s
+track 1145 mass_mult lam 0.25 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.122 wall 7s
+track 1145 mass_mult lam 0.30 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.084 wall 3s
+track 1145 mass_mult lam 0.30 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.145 wall 6s
+track 1145 mass_mult lam 0.30 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.162 wall 7s
+track 1145 mass_mult lam 0.35 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.093 wall 3s
+track 1145 mass_mult lam 0.35 seed  1 mppi_l1@0.7 FAIL missed_gate_4     rmse 0.295 wall 8s
+track 1145 mass_mult lam 0.35 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.107 wall 3s
+track 1145 mass_mult lam 0.40 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.133 wall 3s
+track 1145 mass_mult lam 0.40 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.158 wall 7s
+track 1145 mass_mult lam 0.40 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.081 wall 3s
+track 1145 mass_mult lam 0.45 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.076 wall 3s
+track 1145 mass_mult lam 0.45 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.161 wall 7s
+track 1145 mass_mult lam 0.45 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.158 wall 3s
+track 1145 mass_mult lam 0.50 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.308 wall 4s
+track 1145 mass_mult lam 0.50 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.188 wall 5s
+track 1145 mass_mult lam 0.50 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.139 wall 3s
+track 1145 mass_mult lam 0.55 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.094 wall 3s
+track 1145 mass_mult lam 0.55 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.142 wall 5s
+track 1145 mass_mult lam 0.55 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.151 wall 4s
+track 1145 mass_mult lam 0.60 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.187 wall 5s
+track 1145 mass_mult lam 0.60 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.150 wall 4s
+track 1145 mass_mult lam 0.60 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.091 wall 3s
+track 1145 mass_mult lam 0.65 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.078 wall 4s
+track 1145 mass_mult lam 0.65 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.128 wall 4s
+track 1145 mass_mult lam 0.65 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.186 wall 7s
+track 1145 mass_mult lam 0.70 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.171 wall 5s
+track 1145 mass_mult lam 0.70 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.101 wall 2s
+track 1145 mass_mult lam 0.70 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.153 wall 5s
+track 1145 mass_mult lam 0.80 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.237 wall 5s
+track 1145 mass_mult lam 0.80 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.162 wall 2s
+track 1145 mass_mult lam 0.80 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.193 wall 4s
+track 1145 mass_mult lam 0.85 seed  0 mppi_l1@0.7 OK 3.975               rmse 0.183 wall 7s
+track 1145 mass_mult lam 0.85 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.174 wall 5s
+track 1145 mass_mult lam 0.85 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.134 wall 2s
+track 1145 mass_mult lam 0.90 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.160 wall 3s
+track 1145 mass_mult lam 0.90 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.186 wall 5s
+track 1145 mass_mult lam 0.90 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.210 wall 3s
+track 1145 mass_mult lam 0.95 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.185 wall 4s
+track 1145 mass_mult lam 0.95 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.192 wall 3s
+track 1145 mass_mult lam 0.95 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.084 wall 2s
+track 1145 mass_mult lam 1.00 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.075 wall 2s
+track 1145 mass_mult lam 1.00 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.184 wall 4s
+track 1145 mass_mult lam 1.00 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.234 wall 7s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_1145/mass_mult/laps.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 1145 mass_mult lam 0.75 seed  0 M1@0.7   OK 3.902               rmse 0.094 wall 16s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.75 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.119 wall 11s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.75 seed  0 M1+L1@0.7 OK 3.923               rmse 0.087 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 1145 mass_mult lam 0.75 seed  0 M1+mass@0.7 OK 3.9                 rmse 0.075 wall 15s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_1145/mass_mult/laps.csv
+track 1145 mass_mult lam 0.75 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.152 wall 7s
+track 1145 mass_mult lam 0.75 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.208 wall 5s
+track 1145 mass_mult lam 0.75 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.193 wall 4s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_1145/mass_mult/laps.csv

@@ -56,18 +56,14 @@ python thesisfigs.py          # writes the six thesis-only figures to figures/
 
 ## Matched 0.7 rad extension
 
-The last section of `thesis_numbers.py` evaluates the extension pre-registered in Lesson 9 §10: the five
-MPC members capped at 0.7 rad (`results/eval/study_sweep_cap07/`) against the 0.7 rad seeds `s0`–`s2`
-(`results/eval/study_sweep/`). It prints H1 (earlier failure), H2 (a crossover on every track that allows
-one), H3 (the 33 frozen cells), the four unscored cells, and the authority-corner rows in the Table 3 layout.
-These are results, not checks against published values, so they stay out of the thesis count. Its one check,
-that the frozen H3 cell list reproduces from the original laps, has its own count line. Until capped laps
-exist the section says so and stops; while the sweep is incomplete, it marks its output provisional.
+Lesson 9 §10 pre-registers an extension: the five MPC members capped at 0.7 rad
+(`results/eval/study_sweep_cap07/`) against the 0.7 rad seeds `s0`–`s2` (`results/eval/study_sweep/`). No
+script here scores its hypotheses; the library reads its laps with the same rules as the paper.
 
 Reading both folders is `lib.load(roots=lib.BOTH)`. Each member's laps live in exactly one folder, so the
-loader raises if any (track, channel, λ, seed, member) appears twice. `viable_members`, `entering_tracks`,
-`family_lines` and `analysis.power_and_cross` take `mpc=` (e.g. `lib.CAP07`) and `roots=`; their defaults
-are the paper's, so `analysis.py` and the rest of `thesis_numbers.py` read exactly what they read before.
+loader raises if any (track, channel, λ, seed, member) appears twice. `comp_table`, `viable_members`, `curve`,
+`entering_tracks`, `family_lines` and `analysis.power_and_cross` take `mpc=` (e.g. `lib.CAP07`) and `roots=`;
+their defaults are the paper's, so `analysis.py` and `thesis_numbers.py` read exactly what they read before.
 
 ## Files
 

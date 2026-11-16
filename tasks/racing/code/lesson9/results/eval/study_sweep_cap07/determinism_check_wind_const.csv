@@ -1,0 +1,11 @@
+role,track,cond,lam,seed,member,completed,gates_passed,gates_clean,fail,t_impact,impact_gate,impact_box,race_time,t_gate1,rmse_3d,rmse_xy,max_dev,steps,wall_s,solve_ms_mean,solve_ms_max,ipopt_fail,mass_mult
+study,747,wind_const,0.5,0,M1@0.7,0,0,0,contact,1.233,1,right,,,0.1269,0.1257,0.184,125,4.13,22.5,127.4,0,1.0
+study,747,wind_const,0.5,0,M1+ESO@0.7,1,4,4,,,,,4.237,1.254,0.0806,0.072,0.14,425,9.89,19.9,45.4,0,1.0
+study,747,wind_const,0.5,0,M1+L1@0.7,1,4,4,,,,,4.241,1.25,0.1014,0.0861,0.223,426,10.33,20.7,61.4,0,1.0
+study,747,wind_const,0.5,0,M1+mass@0.7,0,0,0,contact,1.233,1,right,,,0.1269,0.1256,0.184,125,2.94,21.2,55.6,0,1.0
+study,747,wind_const,0.5,0,mppi_l1@0.7,0,2,2,contact,3.345,3,top,,1.267,0.2258,0.1245,0.529,336,3.87,,,0,1.0
+study,747,wind_const,0.5,1,M1@0.7,0,0,0,contact,1.233,1,right,,,0.1269,0.1257,0.184,125,2.95,21.2,39.7,0,1.0
+study,747,wind_const,0.5,1,M1+ESO@0.7,1,4,4,,,,,4.237,1.254,0.0806,0.072,0.14,425,10.34,20.9,45.6,0,1.0
+study,747,wind_const,0.5,1,M1+L1@0.7,1,4,4,,,,,4.241,1.25,0.1014,0.0861,0.223,426,10.43,21.0,56.0,0,1.0
+study,747,wind_const,0.5,1,M1+mass@0.7,0,0,0,contact,1.233,1,right,,,0.1269,0.1256,0.184,125,2.9,20.9,43.2,0,1.0
+study,747,wind_const,0.5,1,mppi_l1@0.7,0,2,2,contact,3.395,3,top,,1.274,0.2775,0.1591,0.677,341,3.88,,,0,1.0

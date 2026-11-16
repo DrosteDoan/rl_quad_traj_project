@@ -1,0 +1,107 @@
+--mpc-set cap07: flying M1@0.7, M1+ESO@0.7, M1+L1@0.7, M1+mass@0.7, mppi_l1@0.7 only, into /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07; the RL members are not flown (their stored laps in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep are the comparison)
+=== phase: midpoints ===
+track 747 payload: midpoints [0.45]
+track 747 wind_gust: midpoints [0.25]
+track 747 lighthouse: midpoints [0.35, 0.45]
+track 747 mass_mult: midpoints [0.25, 0.95]
+track 757 lighthouse: midpoints [0.15]
+track 757 mass_mult: midpoints [0.35, 0.75, 0.85, 0.95]
+track 834 wind_const: midpoints [0.25, 0.65, 0.95]
+track 834 payload: midpoints [0.25, 0.35, 0.45]
+track 834 wind_gust: midpoints [0.15]
+track 834 lighthouse: midpoints [0.45, 0.95]
+track 837 wind_const: midpoints [0.35, 0.65]
+track 837 payload: midpoints [0.05, 0.65]
+track 837 lighthouse: midpoints [0.35]
+track 837 mass_mult: midpoints [0.45]
+track 837 combined: midpoints [0.05]
+track 965 payload: midpoints [0.55, 0.75, 0.85]
+track 965 lighthouse: midpoints [0.15, 0.25, 0.75]
+track 989 payload: midpoints [0.25, 0.35]
+track 989 wind_gust: midpoints [0.65]
+track 989 mass_mult: midpoints [0.85]
+track 1089 wind_const: midpoints [0.05]
+track 1089 payload: midpoints [0.65]
+track 1089 wind_gust: midpoints [0.05, 0.25]
+track 1089 lighthouse: midpoints [0.65]
+track 1089 mass_mult: midpoints [0.35]
+track 1145 wind_const: midpoints [0.85]
+track 1145 payload: midpoints [0.65]
+track 1145 wind_gust: midpoints [0.55, 0.85]
+track 1145 mass_mult: midpoints [0.75]
+track 1250 wind_const: midpoints [0.95]
+track 1250 payload: midpoints [0.55]
+track 1250 wind_gust: midpoints [0.25]
+track 1250 lighthouse: midpoints [0.15, 0.35]
+track 1250 mass_mult: midpoints [0.15, 0.45]
+track 1318 wind_const: midpoints [0.45]
+track 1318 payload: midpoints [0.35, 0.75]
+track 1318 wind_gust: midpoints [0.65]
+track 1318 lighthouse: midpoints [0.55]
+track 1318 mass_mult: midpoints [0.75]
+62 midpoint tasks (61 lambda points added, 39 regular, 23 escalated)
+[1/39] laps: rc=0 in 25.2 min
+[2/39] laps: rc=0 in 28.3 min
+[3/39] laps: rc=0 in 32.6 min
+[4/39] laps: rc=0 in 33.9 min
+[5/39] laps: rc=0 in 39.4 min
+[6/39] laps: rc=0 in 45.8 min
+[7/39] laps: rc=0 in 15.9 min
+[8/39] laps: rc=0 in 23.7 min
+[9/39] laps: rc=0 in 50.4 min
+[10/39] laps: rc=0 in 2.8 min
+[11/39] laps: rc=0 in 4.7 min
+[12/39] laps: rc=0 in 3.6 min
+[13/39] laps: rc=0 in 55.0 min
+[14/39] laps: rc=0 in 1.9 min
+[15/39] laps: rc=0 in 3.8 min
+[16/39] laps: rc=0 in 1.7 min
+[17/39] laps: rc=0 in 2.0 min
+[18/39] laps: rc=0 in 2.1 min
+[19/39] laps: rc=0 in 2.3 min
+[20/39] laps: rc=0 in 1.1 min
+[21/39] laps: rc=0 in 3.1 min
+[22/39] laps: rc=0 in 1.1 min
+[23/39] laps: rc=0 in 0.9 min
+[24/39] laps: rc=0 in 1.0 min
+[25/39] laps: rc=0 in 59.2 min
+[26/39] laps: rc=0 in 25.3 min
+[27/39] laps: rc=0 in 1.6 min
+[28/39] laps: rc=0 in 1.0 min
+[29/39] laps: rc=0 in 0.9 min
+[30/39] laps: rc=0 in 0.9 min
+[31/39] laps: rc=0 in 1.1 min
+[32/39] laps: rc=0 in 1.1 min
+[33/39] laps: rc=0 in 0.8 min
+[34/39] laps: rc=0 in 1.1 min
+[35/39] laps: rc=0 in 1.0 min
+[36/39] laps: rc=0 in 24.1 min
+[37/39] laps: rc=0 in 37.3 min
+[38/39] laps: rc=0 in 24.5 min
+[39/39] laps: rc=0 in 86.5 min
+[1/23] laps: rc=0 in 0.7 min
+[2/23] laps: rc=0 in 0.7 min
+[3/23] laps: rc=0 in 0.7 min
+[4/23] laps: rc=0 in 0.8 min
+[5/23] laps: rc=0 in 0.3 min
+[6/23] laps: rc=0 in 1.0 min
+[7/23] laps: rc=0 in 0.4 min
+[8/23] laps: rc=0 in 1.2 min
+[9/23] laps: rc=0 in 0.4 min
+[10/23] laps: rc=0 in 0.3 min
+[11/23] laps: rc=0 in 0.3 min
+[12/23] laps: rc=0 in 1.4 min
+[13/23] laps: rc=0 in 1.4 min
+[14/23] laps: rc=0 in 1.5 min
+[15/23] laps: rc=0 in 0.8 min
+[16/23] laps: rc=0 in 0.4 min
+[17/23] laps: rc=0 in 0.4 min
+[18/23] laps: rc=0 in 0.4 min
+[19/23] laps: rc=0 in 0.3 min
+[20/23] laps: rc=0 in 0.4 min
+[21/23] laps: rc=0 in 0.4 min
+[22/23] laps: rc=0 in 0.4 min
+[23/23] laps: rc=0 in 1.9 min
+--mpc-set cap07: flying M1@0.7, M1+ESO@0.7, M1+L1@0.7, M1+mass@0.7, mppi_l1@0.7 only, into /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07; the RL members are not flown (their stored laps in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep are the comparison)
+=== phase: charts ===
+charts written under /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07 (60 cells x 3 statistics, matched 0.7 rad)

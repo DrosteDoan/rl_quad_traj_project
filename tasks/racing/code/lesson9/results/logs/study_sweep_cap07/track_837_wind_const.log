@@ -1,0 +1,166 @@
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 837 wind_const lam 0.00 seed  0 M1@0.7   FAIL contact           rmse 0.065 wall 15s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.00 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.064 wall 14s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.00 seed  0 M1+L1@0.7 FAIL contact           rmse 0.077 wall 14s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.00 seed  0 M1+mass@0.7 FAIL contact           rmse 0.064 wall 13s
+track 837 wind_const lam 0.05 seed  0 M1@0.7   FAIL contact           rmse 0.065 wall 13s
+track 837 wind_const lam 0.05 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.065 wall 13s
+track 837 wind_const lam 0.05 seed  0 M1+L1@0.7 FAIL contact           rmse 0.078 wall 12s
+track 837 wind_const lam 0.05 seed  0 M1+mass@0.7 FAIL contact           rmse 0.065 wall 13s
+track 837 wind_const lam 0.10 seed  0 M1@0.7   FAIL contact           rmse 0.069 wall 13s
+track 837 wind_const lam 0.10 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.068 wall 13s
+track 837 wind_const lam 0.10 seed  0 M1+L1@0.7 FAIL contact           rmse 0.079 wall 13s
+track 837 wind_const lam 0.10 seed  0 M1+mass@0.7 FAIL contact           rmse 0.069 wall 13s
+track 837 wind_const lam 0.20 seed  0 M1@0.7   FAIL contact           rmse 0.085 wall 13s
+track 837 wind_const lam 0.20 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.073 wall 13s
+track 837 wind_const lam 0.20 seed  0 M1+L1@0.7 FAIL contact           rmse 0.081 wall 12s
+track 837 wind_const lam 0.20 seed  0 M1+mass@0.7 FAIL contact           rmse 0.085 wall 13s
+track 837 wind_const lam 0.25 seed  0 M1@0.7   FAIL contact           rmse 0.095 wall 13s
+track 837 wind_const lam 0.25 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.078 wall 13s
+track 837 wind_const lam 0.25 seed  0 M1+L1@0.7 FAIL contact           rmse 0.084 wall 13s
+track 837 wind_const lam 0.25 seed  0 M1+mass@0.7 FAIL contact           rmse 0.095 wall 13s
+track 837 wind_const lam 0.30 seed  0 M1@0.7   FAIL contact           rmse 0.109 wall 13s
+track 837 wind_const lam 0.30 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.081 wall 13s
+track 837 wind_const lam 0.30 seed  0 M1+L1@0.7 FAIL contact           rmse 0.087 wall 13s
+track 837 wind_const lam 0.30 seed  0 M1+mass@0.7 FAIL contact           rmse 0.109 wall 13s
+track 837 wind_const lam 0.40 seed  0 M1@0.7   FAIL contact           rmse 0.140 wall 13s
+track 837 wind_const lam 0.40 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.090 wall 14s
+track 837 wind_const lam 0.40 seed  0 M1+L1@0.7 FAIL contact           rmse 0.095 wall 13s
+track 837 wind_const lam 0.40 seed  0 M1+mass@0.7 FAIL contact           rmse 0.140 wall 14s
+track 837 wind_const lam 0.45 seed  0 M1@0.7   FAIL contact           rmse 0.158 wall 13s
+track 837 wind_const lam 0.45 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.116 wall 14s
+track 837 wind_const lam 0.45 seed  0 M1+L1@0.7 FAIL contact           rmse 0.098 wall 13s
+track 837 wind_const lam 0.45 seed  0 M1+mass@0.7 FAIL contact           rmse 0.156 wall 13s
+track 837 wind_const lam 0.50 seed  0 M1@0.7   FAIL contact           rmse 0.171 wall 14s
+track 837 wind_const lam 0.50 seed  0 M1+ESO@0.7 OK 4.53                rmse 0.196 wall 21s
+track 837 wind_const lam 0.50 seed  0 M1+L1@0.7 FAIL contact           rmse 0.099 wall 14s
+track 837 wind_const lam 0.50 seed  0 M1+mass@0.7 FAIL contact           rmse 0.174 wall 15s
+track 837 wind_const lam 0.55 seed  0 M1@0.7   FAIL contact           rmse 0.155 wall 11s
+track 837 wind_const lam 0.55 seed  0 M1+ESO@0.7 OK 4.529               rmse 0.229 wall 18s
+track 837 wind_const lam 0.55 seed  0 M1+L1@0.7 FAIL contact           rmse 0.106 wall 13s
+track 837 wind_const lam 0.55 seed  0 M1+mass@0.7 FAIL contact           rmse 0.160 wall 10s
+track 837 wind_const lam 0.60 seed  0 M1@0.7   FAIL contact           rmse 0.171 wall 10s
+track 837 wind_const lam 0.60 seed  0 M1+ESO@0.7 OK 4.529               rmse 0.225 wall 18s
+track 837 wind_const lam 0.60 seed  0 M1+L1@0.7 FAIL contact           rmse 0.120 wall 13s
+track 837 wind_const lam 0.60 seed  0 M1+mass@0.7 FAIL contact           rmse 0.170 wall 10s
+track 837 wind_const lam 0.70 seed  0 M1@0.7   FAIL contact           rmse 0.206 wall 10s
+track 837 wind_const lam 0.70 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.266 wall 15s
+track 837 wind_const lam 0.70 seed  0 M1+L1@0.7 OK 4.591               rmse 0.286 wall 19s
+track 837 wind_const lam 0.70 seed  0 M1+mass@0.7 FAIL contact           rmse 0.203 wall 10s
+track 837 wind_const lam 0.75 seed  0 M1@0.7   FAIL contact           rmse 0.226 wall 10s
+track 837 wind_const lam 0.75 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.324 wall 15s
+track 837 wind_const lam 0.75 seed  0 M1+L1@0.7 FAIL contact           rmse 0.163 wall 14s
+track 837 wind_const lam 0.75 seed  0 M1+mass@0.7 FAIL contact           rmse 0.177 wall 6s
+track 837 wind_const lam 0.80 seed  0 M1@0.7   FAIL contact           rmse 0.187 wall 5s
+track 837 wind_const lam 0.80 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.329 wall 15s
+track 837 wind_const lam 0.80 seed  0 M1+L1@0.7 FAIL contact           rmse 0.251 wall 19s
+track 837 wind_const lam 0.80 seed  0 M1+mass@0.7 FAIL contact           rmse 0.187 wall 5s
+track 837 wind_const lam 0.85 seed  0 M1@0.7   FAIL contact           rmse 0.198 wall 5s
+track 837 wind_const lam 0.85 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.336 wall 16s
+track 837 wind_const lam 0.85 seed  0 M1+L1@0.7 FAIL contact           rmse 0.257 wall 18s
+track 837 wind_const lam 0.85 seed  0 M1+mass@0.7 FAIL contact           rmse 0.198 wall 5s
+track 837 wind_const lam 0.90 seed  0 M1@0.7   FAIL contact           rmse 0.208 wall 5s
+track 837 wind_const lam 0.90 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.360 wall 15s
+track 837 wind_const lam 0.90 seed  0 M1+L1@0.7 OK 4.556               rmse 0.327 wall 18s
+track 837 wind_const lam 0.90 seed  0 M1+mass@0.7 FAIL contact           rmse 0.208 wall 5s
+track 837 wind_const lam 0.95 seed  0 M1@0.7   FAIL contact           rmse 0.219 wall 5s
+track 837 wind_const lam 0.95 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.408 wall 17s
+track 837 wind_const lam 0.95 seed  0 M1+L1@0.7 OK 4.564               rmse 0.350 wall 22s
+track 837 wind_const lam 0.95 seed  0 M1+mass@0.7 FAIL contact           rmse 0.219 wall 6s
+track 837 wind_const lam 1.00 seed  0 M1@0.7   FAIL contact           rmse 0.230 wall 6s
+track 837 wind_const lam 1.00 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.444 wall 18s
+track 837 wind_const lam 1.00 seed  0 M1+L1@0.7 FAIL contact           rmse 0.441 wall 21s
+track 837 wind_const lam 1.00 seed  0 M1+mass@0.7 FAIL contact           rmse 0.230 wall 6s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_837/wind_const/laps.csv
+track 837 wind_const lam 0.00 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.168 wall 7s
+track 837 wind_const lam 0.00 seed  1 mppi_l1@0.7 OK 4.573               rmse 0.213 wall 8s
+track 837 wind_const lam 0.00 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.104 wall 4s
+track 837 wind_const lam 0.05 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.153 wall 6s
+track 837 wind_const lam 0.05 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.087 wall 2s
+track 837 wind_const lam 0.05 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.145 wall 6s
+track 837 wind_const lam 0.10 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.087 wall 2s
+track 837 wind_const lam 0.10 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.135 wall 6s
+track 837 wind_const lam 0.10 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.147 wall 5s
+track 837 wind_const lam 0.20 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.144 wall 6s
+track 837 wind_const lam 0.20 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.155 wall 6s
+track 837 wind_const lam 0.20 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.172 wall 6s
+track 837 wind_const lam 0.25 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.117 wall 5s
+track 837 wind_const lam 0.25 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.181 wall 5s
+track 837 wind_const lam 0.25 seed  2 mppi_l1@0.7 OK 4.56                rmse 0.193 wall 8s
+track 837 wind_const lam 0.30 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.120 wall 5s
+track 837 wind_const lam 0.30 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.235 wall 7s
+track 837 wind_const lam 0.30 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.099 wall 2s
+track 837 wind_const lam 0.40 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.153 wall 6s
+track 837 wind_const lam 0.40 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.157 wall 6s
+track 837 wind_const lam 0.40 seed  2 mppi_l1@0.7 OK 4.615               rmse 0.173 wall 8s
+track 837 wind_const lam 0.45 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.168 wall 5s
+track 837 wind_const lam 0.45 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.173 wall 6s
+track 837 wind_const lam 0.45 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.223 wall 6s
+track 837 wind_const lam 0.50 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.198 wall 5s
+track 837 wind_const lam 0.50 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.110 wall 2s
+track 837 wind_const lam 0.50 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.197 wall 6s
+track 837 wind_const lam 0.55 seed  0 mppi_l1@0.7 FAIL missed_gate_3     rmse 0.342 wall 8s
+track 837 wind_const lam 0.55 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.146 wall 6s
+track 837 wind_const lam 0.55 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.134 wall 5s
+track 837 wind_const lam 0.60 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.229 wall 6s
+track 837 wind_const lam 0.60 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.163 wall 6s
+track 837 wind_const lam 0.60 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.351 wall 6s
+track 837 wind_const lam 0.70 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.232 wall 6s
+track 837 wind_const lam 0.70 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.168 wall 5s
+track 837 wind_const lam 0.70 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.231 wall 6s
+track 837 wind_const lam 0.75 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.230 wall 6s
+track 837 wind_const lam 0.75 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.166 wall 5s
+track 837 wind_const lam 0.75 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.221 wall 5s
+track 837 wind_const lam 0.80 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.114 wall 2s
+track 837 wind_const lam 0.80 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.234 wall 5s
+track 837 wind_const lam 0.80 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.329 wall 6s
+track 837 wind_const lam 0.85 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.221 wall 6s
+track 837 wind_const lam 0.85 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.316 wall 6s
+track 837 wind_const lam 0.85 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.148 wall 2s
+track 837 wind_const lam 0.90 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.281 wall 6s
+track 837 wind_const lam 0.90 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.228 wall 5s
+track 837 wind_const lam 0.90 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.147 wall 2s
+track 837 wind_const lam 0.95 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.220 wall 5s
+track 837 wind_const lam 0.95 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.117 wall 2s
+track 837 wind_const lam 0.95 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.204 wall 2s
+track 837 wind_const lam 1.00 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.277 wall 6s
+track 837 wind_const lam 1.00 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.267 wall 7s
+track 837 wind_const lam 1.00 seed  2 mppi_l1@0.7 FAIL missed_gate_3     rmse 0.397 wall 8s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_837/wind_const/laps.csv
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit https://github.com/coin-or/Ipopt
+******************************************************************************
+
+track 837 wind_const lam 0.35 seed  0 M1@0.7   FAIL contact           rmse 0.123 wall 13s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=eso,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.35 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.085 wall 12s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=l1,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=0,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.35 seed  0 M1+L1@0.7 FAIL contact           rmse 0.089 wall 12s
+[mpc_dev] MPCDev options: int=euler,H=20,dtp=0.04,freq=100,wp=1,wv=0.05,wu=0.02,wf=0.02,wdu=0.1,wt=0,tau=0,accff=0,wa=0,dist=none,eso_w=7,l1_as=-5,l1_c=4,ramp=time,ramp_t=1.5,liftoff_dz=0.03,mass=1,mass_gain=2,mass_min=0.8,mass_max=1.25,mass_delay=0.3,rp_max=0.7,yaw_max=0.3,iter=60,tol=0.0001,att=sim,ka=-338.1,kb=-40.8,kc=318.3,drag=0.495,dragz=0.495,fgain=1,hover=0.42556,flag=0
+track 837 wind_const lam 0.35 seed  0 M1+mass@0.7 FAIL contact           rmse 0.124 wall 12s
+track 837 wind_const lam 0.65 seed  0 M1@0.7   FAIL contact           rmse 0.186 wall 10s
+track 837 wind_const lam 0.65 seed  0 M1+ESO@0.7 FAIL contact           rmse 0.269 wall 15s
+track 837 wind_const lam 0.65 seed  0 M1+L1@0.7 FAIL contact           rmse 0.131 wall 12s
+track 837 wind_const lam 0.65 seed  0 M1+mass@0.7 FAIL contact           rmse 0.188 wall 10s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_837/wind_const/laps.csv
+track 837 wind_const lam 0.35 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.186 wall 9s
+track 837 wind_const lam 0.35 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.142 wall 6s
+track 837 wind_const lam 0.35 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.166 wall 6s
+track 837 wind_const lam 0.65 seed  0 mppi_l1@0.7 FAIL contact           rmse 0.302 wall 6s
+track 837 wind_const lam 0.65 seed  1 mppi_l1@0.7 FAIL contact           rmse 0.216 wall 6s
+track 837 wind_const lam 0.65 seed  2 mppi_l1@0.7 FAIL contact           rmse 0.332 wall 6s
+rows in /workspace/tasks/racing/code/lesson9/results/eval/study_sweep_cap07/track_837/wind_const/laps.csv
